@@ -72,7 +72,7 @@ python test.py
 - Keep word list data in `words.csv` and audio in `pronunciations/`.
 - Analytics are appended to the CSV files; check `sent_tg_messages.json` to see Telegram history.
 
-##Future Features
+## Future Features
 - Show if the word Noun or Verb when asking
 - Startup admin interface (press - on startup) UI and menu itself
 - More commmands in admin controls (pos command for selecting an key with its abs position)

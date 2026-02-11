@@ -3,6 +3,7 @@ A small Python project to help with English practice and reporting. Provides CLI
 
 ## Future Features
 - [x] Show the words type (Noun or Verb) when asking questions
+- [ ] Checking for bad audio files when downloading
 - [ ] Startup admin interface (press - on startup) UI and menu itself
 - [ ] More commmands in admin controls (pos command for selecting an key with its abs position)
 - [ ] Colorama with question asking/answering and with the stats

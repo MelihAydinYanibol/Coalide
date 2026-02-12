@@ -209,3 +209,7 @@ __marimo__/
 #EXTENSIONS
 /.continue
 /env
+analytics.csv
+daily_stats.csv
+statistics.csv
+sent_tg_messages.json

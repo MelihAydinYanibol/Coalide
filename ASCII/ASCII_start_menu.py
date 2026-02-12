@@ -7,18 +7,21 @@ import sys
 
 # We use a global or a dictionary to store the key outside the function
 last_key = {"char": None}
-if "--debug" in sys.argv:
+if "-debug" in sys.argv:
     dtxt = "DEBUG MODE IS ON"
 else: dtxt = ""
+
+
+###     Print(screen, 
+###         FigletText("ENGLISH", font='slant'), 
+###         screen.height // 3 - 1),
 
 def demo(screen):
     effects = [
         Print(screen, 
-              FigletText("PROJECT", font='slant'), 
-              screen.height // 3 - 6),
-        Print(screen, 
-              FigletText("ENGLISH", font='slant'), 
-              screen.height // 3 - 1),
+              FigletText("Coalide", font='slant'), 
+              screen.height // 2 - 3),
+        
               
         Print(screen, 
               StaticRenderer(images=["Press any key to start"]), 

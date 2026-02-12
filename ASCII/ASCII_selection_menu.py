@@ -18,7 +18,7 @@ class ModernMenu(Frame):
         header_layout = Layout([100])
         self.add_layout(header_layout)
         
-        header = FigletText("PROJECT\nENGLISH", font="standard")
+        header = FigletText("Coalide", font="standard")
         header_layout.add_widget(Label(header, height=header.max_height))
         header_layout.add_widget(Divider())
 

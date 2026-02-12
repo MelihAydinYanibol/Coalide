@@ -39,7 +39,7 @@ def get_config(keys=[]):
         config = {
             "default_quiz_config": {
                 "level_1_question_count": 20,
-                "level_2_question_count": 40,
+                "level_2_question_count": 50,
                 "random_order": True,
                 "pronounce_words": True,
                 "send_telegram_message": True,
@@ -372,7 +372,7 @@ def main(quiz_config={}, legacy_start_menu=False,mode="play"):
     lg("main()")
     options = {"1": "Başla","2": "Admin Girişi"}
     if legacy_start_menu:
-        print("InQ'ya hoş geldiniz!\n")
+        print("Coalide'a hoş geldiniz!\n")
         try:
             if sys.argv[1] == "-debug":
                 

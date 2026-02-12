@@ -306,7 +306,7 @@ def quest(question_amount, wordlist, word_progression, dd, typer, quiz_config, c
                 print(Fore.GREEN+"\nDoğru!"+Style.RESET_ALL)
                 save_stat(time_,word,dd[word],answer,True,current_level)
             elif answer == "":
-                print(Fore.LIGHTRED_EX+f"Boş bırakıldı! Doğru cevap: {word}"+Style.RESET_ALL)
+                print(Fore.LIGHTRED_EX+f"Boş bırakıldı! Doğru cevap: {dd[word]}"+Style.RESET_ALL)
                 save_stat(time_,word,dd[word],answer,"blank",current_level)
             elif answer.lower() == "exit":
                 os._exit(1)
@@ -689,7 +689,7 @@ def main(quiz_config={}, legacy_start_menu=False,mode="play"):
                         question_amount = quiz_config["level_2_question_count"]
 
                     lg(unknown_words)
-                    quest(question_amount=question_amount,wordlist=unknown_words,word_progression=word_progression,dd=dd,typer=typer,quiz_config=quiz_config,current_level=1)
+                    quest(question_amount=question_amount,wordlist=unknown_words,word_progression=word_progression,dd=dd,typer=typer,quiz_config=quiz_config,current_level=2)
                     LEVEL_2_PASSED = True
                     analytics("set",datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S"),start_time,"level_2_passed")
                     """ daily_stat("set,") """

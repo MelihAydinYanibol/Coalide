@@ -573,6 +573,8 @@ def main(quiz_config={}, legacy_start_menu=False,mode="play"):
                 lg(known_words)
                 quest(question_amount=question_amount,wordlist=known_words,word_progression=word_progression,dd=dd,typer=typer,quiz_config=quiz_config,current_level=1)
                 analytics("set",datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S"),start_time,"level_1_passed")
+                if not os.path.exists("statistics.csv"):
+                    with open("statistics.csv","w",encoding="UTF-8") as f:f.close()
                 with open("statistics.csv", "r", encoding="UTF-8") as f:
                     correct_counter_ = wrong_counter_ = blank_counter_ = total_counter_ = 0
                     lines = f.readlines()

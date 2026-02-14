@@ -213,4 +213,4 @@ analytics.csv
 daily_stats.csv
 statistics.csv
 sent_tg_messages.json
-config.json
+#config.json

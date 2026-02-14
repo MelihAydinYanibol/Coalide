@@ -33,33 +33,58 @@ def cls():
     if lg() != True:
         os.system('cls')
 
-def get_config(keys=[]):
-    lg(f"get_config({keys})")
-    if "config.json" not in os.listdir():
-        config = {
-            "default_quiz_config": {
-                "level_1_question_count": 20,
-                "level_2_question_count": 50,
-                "random_order": True,
-                "pronounce_words": True,
-                "send_telegram_message": True,
-                "save_statistics": True
-            }
+def get_config(keys=None):
+    # Standard way to handle list arguments in Python
+    if keys is None:
+        keys = []
+        
+    config_path = "config.json"
+    
+    # 1. Define the default structure
+    default_config = {
+        "default_quiz_config": {
+            "level_1_question_count": 20,
+            "level_2_question_count": 50,
+            "random_order": True,
+            "pronounce_words": True,
+            "send_telegram_message": True,
+            "save_statistics": True,
+        },
+        "dummy_mode": {
+            "dummy_mode": False,
+            "dummy_question_count": 100,
+            "send_telegram_message": True,
+            "pronounce_words": True
+        },
+        "general": {
+            "spam_answer_proof": True
         }
-        with open("config.json", "w", encoding="UTF-8") as file:
-            json.dump(config, file, indent=4)
-            file.close()
+    }
+
+    # 2. Handle File Loading/Creation
+    if not os.path.exists(config_path):
+        with open(config_path, "w", encoding="UTF-8") as file:
+            json.dump(default_config, file, indent=4)
+        config = default_config
     else:
-        with open("config.json", "r", encoding="UTF-8") as file:
-            config = json.load(file)
-    o = []
-    if keys != []:
-        for key in keys:
-            if key in next(iter(config.keys())):
-                o.append(config[key])
-    else: 
-        o = config
-    return o
+        with open(config_path, "r", encoding="UTF-8") as file:
+            try:
+                config = json.load(file)
+            except json.JSONDecodeError:
+                config = default_config # Fallback if file is corrupted
+
+    # 3. Return Logic
+    if not keys:
+        # Returns the DICTIONARY if no keys requested
+        return config
+    
+    # Returns a LIST of values if specific keys are requested
+    output = []
+    for key in keys:
+        if key in config:
+            output.append(config[key])
+            
+    return output
 
 def set_config(ukey, key, value):
     lg(f"set_config({ukey},{key},{value})")
@@ -107,7 +132,7 @@ def daily_stat(get_set, correct, wrong, blank, total,level):
             permission = "w"
         else: permission = "r"
         with open("daily_stats.csv",permission,encoding="UTF-8") as f:
-            return f.read()
+            return f.readlines()
     elif get_set == "set":
         if not os.path.exists("daily_stats.csv"):
             permission = "w"
@@ -269,7 +294,7 @@ def save_stat(time_,word,translation,answer,correct,level):
         file.close()
 
 def quest(question_amount, wordlist, word_progression, dd, typer, quiz_config, current_level):
-
+    lg(f"{question_amount},{wordlist},{word_progression},{dd},{typer},{quiz_config},{current_level}")
     if question_amount > len(wordlist):
         question_amount = len(wordlist)
 
@@ -299,8 +324,15 @@ def quest(question_amount, wordlist, word_progression, dd, typer, quiz_config, c
             except Exception as e: 
                 if word in word_progression:
                     print(f"Hata : {e}")
-            
-            answer = input(f"{i+1}. '{word}' ({type_of_word}) kelimesinin Türkçe karşılığı nedir? ")
+            if get_config(["general"])[0].get("spam_answer_proof"):
+                ss_time = time.time()
+                diff = 0
+            else: ss_time == None; diff = None
+            if ss_time == None and diff == None:
+                answer = input(f"{i+1}. '{word}' ({type_of_word}) kelimesinin Türkçe karşılığı nedir? ")
+            while ss_time != None and diff != None and diff < 2:
+                answer = input(f"{i+1}. '{word}' ({type_of_word}) kelimesinin Türkçe karşılığı nedir? ")
+                diff = time.time() - ss_time
             
             if answer.lower() == dd[word].lower():
                 print(Fore.GREEN+"\nDoğru!"+Style.RESET_ALL)
@@ -331,8 +363,17 @@ def quest(question_amount, wordlist, word_progression, dd, typer, quiz_config, c
             except Exception as e: 
                 if word in word_progression:
                     print(f"Hata : {e}")
+
+            if get_config(["general"])[0].get("spam_answer_proof"):
+                ss_time = time.time()
+                diff = 0
+            else: ss_time == None; diff = None
+            if ss_time == None and diff == None:
+                answer = input(f"{i+1}. '{dd[word]}' ({type_of_word}) kelimesinin İngilizce karşılığı nedir? ")
+            while ss_time != None and diff != None and diff < 2:
+                answer = input(f"{i+1}. '{dd[word]}' ({type_of_word}) kelimesinin İngilizce karşılığı nedir? ")
+                diff = time.time() - ss_time
             
-            answer = input(f"{i+1}. '{dd[word]}' ({type_of_word}) kelimesinin İngilizce karşılığı nedir? ")
             
             if answer.lower() == word.lower():
                 print(Fore.GREEN+"\nDoğru!"+Style.RESET_ALL)
@@ -344,10 +385,11 @@ def quest(question_amount, wordlist, word_progression, dd, typer, quiz_config, c
                 os._exit(1)
             else:
                 print(Fore.RED+f"Yanlış! Doğru cevap: {word}"+Style.RESET_ALL)
-                save_stat(time_,word,dd[word],answer,False,current_level)    
+                save_stat(time_,word,dd[word],answer,False,current_level)  
         
         if quiz_config.get("pronounce_words") == True:
             pronounce_word(word)
+        holder = str(input("\n\nDevam etmek için Enter tuşlayınız"))
 
 ### IN BETA ADMIN INTERFACE ###
 """ loop = True
@@ -821,6 +863,338 @@ def main(quiz_config={}, legacy_start_menu=False,mode="play"):
                     main(quiz_config=quiz_config)
 
 
+def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
+    global DEBUG
+    lg(f"dummy_main({quiz_config},{legacy_start_menu},{mode})")
+    options = {"1": "Başla","2": "Admin Girişi"}
+    if legacy_start_menu:
+        print("Coalide'a hoş geldiniz!\n")
+        try:
+            if sys.argv[1] == "-debug":
+                
+                print(Fore.RED + "DEBUG MODU AKTİF" + Style.RESET_ALL + "\n")
+        
+        except:pass
+    
+        
+        print("Seçenekler:\n")
+        for key, value in options.items():
+            print(f"{key}. {value}")
+        choice = input("\n\n> ")
+    else:
+        try:
+            choice = c_
+        except:choice = "play"
+
+    if choice == list(options.keys())[1] or choice == "admin" or mode == "admin":
+        admin_login_interface()
+    elif choice == list(options.keys())[0] or choice == "play" or mode == "play":
+        try:
+            if not DEBUG:
+                c__ = ASCII.ASCII_selection_menu.main()
+                cls()
+                legacy_selection_menu = False
+            else: raise
+        except:
+            print("An error occurred in selection_menu. Falling back to legacy start menu.")
+            legacy_selection_menu = True
+        
+        choices = {"1": "Varsayılan modda başlat", "2": "Admin kontrolü"}
+
+        if legacy_selection_menu:
+            print("Seçenekler:\n")
+            for key, value in choices.items():
+                print(f"{key}. {value}")
+            choice_ = input("\n\n> ")
+        else:
+            choice_ = c__
+            if choice_ == "exit":
+                print("Çıkış yapılıyor...")
+                os._exit(1)
+        if choice_ == list(choices.keys())[1] or choice_ == "admin":
+            auth = admin_login_interface(just_auth=True,legacy_selection_menu=legacy_selection_menu)
+            cls()
+            if auth:
+                print("Admin kontrolüne hoş geldiniz!")
+                default_config = get_config(["default_quiz_config"])
+                if quiz_config == {}:
+                    temp_config = copy.deepcopy(default_config)
+                else:
+                    temp_config = [quiz_config]
+                print("Mevcut quiz yapılandırması:\n")
+                for key, value in temp_config[0].items():
+                    for key_, value_ in default_config[0].items():
+                        if key == key_:
+                            if value != value_:txt = f" (Varsayılan : {value_})"
+                            else:txt = ""
+                            
+                            print(f"{key}: {value}{txt}")
+
+                loop=True
+                while loop == True:
+                    command = input("\n\n> ")
+                    if command.startswith("set "):
+                        if "--help" in command:
+                            print("set komutu, geçici quiz yapılandırmasını güncellemek için kullanılır. Kullanım: set <anahtar> <değer>")
+                            print("Anahtarlar:")
+                            for key in temp_config[0].keys():
+                                print(f"- {key}")
+                        else:
+                            try:
+                                _, key, value = command.split(" ", 2)
+                                if key in temp_config[0]:
+                                    if value.lower() in ["true", "false"]:
+                                        value = value.lower() == "true"
+                                    elif value.isdigit():
+                                        value = int(value)
+                                    temp_config[0][key] = value
+                                    print(f"{key} başarıyla {value} olarak güncellendi.")
+                                    print(temp_config)
+                                else:
+                                    print(f"Geçersiz anahtar: {key}")
+                            except ValueError:
+                                print("Geçersiz komut formatı. Kullanım: set <anahtar> <değer>")
+                    elif command.startswith("dset "):
+                        if "--help" in command:
+                            print("dset komutu, varsayılan quiz yapılandırmasını güncellemek için kullanılır. Kullanım: dset <anahtar> <değer>")
+                            print("Anahtarlar:")
+                            for key in default_config[0].keys():
+                                print(f"- {key}")
+                        else:
+                            try:
+                                print("dset <anahtar> <değer>: Varsayılan quiz yapılandırmasını günceller.")
+                                _, key, value = command.split(" ", 2)
+                                if key in default_config[0]:
+                                    if value.lower() in ["true", "false"]:
+                                        value = value.lower() == "true"
+                                    elif value.isdigit():
+                                        value = int(value)
+                                    default_config[0][key] = value
+                                    temp_config[0][key] = value
+                                    set_config("default_quiz_config", key, value)
+                                    print(f"{key} başarıyla {value} olarak güncellendi.")
+                                else:
+                                    print(f"Geçersiz anahtar: {key}")
+                            except ValueError:
+                                print("Geçersiz komut formatı. Kullanım: dset <anahtar> <değer>")
+
+                    elif command == "show":
+                        if "--help" in command:
+                            print("show komutu, mevcut quiz yapılandırmasını gösterir. Kullanım: show")
+                        else:
+                            print("Mevcut quiz yapılandırması:\n")
+                            for key, value in temp_config[0].items():
+                                for key_, value_ in default_config[0].items():
+                                    if key == key_:
+                                        if value != value_:txt = f" (Varsayılan : {value_})"
+                                        else:txt = ""
+                                        print(value,value_,txt,key,key_)
+                                        print(f"{key}: {value}{txt}")
+                    elif command == "exit":
+                        if "--help" in command:
+                            print("exit komutu, admin kontrolünden çıkar ve ana menüye döner. Kullanım: exit")
+                        else:
+                            loop = False
+                            if temp_config:
+                                main(quiz_config=temp_config[0])
+                            else:
+                                main(quiz_config=default_config[0])
+                            return
+                    elif command == "cls" or command == "clear":
+                        if "--help" in command:
+                            print("cls/clear komutu, ekranı temizler. Kullanım: cls/clear")
+                        else:
+                            cls()
+                    elif command == "help":
+                        print("Komutlar:")
+                        print("- set <anahtar> <değer>: Geçici quiz yapılandırmasını günceller.")
+                        print("- dset <anahtar> <değer>: Varsayılan quiz yapılandırmasını günceller.")
+                        print("- show: Mevcut quiz yapılandırmasını gösterir.")
+                        print("- cls/clear: Ekranı temizler.")
+                        print("- help: Komut listesini gösterir.")
+                        print("- exit: Admin kontrolünden çıkar ve ana menüye döner.")
+                    else:
+                        print("Geçersiz komut! Komutlar: set <anahtar> <değer>, dset <anahtar> <değer>, show, cls/clear, help, exit")   
+
+                
+        if choice_ == list(choices.keys())[0] or choice_ == "dstart":
+            if quiz_config == {}:
+                quiz_config = get_config(["dummy_mode"])[0]
+            
+            question_amount = 0
+
+            ### LEVEL 1 ###
+            """ known_words = ["give","go","have","make","say","see","take","want"] """
+            known_words = []
+            word_progression = {}
+            if os.path.exists("statistics.csv"):
+                with open("statistics.csv", "r") as f:
+                    lines = f.readlines()
+                    words = []
+                    for line in lines[::-1]:
+                        data = line.strip().split(",")
+                        if len(data) >= 5:
+                            if data[1] not in words:
+                                words.append(data[1])
+                    for word in words:
+                        amount_counter = correct_counter = 0
+                        for line in lines[::-1]:
+                            data = line.strip().split(",")
+                            if len(data) >= 5 and data[1] == word:
+                                if amount_counter > 5:
+                                    break
+                                amount_counter += 1
+                                if data[4] == "True":
+                                    correct_counter += 1
+                            if amount_counter == correct_counter == 5:
+                                if word not in known_words:
+                                    known_words.append(word)
+                        
+                        word_progression[word] = [correct_counter,amount_counter,correct_counter / amount_counter if amount_counter > 0 else 0]
+                f.close()
+
+            all_words,typer = load_words("words.csv")
+            start_time = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+            dd = {}
+            for word_dict in all_words:
+                dd[list(word_dict)[0]] = word_dict.get(list(word_dict)[0])
+            if len(all_words) < quiz_config.get("dummy_question_count"):
+                question_amount = len(all_words)
+            else:
+                question_amount = quiz_config.get("dummy_question_count")
+            lg(known_words)
+            quest(question_amount=question_amount,wordlist=list(dd.keys()),word_progression=word_progression,dd=dd,typer=typer,quiz_config=quiz_config,current_level=0)
+            if not os.path.exists("statistics.csv"):
+                with open("statistics.csv","w",encoding="UTF-8") as f:f.close()
+            with open("statistics.csv", "r", encoding="UTF-8") as f:
+                correct_counter_ = wrong_counter_ = blank_counter_ = total_counter_ = 0
+                lines = f.readlines()
+                todays=[]
+                for line in lines[::-1]:
+                    if datetime.datetime.now().strftime("%Y-%m-%d") in line:
+                        if line.strip() not in todays:
+                            todays.append(line.strip())
+                time.sleep(.3)
+                for line in todays:
+                    if line.split(",")[5] == "0":
+                        """ print(line)
+                        print(line.split(","))
+                        print(line.split(",")[4])
+                        time.sleep(999) """
+                        if line.split(",")[4] == "True":
+                            correct_counter_ += 1
+                        elif line.split(",")[4] == "False":
+                            wrong_counter_ += 1
+                        else: blank_counter_ += 1
+                        total_counter_ += 1
+                f.close()
+            daily_stat("set",correct_counter_,wrong_counter_,blank_counter_,total_counter_,level=0)
+        
+            for line in daily_stat("get",0,0,0,0,0)[::-1]:
+                """ print(line)
+                print(quiz_config.get("dummy_question_count"))
+                print(int(line.split(",")[4])) """
+                if line.split(",")[5].strip() == "0" and int(line.split(",")[4]) >= quiz_config.get("dummy_question_count"):
+                    LEVEL_0_PASSED = True
+                    break
+            else:LEVEL_0_PASSED = False
+                
+            if LEVEL_0_PASSED:
+                print("Tebrikler! Dummy modunu tamamladığınız tespit edildi!")
+                if quiz_config.get("send_telegram_message"):
+                    m_ = []
+                    with open("daily_stats.csv", "r", encoding="UTF-8") as fg:
+                        liness = fg.readlines()
+                        for line in liness[::-1]:
+                            if datetime.datetime.now().strftime("%Y-%m-%d") in line:
+                                m_.append(line)
+                        fg.close()
+                    o_ = []
+                    if len(m_) == 2:
+                        for i in range(1,5):
+                            ox = 0
+                            for x in m_:
+                                ox += int(x.split(",")[i])
+                            o_.append(ox)
+                    else:
+                        for i in range(1,5):
+                            o_.append(int(m_[0].split(",")[i]))
+                    lg(o_)
+                    print("Sending Report.")
+                    if o_[0] == 0: puan = 0; net=0
+                    else:
+                        net = o_[0]+(-o_[1]-o_[2])*.25
+                        if o_[3] != 0:
+                            puan = o_[0]/o_[3]*100
+                        else: puan = 0
+                    tdy = datetime.datetime.now().strftime("%Y-%m-%d")
+                    tdy_stats = []
+                    with open("statistics.csv","r",encoding="UTF-8") as ff:
+                        lineies = ff.readlines()
+                        for lime in lineies[::-1]:
+                            if tdy in lime:
+                                tdy_stats.append(lime)
+                        ff.close()
+                    flb = {}
+                    for stat in tdy_stats:
+                        parts = stat.split(",")
+                        key = parts[1]
+                        is_success = parts[4] == "True"
+
+                        current_true, current_total = flb.get(key, [0, 0])
+
+                        new_true = current_true + 1 if is_success else current_true
+                        new_total = current_total + 1
+                        
+                        flb[key] = [new_true, new_total]
+                    for key,val in flb.items():
+                        if val[1] != 0:
+                            flb[key] = [val[0],val[1],(val[0]/val[1])*100]
+                        else:
+                            flb[key] = [val[0],val[1],0]
+                    flb = dict(sorted(flb.items(), key=lambda item: item[1][2], reverse=True))
+                    lb = ""
+                    """ print("hiaa")
+                    print(flb)
+                    print("hi")
+                    time.sleep(999) """
+                    for key, a in list(flb.items())[:20]:
+                        lb = f"{lb}{key} -> %{a[2]} ({a[0]}/{a[1]})\n"
+
+                    lb2 = ""
+                    for key, a in list(flb.items())[-20:]:
+                        lb2 = f"{lb2}{key} -> %{a[2]} ({a[0]}/{a[1]})\n"
+                    
+                    telegram_text = f"📅 Günlük Analiz 📅 ({datetime.datetime.now().strftime("%Y/%m/%d")})\n\nPuan : %{puan:.2f}\nNet : {net:.2f}\n\n✅ Doğru : {o_[0]}\n❌ Yanlış : {o_[1]}\n⚪ Boş : {o_[2]}\n📝 Total Soru Sayısı : {o_[3]}\n\n🏆 Top 20 : \n\n{lb}\n📉 Worst 20 : \n\n{lb2}"
+                    try:
+                        with open("sent_tg_messages.json","r",encoding="UTF-8") as x:
+                            ddt = json.load(x)
+                            x.close()
+                    except (json.JSONDecodeError, FileNotFoundError):
+                        ddt = {}
+                    if datetime.datetime.now().strftime("%Y-%m-%d") not in ddt:
+                        import telegram_report
+                        try:
+                            telegram_report.send_telegram_report(telegram_text)
+                            with open("sent_tg_messages.json","w",encoding="UTF-8") as h:
+                                ddt[datetime.datetime.now().strftime("%Y-%m-%d")] = telegram_text
+                                json.dump(ddt,h,indent=4)
+                                h.close()
+                        except:
+                            time.sleep(60)
+                            telegram_report.send_telegram_report(telegram_text)
+                            with open("sent_tg_messages.json","w",encoding="UTF-8") as h:
+                                ddt[datetime.datetime.now().strftime("%Y-%m-%d")] = telegram_text
+                                json.dump(ddt,h,indent=4)
+                                h.close()
+                    if DEBUG:
+                        int(input(""))
+
+                time.sleep(3)
+                cls()
+                dummy_main(quiz_config=quiz_config)
+
+
 if __name__ == "__main__":
     try:
         if "--debug" in sys.argv:
@@ -835,7 +1209,11 @@ if __name__ == "__main__":
         c_ = "play"
     cls()
     try:
-        main(legacy_start_menu=leg,mode=c_)
+        print(get_config(["dummy_mode"]))
+        if not get_config(["dummy_mode"])[0].get("dummy_mode"):
+            main(legacy_start_menu=leg,mode=c_)
+        else:
+            dummy_main(legacy_start_menu=leg,mode=c_)
     except KeyboardInterrupt:
         print("Exiting the application")
 

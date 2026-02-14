@@ -19,7 +19,7 @@ else: dtxt = ""
 def demo(screen):
     effects = [
         Print(screen, 
-              FigletText("Coalide", font='slant'), 
+              FigletText("COALIDE", font='slant'), 
               screen.height // 2 - 3),
         
               

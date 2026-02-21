@@ -274,6 +274,7 @@ The application tracks:
 
 ### Parental Control Connection
 
+- Parental Control refers to my other repo (cekirge1972/PCV2)
 - Verify `PARENTAL_CONTROL_URL` is correct
 - Check if parental control server is running
 - Ensure proper network connectivity

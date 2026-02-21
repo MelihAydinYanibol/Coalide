@@ -1,5 +1,5 @@
 # Coalide
-A small Python project to help with English practice and reporting. Provides CLI/TUI helpers, data files for words/pronunciations, and scripts to generate reports (including Telegram integration).
+A small Python project to help with English practice and reporting. Provides CLI/TUI helpers, data files for words/pronunciations, and scripts to generate reports (including Telegram integration). And now also supports integration with PCV2 (cekirge1972/ParentalControlsV2)
 
 # CURRENTLY ONLY WORKS ON PYTHON 3.12.X
 

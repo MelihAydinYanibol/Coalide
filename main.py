@@ -209,22 +209,86 @@ def get_audio(word,lang_="en",t=1):
     
 def play_audio(filename):
     lg(f"play_audio({filename})")
-    import pyglet
-    from time import sleep
+    # Backwards-compatible wrapper that uses the resilient player below
+    return play_audio_with_unplug_handling(filename)
 
-    music = pyglet.media.load(filename, streaming=False)
-    from mutagen.mp3 import MP3
+
+def is_output_device_available():
+    """Return True if a default output device appears available to PyAudio."""
+    pa = None
     try:
-        audio = MP3(filename)
-        duration = audio.info.length  # Duration in seconds
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        duration = music.duration
-    
-    music.play()
-    sleep(duration)
+        pa = pyaudio.PyAudio()
+        # This will raise if no default output device exists
+        pa.get_default_output_device_info()
+        return True
+    except Exception:
+        return False
+    finally:
+        try:
+            if pa is not None:
+                pa.terminate()
+        except Exception:
+            pass
 
-    """ os.remove(mp3_file) """
+
+def play_audio_with_unplug_handling(filename, wait_seconds=5, poll_interval=0.5):
+    """Play `filename` with basic handling for unplugged audio devices.
+
+    Behavior:
+    - If no output device is present, poll for up to `wait_seconds` for it to reappear.
+    - Attempt playback; on error try one quick recovery if device comes back.
+    - If recovery fails, skip playback and log to stdout.
+    """
+    lg(f"play_audio_with_unplug_handling({filename})")
+
+    # If no device right now, wait briefly for it to come back
+    if not is_output_device_available():
+        start = time.time()
+        while time.time() - start < wait_seconds:
+            time.sleep(poll_interval)
+            if is_output_device_available():
+                break
+        else:
+            print(f"Audio device unavailable — skipping playback: {filename}")
+            return
+
+    # Try playback; catch runtime errors (e.g., device removed mid-play)
+    try:
+        import pyglet
+        from time import sleep
+        from mutagen.mp3 import MP3
+
+        music = pyglet.media.load(filename, streaming=False)
+        try:
+            audio = MP3(filename)
+            duration = audio.info.length
+        except Exception:
+            duration = music.duration
+
+        music.play()
+        sleep(duration)
+    except Exception as e:
+        print(f"Playback error: {e}. Attempting quick recovery...")
+        # If device reappears, try once more
+        if is_output_device_available():
+            try:
+                import pyglet
+                from time import sleep
+                from mutagen.mp3 import MP3
+
+                music = pyglet.media.load(filename, streaming=False)
+                try:
+                    audio = MP3(filename)
+                    duration = audio.info.length
+                except Exception:
+                    duration = music.duration
+
+                music.play()
+                sleep(duration)
+            except Exception as e2:
+                print(f"Recovery failed: {e2}. Skipping playback.")
+        else:
+            print("No output device found after error. Skipping playback.")
 
 def get_folder(folder="pronunciations"):
     lg(f"get_folder({folder})")
@@ -860,12 +924,17 @@ def main(quiz_config={}, legacy_start_menu=False,mode="play"):
                         lb2 = ""
                         for key, a in list(flb.items())[-20:]:
                             lb2 = f"{lb2}{key} -> %{a[2]} ({a[0]}/{a[1]})\n"
-                        tlist = []
+                        # Calculate total elapsed time (sum of time_elapsed values in daily_stats entries)
                         ttlist = []
-                        for ti in m_:
-                            tlist.append(datetime.datetime.fromtimestamp(int(ti[6])).strftime("%H:%M:%S"))
-                            ttlist.append(int(ti[6]))
-                        total_time = datetime.datetime.fromtimestamp(sum(ttlist)).strftime("%H:%M:%S")
+                        for entry in m_:
+                            try:
+                                parts = entry.strip().split(",")
+                                seconds = float(parts[6])
+                            except Exception:
+                                seconds = 0
+                            ttlist.append(seconds)
+                        total_seconds = int(sum(ttlist))
+                        total_time = str(datetime.timedelta(seconds=total_seconds))
                         telegram_text = f"📅 Günlük Analiz 📅 ({datetime.datetime.now().strftime("%d.%m.%Y")})\n\nPuan : %{puan:.2f}\nNet : {net:.2f}\n\n✅ Doğru : {o_[0]}\n❌ Yanlış : {o_[1]}\n⚪ Boş : {o_[2]}\n📝 Total Soru Sayısı : {o_[3]}\nGeçen Toplam Süre : {total_time}\n\n🏆 Top 20 : \n\n{lb}\n📉 Worst 20 : \n\n{lb2}"
                         try:
                             with open("sent_tg_messages.json","r",encoding="UTF-8") as x:
@@ -1197,7 +1266,18 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                 lb2 = ""
                 for key, a in list(flb.items())[-20:]:
                     lb2 = f"{lb2}{key} -> %{a[2]} ({a[0]}/{a[1]})\n"
-                telegram_text = f"📅 Günlük Analiz 📅 ({datetime.datetime.now().strftime("%Y/%m/%d")})\n\nPuan : %{puan:.2f}\nNet : {net:.2f}\n\n✅ Doğru : {o_[0]}\n❌ Yanlış : {o_[1]}\n⚪ Boş : {o_[2]}\n📝 Total Soru Sayısı : {o_[3]}\n\n🏆 Top 20 : \n\n{lb}\n📉 Worst 20 : \n\n{lb2}"
+                # Compute total elapsed time from today's daily_stats entries
+                ttlist = []
+                for entry in m_:
+                    try:
+                        parts = entry.strip().split(",")
+                        seconds = float(parts[6])
+                    except Exception:
+                        seconds = 0
+                    ttlist.append(seconds)
+                total_seconds = int(sum(ttlist))
+                total_time = str(datetime.timedelta(seconds=total_seconds))
+                telegram_text = f"📅 Günlük Analiz 📅 ({datetime.datetime.now().strftime("%Y/%m/%d")})\n\nPuan : %{puan:.2f}\nNet : {net:.2f}\n\n✅ Doğru : {o_[0]}\n❌ Yanlış : {o_[1]}\n⚪ Boş : {o_[2]}\n📝 Total Soru Sayısı : {o_[3]}\nGeçen Toplam Süre : {total_time}\n\n🏆 Top 20 : \n\n{lb}\n📉 Worst 20 : \n\n{lb2}"
                 if quiz_config.get("send_telegram_message"):
                     try:
                         with open("sent_tg_messages.json","r",encoding="UTF-8") as x:
@@ -1205,22 +1285,24 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                             x.close()
                     except (json.JSONDecodeError, FileNotFoundError):
                         ddt = {}
-                    date_key = datetime.datetime.now().strftime("%Y-%m-%d")
-                    if ddt.get(date_key) != telegram_text:
-                        import telegram_report
-                        try:
-                            telegram_report.send_telegram_report(telegram_text)
-                            with open("sent_tg_messages.json","w",encoding="UTF-8") as h:
-                                ddt[date_key] = telegram_text
-                                json.dump(ddt,h,indent=4)
-                        except Exception:
-                            time.sleep(60)
-                            telegram_report.send_telegram_report(telegram_text)
-                            with open("sent_tg_messages.json","w",encoding="UTF-8") as h:
-                                ddt[date_key] = telegram_text
-                                json.dump(ddt,h,indent=4)
-                    if DEBUG:
-                        int(input(""))
+                    try:
+                        date_key = datetime.datetime.now().strftime("%Y-%m-%d")
+                        if ddt.get(date_key) != telegram_text:
+                            import telegram_report
+                            try:
+                                telegram_report.send_telegram_report(telegram_text)
+                                with open("sent_tg_messages.json","w",encoding="UTF-8") as h:
+                                    ddt[date_key] = telegram_text
+                                    json.dump(ddt,h,indent=4)
+                            except Exception:
+                                time.sleep(60)
+                                telegram_report.send_telegram_report(telegram_text)
+                                with open("sent_tg_messages.json","w",encoding="UTF-8") as h:
+                                    ddt[date_key] = telegram_text
+                                    json.dump(ddt,h,indent=4)
+                        if DEBUG:
+                            int(input(""))
+                    except:print("Rapor gönderilirken bir hata oluştu!")
                 if get_config(["general"])[0].get("set_time_for_pc"):
                     lg("set_time_for_pc is true")
                     ### Point, Minute Calculation and API post to parental control ###

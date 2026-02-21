@@ -64,7 +64,8 @@ def get_config(keys=None):
         "general": {
             "spam_answer_proof": True,
             "set_time_for_pc": True,
-            "set_time_for_tomorrow": False
+            "set_time_for_tomorrow": False,
+            "answer_timeout": -1
         }
     }
 
@@ -300,11 +301,23 @@ def save_stat(time_,word,translation,answer,correct,level):
         file.write(stat_line)
         file.close()
 
+def get_question_answer(text, timeout_time):
+    if timeout_time == -1:
+        response = str(input(text))
+    else:
+        from inputimeout import inputimeout, TimeoutOccurred
+        try:
+            response = inputimeout(prompt=text, timeout=timeout_time)
+        except TimeoutOccurred:
+            response = "!TimedOut!"
+    return response
+
 def quest(question_amount, wordlist, word_progression, dd, typer, quiz_config, current_level):
     lg(f"{question_amount},{wordlist},{word_progression},{dd},{typer},{quiz_config},{current_level}")
     if question_amount > len(wordlist):
         question_amount = len(wordlist)
 
+    timeout_time = get_config(["general"])[0].get("answer_timeout")
     selected_words = random.sample(wordlist, question_amount)
 
     for i, word in enumerate(selected_words):
@@ -336,9 +349,9 @@ def quest(question_amount, wordlist, word_progression, dd, typer, quiz_config, c
                 diff = 0
             else: ss_time = None; diff = None
             if ss_time == None and diff == None:
-                answer = input(f"{i+1}. '{word}' ({type_of_word}) kelimesinin Türkçe karşılığı nedir? ")
+                answer = get_question_answer(f"{i+1}. '{word}' ({type_of_word}) kelimesinin Türkçe karşılığı nedir? ",timeout_time)
             while ss_time != None and diff != None and diff < 2:
-                answer = input(f"{i+1}. '{word}' ({type_of_word}) kelimesinin Türkçe karşılığı nedir? ")
+                answer = get_question_answer(f"{i+1}. '{word}' ({type_of_word}) kelimesinin Türkçe karşılığı nedir? ",timeout_time)
                 diff = time.time() - ss_time
             
             if answer.lower() == dd[word].lower():
@@ -349,6 +362,9 @@ def quest(question_amount, wordlist, word_progression, dd, typer, quiz_config, c
                 save_stat(time_,word,dd[word],answer,"blank",current_level)
             elif answer.lower() == "exit":
                 os._exit(1)
+            elif answer == "!TimedOut!":
+                print(Fore.RED+f"Süre doldu! ({timeout_time} sn) Cevap: {dd[word]}"+Style.RESET_ALL)
+                save_stat(time_,word,dd[word],answer,"blank",current_level)
             else:
                 print(Fore.RED+f"Yanlış! Doğru cevap: {dd[word]}"+Style.RESET_ALL)
                 save_stat(time_,word,dd[word],answer,False,current_level)
@@ -376,9 +392,9 @@ def quest(question_amount, wordlist, word_progression, dd, typer, quiz_config, c
                 diff = 0
             else: ss_time = None; diff = None
             if ss_time == None and diff == None:
-                answer = input(f"{i+1}. '{dd[word]}' ({type_of_word}) kelimesinin İngilizce karşılığı nedir? ")
+                answer = get_question_answer(f"{i+1}. '{dd[word]}' ({type_of_word}) kelimesinin İngilizce karşılığı nedir? ",timeout_time)
             while ss_time != None and diff != None and diff < 2:
-                answer = input(f"{i+1}. '{dd[word]}' ({type_of_word}) kelimesinin İngilizce karşılığı nedir? ")
+                answer = get_question_answer(f"{i+1}. '{dd[word]}' ({type_of_word}) kelimesinin İngilizce karşılığı nedir? ",timeout_time)
                 diff = time.time() - ss_time
             
             
@@ -390,6 +406,9 @@ def quest(question_amount, wordlist, word_progression, dd, typer, quiz_config, c
                 save_stat(time_,word,dd[word],"","blank",current_level)
             elif answer.lower() == "exit":
                 os._exit(1)
+            elif answer == "!TimedOut!":
+                print(Fore.RED+f"Süre doldu! ({timeout_time} sn) Cevap: {word}"+Style.RESET_ALL)
+                save_stat(time_,word,dd[word],answer,"blank",current_level)
             else:
                 print(Fore.RED+f"Yanlış! Doğru cevap: {word}"+Style.RESET_ALL)
                 save_stat(time_,word,dd[word],answer,False,current_level)  

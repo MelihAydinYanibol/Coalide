@@ -16,6 +16,7 @@
     "general": {
         "spam_answer_proof": false,
         "set_time_for_pc": true,
-        "set_time_for_tomorrow": true
+        "set_time_for_tomorrow": true,
+        "answer_timeout": 15
     }
 }

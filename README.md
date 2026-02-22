@@ -80,7 +80,7 @@ See `requirements.txt` for complete dependencies. Key packages include:
 ### 1. Clone and Setup
 
 ```bash
-cd c:\Users\melih\Desktop\Projects\Coalide
+cd Coalide
 ```
 
 ### 2. Create Virtual Environment (Optional but Recommended)

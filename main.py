@@ -160,7 +160,7 @@ def check_and_update_words_csv(github_repo, github_token=None, local_file="words
 def set_config(ukey, key, value):
     lg(f"set_config({ukey},{key},{value})")
     config = get_config()
-    if ukey in next(iter(config.keys())):
+    if ukey in config:
         config[ukey][key] = value
         with open("config.json", "w", encoding="UTF-8") as file:
             json.dump(config, file, indent=4)
@@ -168,6 +168,9 @@ def set_config(ukey, key, value):
 def analytics(get_set,time_finish,time_start,type):
     lg(f"analytics({get_set},{time_finish},{time_start},{type})")
     if get_set == "set":
+        if not os.path.exists("analytics.csv"):
+            with open("analytics.csv", "w", encoding="UTF-8") as file:
+                file.close()
         with open("analytics.csv", "r", encoding="UTF-8") as file:
             lines = file.readlines()
             for line in lines[::-1]:
@@ -888,7 +891,7 @@ def main(quiz_config={}, legacy_start_menu=False,mode="play"):
 
                     lg(unknown_words)
                     time_of_quiz_start_2 = time.time()
-                    quest(question_amount=question_amount,wordlist=unknown_words,word_progression=word_progression,dd=dd,typer=typer,quiz_config=quiz_config,current_level=2,time_elapsed=time.time()-time_of_quiz_start_2)
+                    quest(question_amount=question_amount,wordlist=unknown_words,word_progression=word_progression,dd=dd,typer=typer,quiz_config=quiz_config,current_level=2)
                     LEVEL_2_PASSED = True
                     analytics("set",datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S"),start_time,"level_2_passed")
                     """ daily_stat("set,") """
@@ -920,7 +923,7 @@ def main(quiz_config={}, legacy_start_menu=False,mode="play"):
                                 total_counter__ += 1
                         f.close()
                     lg(correct_counter__,wrong_counter__,blank_counter__,total_counter__)
-                    daily_stat("set",correct_counter__,wrong_counter__,blank_counter__,total_counter__,2)
+                    daily_stat("set",correct_counter__,wrong_counter__,blank_counter__,total_counter__,2,time.time()-time_of_quiz_start_2)
 
                 if LEVEL_1_PASSED == True and LEVEL_2_PASSED == True:
                     print("Tebrikler! Seviye 2'yi de geçtiğiniz tespit edildi! Tüm seviyeleri tamamladınız!")

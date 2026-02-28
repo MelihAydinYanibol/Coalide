@@ -20,7 +20,7 @@ init(autoreset=True)
 
 if not os.path.exists(".env"):
     with open(".env","w",encoding="UTF-8") as f:
-        f.write("ADMIN_PASSWORD=0000\nPARENTAL_CONTROL_URL=http://desktop-melih:5005")
+        f.write("ADMIN_PASSWORD=0000\nPARENTAL_CONTROL_URL=http://IP-TO-YOUR-PCV2-SERVER:5005")
         f.close()
 
 def lg(a="",b="",c="",d="",e="",f="",g="",h="",i="",j="",k="",l="",m="",n="",o="",p="",q="",r="",s="",t="",u="",v="",w="",x="",y="",z=""):
@@ -1403,8 +1403,8 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                         base_url = os.getenv("PARENTAL_CONTROL_URL")
                         if base_url == None:
                             print("Hatalı .env dosyası! Dakika eklenemedi!!!")
-                        else:
-                            ### example structure of resulting var : {"data":[[600,null],[600,null]],"status":"success"}
+                        ### example structure of resulting var : {"data":[[600,null],[600,null]],"status":"success"}
+                        if base_url != None:
                             resulting = pc.get_exceptional_time(base_url, "OVERALL", date)
                             total_time_available = 0
                             for exception in resulting.get("data", []):
@@ -1413,23 +1413,25 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                             if minutes_to_add > total_time_available:
                                 minutes_to_add = minutes_to_add - total_time_available
                             else:minutes_to_add = 0
-                            print(f"{o_[0]-minutes_to_add//60} Doğru yaptınız {t} için {minutes_to_add//60} dakika ekleniyor..")
-                            try:
+                        print(f"{o_[0]-minutes_to_add//60} Doğru yaptınız {t} için {minutes_to_add//60} dakika ekleniyor..")
+                        try:
+                            if base_url != None:
                                 ifn = pc.add_exceptional_time(base_url, "OVERALL", minutes_to_add,date,f"{o_[0]} Doğru yaptığınız için - COALIDE")
-                                if "Connection Error" in str(ifn):raise Exception("Connection Error")
-                                if 1 == ifn or '"status":"queued"' in str(ifn):
-                                    print("Dakikalarınız eklendi.")
-                                    if not os.path.exists("used_exceptions.csv"):
-                                        with open("used_exceptions.csv","w",encoding="UTF-8") as f:f.close()
-                                    with open("used_exceptions.csv","a",encoding="UTF-8") as file:
-                                        file.write(f"{date},{o_[0]},{minutes_to_add}\n")
-                                        file.close()
-                                elif "Error" in str(ifn): print("Dakika eklenirken sorun oluştu!");print(str(ifn))
-                                else: print("Muhtemelen Dakikanız eklendi")
-                                print(f"\n{telegram_text}\n")
-                                input("Ana menüye dönmek için herhangi bir butona basınız.")
-                            except:
-                                print("İkincil API'ye istek gönderilirken bir hata oluştu! Dakika eklenemedi!!!")
+                            else: ifn = None
+                            if "Connection Error" in str(ifn):raise Exception("Connection Error")
+                            if 1 == ifn or '"status":"queued"' in str(ifn):
+                                print("Dakikalarınız eklendi.")
+                                if not os.path.exists("used_exceptions.csv"):
+                                    with open("used_exceptions.csv","w",encoding="UTF-8") as f:f.close()
+                                with open("used_exceptions.csv","a",encoding="UTF-8") as file:
+                                    file.write(f"{date},{o_[0]},{minutes_to_add}\n")
+                                    file.close()
+                            elif "Error" in str(ifn): print("Dakika eklenirken sorun oluştu!");print(str(ifn))
+                            else: print("Muhtemelen Dakikanız eklendi")
+                        except:
+                            print("İkincil API'ye istek gönderilirken bir hata oluştu! Dakika eklenemedi!!!")
+                        print(f"\n{telegram_text}\n")
+                        input("Ana menüye dönmek için herhangi bir butona basınız.")
                             
                     else:
                         print("Zaten süreniz eklenmiş!")

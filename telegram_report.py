@@ -1,17 +1,3 @@
-import requests
-import json
-from typing import Optional
-from dotenv import load_dotenv
-import os
-
-# Load environment variables from .env file
-load_dotenv()
-
-# --- Configuration (from .env file) ---
-# 1. Get your Bot Token from @BotFather
-BOT_TOKEN: str = os.getenv("BOT_TOKEN", "YOUR_TELEGRAM_BOT_TOKEN")
-# 2. Get your Chat ID (user, group, or channel)
-CHAT_ID: str = os.getenv("CHAT_ID", "YOUR_CHAT_ID")
 import os
 import json
 from typing import Optional

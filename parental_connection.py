@@ -53,8 +53,6 @@ def add_exceptional_time(base_url, app_name, duration_seconds, exception_date=No
         print(f"🚨 [Connection Error] Could not reach the Secondary API: {e}")
         return None
 
-from datetime import datetime
-
 def get_exceptional_time(base_url, app_name, query_date=None):
     """
     Sends a GET request to retrieve exception details for a specific app and date.

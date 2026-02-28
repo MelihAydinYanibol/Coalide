@@ -1,7 +1,6 @@
 import os
 import time
 import json
-import re
 import random
 import datetime
 import ASCII.Animations.video
@@ -11,7 +10,6 @@ import ASCII.ASCII_start_menu
 """ from googletrans import Translator """
 from gtts import gTTS
 import pyaudio
-import wave
 from pydub import AudioSegment
 import sys
 import copy

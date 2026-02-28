@@ -3,6 +3,7 @@ import time
 import json
 import random
 import datetime
+import shutil
 import ASCII.Animations.video
 import ASCII.ASCII_LevelUp
 import ASCII.ASCII_selection_menu
@@ -35,6 +36,63 @@ def cls():
     lg("cls()")
     if lg() != True:
         os.system('cls')
+
+def backup_data():
+    """
+    Backs up important data files to a folder in the user's home directory.
+    Creates a timestamped backup folder under ~/ProjectEnglish_Backups/.
+    """
+    lg("backup_data()")
+    
+    backup_files = [
+        "statistics.csv",
+        "daily_stats.csv",
+        "analytics.csv",
+        "words.csv",
+        "config.json",
+        "sent_tg_messages.json",
+        ".env",
+    ]
+    
+    user_home = os.path.expanduser("~")
+    backup_root = os.path.join(user_home, ".ProjectEnglish_Backups")
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    backup_folder = os.path.join(backup_root, timestamp)
+    
+    # Check if there's anything to back up
+    project_dir = os.path.dirname(os.path.abspath(__file__))
+    files_to_copy = [f for f in backup_files if os.path.exists(os.path.join(project_dir, f))]
+    
+    if not files_to_copy:
+        lg("No data files found to back up.")
+        return
+    
+    os.makedirs(backup_folder, exist_ok=True)
+    
+    copied = 0
+    for filename in files_to_copy:
+        src = os.path.join(project_dir, filename)
+        dst = os.path.join(backup_folder, filename)
+        try:
+            shutil.copy2(src, dst)
+            copied += 1
+            lg(f"  Backed up: {filename}")
+        except Exception as e:
+            lg(f"  Failed to back up {filename}: {e}")
+    
+    # Keep only the last 10 backups to avoid filling disk
+    try:
+        all_backups = sorted(
+            [d for d in os.listdir(backup_root) if os.path.isdir(os.path.join(backup_root, d))]
+        )
+        while len(all_backups) > 10:
+            oldest = os.path.join(backup_root, all_backups.pop(0))
+            shutil.rmtree(oldest)
+            lg(f"  Removed old backup: {oldest}")
+    except Exception as e:
+        lg(f"  Error cleaning old backups: {e}")
+    
+    print(f"{Fore.GREEN}✓ Backed up {copied} file(s) to {backup_folder}{Style.RESET_ALL}")
 
 def get_config(keys=None):
     lg(f"get_config({keys})")
@@ -253,6 +311,7 @@ def get_audio(word,lang_="en",t=1):
         lg(f"Detected language: {language}")
         # Generate audio using gTTS
         tts = gTTS(text=word, lang=language)
+        os.makedirs("pronunciations", exist_ok=True)
         filename = f"pronunciations/{word.lower()}.mp3"
         tts.save(filename)
         if os.path.exists(filename):
@@ -1441,6 +1500,7 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
 if __name__ == "__main__":  
     lg("Starting...")
     lg(f"sys.argv: {sys.argv}\nPython version: {sys.version}\nPlatform: {sys.platform}")
+    backup_data()
     try:
         if "-debug" in sys.argv:
             c_ = ASCII.ASCII_start_menu.main(debug=True)

@@ -1,9 +1,9 @@
 import os
 import time
 import json
-import re
 import random
 import datetime
+import shutil
 import ASCII.Animations.video
 import ASCII.ASCII_LevelUp
 import ASCII.ASCII_selection_menu
@@ -11,7 +11,6 @@ import ASCII.ASCII_start_menu
 """ from googletrans import Translator """
 from gtts import gTTS
 import pyaudio
-import wave
 from pydub import AudioSegment
 import sys
 import copy
@@ -20,7 +19,7 @@ init(autoreset=True)
 
 if not os.path.exists(".env"):
     with open(".env","w",encoding="UTF-8") as f:
-        f.write("ADMIN_PASSWORD=0000\nPARENTAL_CONTROL_URL=http://desktop-melih:5005")
+        f.write("ADMIN_PASSWORD=0000\nPARENTAL_CONTROL_URL=http://IP-TO-YOUR-PCV2-SERVER:5005")
         f.close()
 
 def lg(a="",b="",c="",d="",e="",f="",g="",h="",i="",j="",k="",l="",m="",n="",o="",p="",q="",r="",s="",t="",u="",v="",w="",x="",y="",z=""):
@@ -37,6 +36,63 @@ def cls():
     lg("cls()")
     if lg() != True:
         os.system('cls')
+
+def backup_data():
+    """
+    Backs up important data files to a folder in the user's home directory.
+    Creates a timestamped backup folder under ~/ProjectEnglish_Backups/.
+    """
+    lg("backup_data()")
+    
+    backup_files = [
+        "statistics.csv",
+        "daily_stats.csv",
+        "analytics.csv",
+        "words.csv",
+        "config.json",
+        "sent_tg_messages.json",
+        ".env",
+    ]
+    
+    user_home = os.path.expanduser("~")
+    backup_root = os.path.join(user_home, ".ProjectEnglish_Backups")
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    backup_folder = os.path.join(backup_root, timestamp)
+    
+    # Check if there's anything to back up
+    project_dir = os.path.dirname(os.path.abspath(__file__))
+    files_to_copy = [f for f in backup_files if os.path.exists(os.path.join(project_dir, f))]
+    
+    if not files_to_copy:
+        lg("No data files found to back up.")
+        return
+    
+    os.makedirs(backup_folder, exist_ok=True)
+    
+    copied = 0
+    for filename in files_to_copy:
+        src = os.path.join(project_dir, filename)
+        dst = os.path.join(backup_folder, filename)
+        try:
+            shutil.copy2(src, dst)
+            copied += 1
+            lg(f"  Backed up: {filename}")
+        except Exception as e:
+            lg(f"  Failed to back up {filename}: {e}")
+    
+    # Keep only the last 10 backups to avoid filling disk
+    try:
+        all_backups = sorted(
+            [d for d in os.listdir(backup_root) if os.path.isdir(os.path.join(backup_root, d))]
+        )
+        while len(all_backups) > 10:
+            oldest = os.path.join(backup_root, all_backups.pop(0))
+            shutil.rmtree(oldest)
+            lg(f"  Removed old backup: {oldest}")
+    except Exception as e:
+        lg(f"  Error cleaning old backups: {e}")
+    
+    print(f"{Fore.GREEN}✓ Backed up {copied} file(s) to {backup_folder}{Style.RESET_ALL}")
 
 def get_config(keys=None):
     lg(f"get_config({keys})")
@@ -160,7 +216,7 @@ def check_and_update_words_csv(github_repo, github_token=None, local_file="words
 def set_config(ukey, key, value):
     lg(f"set_config({ukey},{key},{value})")
     config = get_config()
-    if ukey in next(iter(config.keys())):
+    if ukey in config:
         config[ukey][key] = value
         with open("config.json", "w", encoding="UTF-8") as file:
             json.dump(config, file, indent=4)
@@ -168,6 +224,9 @@ def set_config(ukey, key, value):
 def analytics(get_set,time_finish,time_start,type):
     lg(f"analytics({get_set},{time_finish},{time_start},{type})")
     if get_set == "set":
+        if not os.path.exists("analytics.csv"):
+            with open("analytics.csv", "w", encoding="UTF-8") as file:
+                file.close()
         with open("analytics.csv", "r", encoding="UTF-8") as file:
             lines = file.readlines()
             for line in lines[::-1]:
@@ -252,6 +311,7 @@ def get_audio(word,lang_="en",t=1):
         lg(f"Detected language: {language}")
         # Generate audio using gTTS
         tts = gTTS(text=word, lang=language)
+        os.makedirs("pronunciations", exist_ok=True)
         filename = f"pronunciations/{word.lower()}.mp3"
         tts.save(filename)
         if os.path.exists(filename):
@@ -888,7 +948,7 @@ def main(quiz_config={}, legacy_start_menu=False,mode="play"):
 
                     lg(unknown_words)
                     time_of_quiz_start_2 = time.time()
-                    quest(question_amount=question_amount,wordlist=unknown_words,word_progression=word_progression,dd=dd,typer=typer,quiz_config=quiz_config,current_level=2,time_elapsed=time.time()-time_of_quiz_start_2)
+                    quest(question_amount=question_amount,wordlist=unknown_words,word_progression=word_progression,dd=dd,typer=typer,quiz_config=quiz_config,current_level=2)
                     LEVEL_2_PASSED = True
                     analytics("set",datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S"),start_time,"level_2_passed")
                     """ daily_stat("set,") """
@@ -920,7 +980,7 @@ def main(quiz_config={}, legacy_start_menu=False,mode="play"):
                                 total_counter__ += 1
                         f.close()
                     lg(correct_counter__,wrong_counter__,blank_counter__,total_counter__)
-                    daily_stat("set",correct_counter__,wrong_counter__,blank_counter__,total_counter__,2)
+                    daily_stat("set",correct_counter__,wrong_counter__,blank_counter__,total_counter__,2,time.time()-time_of_quiz_start_2)
 
                 if LEVEL_1_PASSED == True and LEVEL_2_PASSED == True:
                     print("Tebrikler! Seviye 2'yi de geçtiğiniz tespit edildi! Tüm seviyeleri tamamladınız!")
@@ -1400,8 +1460,8 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                         base_url = os.getenv("PARENTAL_CONTROL_URL")
                         if base_url == None:
                             print("Hatalı .env dosyası! Dakika eklenemedi!!!")
-                        else:
-                            ### example structure of resulting var : {"data":[[600,null],[600,null]],"status":"success"}
+                        ### example structure of resulting var : {"data":[[600,null],[600,null]],"status":"success"}
+                        if base_url != None:
                             resulting = pc.get_exceptional_time(base_url, "OVERALL", date)
                             total_time_available = 0
                             for exception in resulting.get("data", []):
@@ -1410,23 +1470,25 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                             if minutes_to_add > total_time_available:
                                 minutes_to_add = minutes_to_add - total_time_available
                             else:minutes_to_add = 0
-                            print(f"{o_[0]-minutes_to_add//60} Doğru yaptınız {t} için {minutes_to_add//60} dakika ekleniyor..")
-                            try:
+                        print(f"{o_[0]-minutes_to_add//60} Doğru yaptınız {t} için {minutes_to_add//60} dakika ekleniyor..")
+                        try:
+                            if base_url != None:
                                 ifn = pc.add_exceptional_time(base_url, "OVERALL", minutes_to_add,date,f"{o_[0]} Doğru yaptığınız için - COALIDE")
-                                if "Connection Error" in str(ifn):raise Exception("Connection Error")
-                                if 1 == ifn or '"status":"queued"' in str(ifn):
-                                    print("Dakikalarınız eklendi.")
-                                    if not os.path.exists("used_exceptions.csv"):
-                                        with open("used_exceptions.csv","w",encoding="UTF-8") as f:f.close()
-                                    with open("used_exceptions.csv","a",encoding="UTF-8") as file:
-                                        file.write(f"{date},{o_[0]},{minutes_to_add}\n")
-                                        file.close()
-                                elif "Error" in str(ifn): print("Dakika eklenirken sorun oluştu!");print(str(ifn))
-                                else: print("Muhtemelen Dakikanız eklendi")
-                                print(f"\n{telegram_text}\n")
-                                input("Ana menüye dönmek için herhangi bir butona basınız.")
-                            except:
-                                print("İkincil API'ye istek gönderilirken bir hata oluştu! Dakika eklenemedi!!!")
+                            else: ifn = None
+                            if "Connection Error" in str(ifn):raise Exception("Connection Error")
+                            if 1 == ifn or '"status":"queued"' in str(ifn):
+                                print("Dakikalarınız eklendi.")
+                                if not os.path.exists("used_exceptions.csv"):
+                                    with open("used_exceptions.csv","w",encoding="UTF-8") as f:f.close()
+                                with open("used_exceptions.csv","a",encoding="UTF-8") as file:
+                                    file.write(f"{date},{o_[0]},{minutes_to_add}\n")
+                                    file.close()
+                            elif "Error" in str(ifn): print("Dakika eklenirken sorun oluştu!");print(str(ifn))
+                            else: print("Muhtemelen Dakikanız eklendi")
+                        except:
+                            print("İkincil API'ye istek gönderilirken bir hata oluştu! Dakika eklenemedi!!!")
+                        print(f"\n{telegram_text}\n")
+                        input("Ana menüye dönmek için herhangi bir butona basınız.")
                             
                     else:
                         print("Zaten süreniz eklenmiş!")
@@ -1438,6 +1500,7 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
 if __name__ == "__main__":  
     lg("Starting...")
     lg(f"sys.argv: {sys.argv}\nPython version: {sys.version}\nPlatform: {sys.platform}")
+    backup_data()
     try:
         if "-debug" in sys.argv:
             c_ = ASCII.ASCII_start_menu.main(debug=True)

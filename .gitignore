@@ -1,5 +1,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+/__pycache__
 *.py[codz]
 *$py.class
 
@@ -214,4 +215,5 @@ daily_stats.csv
 statistics.csv
 sent_tg_messages.json
 /.vscode
-#config.json
+config.json
+/pronunciations

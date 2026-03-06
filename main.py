@@ -283,12 +283,12 @@ def load_words(file_path):
         for line in file:
             # Strip the whole line, then split, then strip each part
             parts = [p.strip() for p in line.split(",")]
-            if len(parts) < 3: continue 
+            if len(parts) < 5: continue 
             
-            eng, tr, w_type = parts[0], parts[1], parts[2]
+            eng, tr, w_type, first_half_exsentence, second_half_exsentence  = parts[0], parts[1], parts[2], parts[3], parts[4]
             
             final_words.append({eng: tr})
-            f_words.append({eng: [tr, w_type]})
+            f_words.append({eng: [tr, w_type, [first_half_exsentence, second_half_exsentence]]})
     return final_words, f_words
 
 
@@ -499,8 +499,8 @@ def get_question_answer(text, timeout_time):
             response = "!TimedOut!"
     return response
 
-def quest(question_amount, wordlist, word_progression, dd, typer, quiz_config, current_level):
-    lg(f"{question_amount},{wordlist},{word_progression},{dd},{typer},{quiz_config},{current_level}")
+def quest(question_amount, wordlist, word_progression, dd, typer, quiz_config, current_level,exsentences=[]):
+    lg(f"{question_amount},{wordlist},{word_progression},{dd},{typer},{quiz_config},{current_level},{exsentences}")
     if question_amount > len(wordlist):
         question_amount = len(wordlist)
 
@@ -512,7 +512,9 @@ def quest(question_amount, wordlist, word_progression, dd, typer, quiz_config, c
         
         time_ = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
         type_of_word = next((d[word][1] for d in typer if word in d), "Not found")
-        
+        ex_sent = next((d[word][2] for d in typer if word in d), ["", ""])
+        first_hal_exsentence, second_half_exsentence = ex_sent
+        print(f"Örnek Cümle : {first_hal_exsentence} {(len(word)*2-1)*'_'} {second_half_exsentence}")
         if random.randint(1,2) == 1:
             # --- Logic for Turkish -> English ---
             if word in word_progression:
@@ -1534,7 +1536,7 @@ if __name__ == "__main__":
     cls()
     try:
         lg("Checking for words.csv updates...")
-        check_and_update_words_csv("cekirge1972/Coalide")
+        check_and_update_words_csv("MelihAydinYanibol/Coalide")
         print(get_config(["dummy_mode"]))
         if not get_config(["dummy_mode"])[0].get("dummy_mode"):
             main(legacy_start_menu=leg,mode=c_)

@@ -107,7 +107,6 @@ shorts,şort,noun,These,are blue
 skirt,etek,noun,She wears a beautiful,
 blouse,bluz,noun,That pink,looks great
 sandals,sandalet,noun,I wear,in the summer
-boots,bot,noun,My winter,are very warm
 scarf,atkı,noun,She wrapped her,tightly
 shirt,gömlek,noun,He wears a white,
 tie,kravat,noun,His red,looks professional
@@ -154,3 +153,95 @@ waiter,garson,noun,The kind,helped us
 summer,yaz,noun,In,it's very hot
 firefighter,itfaiyeci,noun,The brave,helped us
 photographer,fotoğrafçı,noun,The professional,took pictures
+a,A,article
+about,hakkında,preposition
+above,üstünde,preposition
+across,karşıdan karşıya,preposition
+action,eylem,noun
+activity,etkinlik,noun
+actor,aktör,noun
+actress,aktris,noun
+address,adres,noun
+adult,yetişkin,noun
+advice,tavsiye,noun
+afraid,korkmuş,adjective
+after,sonrasında,preposition
+afternoon,öğleden sonra,noun
+again,tekrar,adverb
+age,yaş,noun
+ago,evvel,adverb
+agree,kabul etmek,verb
+air,hava,noun
+airport,havalimanı,noun
+all,tüm,determiner
+also,ayrıca,adverb
+always,her zaman,adverb
+amazing,inanılmaz,adjective
+and,ve,conjunction
+angry,sinirli,adjective
+animal,hayvan,noun
+another,bir diğer,determiner
+answer,cevap,noun
+any,herhangi,determiner
+anyone,herhangi biri,pronoun
+anything,herhangi bir şey,pronoun
+apartment,daire,noun
+apple,elma,noun
+April,Nisan,noun
+area,alan,noun
+arm,kol,noun
+around,etrafında,preposition
+arrive,varmak,verb
+art,sanat,noun
+article,makale,noun
+artist,sanatçı,noun
+as,gibi,preposition
+at,-de/-da,preposition
+August,Ağustos,noun
+aunt,hala,noun
+autumn,sonbahar,noun
+away,uzak,adverb
+baby,bebek,noun
+back,geri,noun
+bad,kötü,adjective
+bag,çanta,noun
+ball,top,noun
+banana,muz,noun
+band,müzik grubu,noun
+bank,banka,noun
+bath,banyo,noun
+bathroom,banyo,noun
+beach,sahil,noun
+beautiful,Güzel,adjective
+because,Çünkü,conjunction
+become,haline gelmek,verb
+bed,yatak,noun
+bedroom,yatak odası,noun
+beer,bira,noun
+before,önce,preposition
+behind,arka,preposition
+below,altında,adverb
+best,en iyi,adjective
+better,daha iyi,adjective
+between,arasında,preposition
+bicycle,bisiklet,noun
+big,büyük,adjective
+bike,bisiklet,noun
+bill,fatura,noun
+bird,kuş,noun
+birthday,doğum günü,noun
+black,siyah,adjective
+blog,blog,noun
+blonde,sarışın,adjective
+blue,mavi,adjective
+boat,tekne,noun
+body,vücut,noun
+book,kitap,noun
+boot,çizme,noun
+bored,sıkılmış,adjective
+born,doğmak,verb
+both,ikisi birden,determiner
+bottle,şişe,noun
+box,kutu,noun
+boy,erkek çocuk,noun
+boyfriend,erkek arkadaş,noun

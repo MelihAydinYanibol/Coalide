@@ -214,6 +214,7 @@ analytics.csv
 daily_stats.csv
 statistics.csv
 sent_tg_messages.json
+coalide.bat
 /.vscode
 config.json
 /pronunciations

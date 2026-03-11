@@ -351,9 +351,8 @@ def daily_stat(get_set, correct, wrong, blank, total,level,time_elapsed):
     lg(f"daily_stat({get_set},{correct},{wrong},{blank},{total},{level})")
     if get_set == "get":
         if not os.path.exists("daily_stats.csv"):
-            permission = "w"
-        else: permission = "r"
-        with open("daily_stats.csv",permission,encoding="UTF-8") as f:
+            return []
+        with open("daily_stats.csv", "r", encoding="UTF-8") as f:
             return f.readlines()
     elif get_set == "set":
         if not os.path.exists("daily_stats.csv"):
@@ -492,7 +491,7 @@ def get_audio(word,lang_="en",t=1,server="11",sentence=False):
     if lang_ == language or sentence == True:
         lg(f"Detected language: {language}")
         filename = None
-        if os.environ.get("ELEVENLABS_API_KEY","hi") and server == "11":
+        if os.environ.get("ELEVENLABS_API_KEY") and server == "11":
             try:
                 filename = (elabs_get_audio(word, language, t))
             except Exception as e:
@@ -822,7 +821,7 @@ def quest(question_amount, wordlist, word_progression, dd, typer, quiz_config, c
         except Exception as e:
             lg(f"Error in quest function for word '{word}': {e}")
             print(f"{Fore.RED}An error occurred while processing the word '{word}'. Skipping to the next word.{Style.RESET_ALL}")
-            time.sleep(200)
+            time.sleep(2)
             continue
 
 ### IN BETA ADMIN INTERFACE ###
@@ -1082,7 +1081,7 @@ def main(quiz_config={}, legacy_start_menu=False,mode="play"):
                     cls()
                     from random import randint
                     indx = randint(0,len(ASCII.Animations.video.get_files())+1)
-                    if indx > len(ASCII.Animations.video.get_files()):
+                    if indx >= len(ASCII.Animations.video.get_files()):
                         """ chose_ani() """
                     else:
                         ASCII.Animations.video.play(ASCII.Animations.video.get_files()[indx])
@@ -1831,7 +1830,6 @@ if __name__ == "__main__":
     try:
         lg("Checking for words.csv updates...")
         check_and_update_words_csv("MelihAydinYanibol/Coalide")
-        print(get_config(["dummy_mode"]))
         if not get_config(["dummy_mode"])[0].get("dummy_mode"):
             main(legacy_start_menu=leg,mode=c_)
         else:

@@ -1,9 +1,10 @@
 asciimatics==1.15.0
 colorama==0.4.6
+ElevenLabs==2.38.1
 gTTS==2.5.4
 inputimeout==1.0.4
 mutagen==1.47.0
-numpy==2.4.2
+numpy==2.4.3
 Pillow==12.1.1
 PyAudio==0.2.14
 pydub==0.25.1

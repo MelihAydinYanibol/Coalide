@@ -1,6 +1,7 @@
 import os
 import time
 import json
+import ast
 import random
 import datetime
 import shutil
@@ -16,13 +17,32 @@ from pydub import AudioSegment
 import sys
 import copy
 from colorama import Fore, Back, Style, init
+import hashlib
 init(autoreset=True)
+
+# Load .env file variables into os.environ before any function uses them
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    print("Warning: python-dotenv not installed. Environment variables may not load from .env file.")
 
 if not os.path.exists(".env"):
     with open(".env","w",encoding="UTF-8") as f:
-        f.write("ADMIN_PASSWORD=0000\nPARENTAL_CONTROL_URL=http://IP-TO-YOUR-PCV2-SERVER:5005")
+        f.write("ADMIN_PASSWORD=0000\nBOT_TOKEN=ENTER_YOUR_TOKEN_HERE\nCHAT_ID=YOUR_CHAT_ID_HERE\nPARENTAL_CONTROL_URL=http://IP-TO-YOUR-PCV2-SERVER:5005\nELEVENLABS_API_KEY=[]")
         f.close()
-
+else:
+    with open(".env", "r+", encoding="UTF-8") as f:
+        content = f.read() # Read as one big string for easier searching
+        
+        if "ELEVENLABS_API_KEY" not in content:
+            # Ensure we are at the end of the file
+            f.seek(0, 2) 
+            # Add a newline if the file doesn't end with one, then the key
+            if content and not content.endswith('\n'):
+                f.write('\n')
+            f.write("ELEVENLABS_API_KEY=[]")
+         
 def restart_application():
     """
     Restarts the application using Windows subprocess.
@@ -121,7 +141,25 @@ def backup_data():
     
     print(f"{Fore.GREEN}✓ Backed up {copied} file(s) to {backup_folder}{Style.RESET_ALL}")
 
-def get_config(keys=None):
+def _merge_missing_config_keys(current_config, default_config):
+    """
+    Add missing keys from default_config into current_config recursively.
+    Returns True if any key was added.
+    """
+    changed = False
+    for key, default_value in default_config.items():
+        if key not in current_config:
+            current_config[key] = copy.deepcopy(default_value)
+            changed = True
+        elif isinstance(default_value, dict):
+            if not isinstance(current_config.get(key), dict):
+                current_config[key] = copy.deepcopy(default_value)
+                changed = True
+            elif _merge_missing_config_keys(current_config[key], default_value):
+                changed = True
+    return changed
+
+def get_config(keys=None,default=False):
     lg(f"get_config({keys})")
     if keys is None:
         keys = []
@@ -148,10 +186,12 @@ def get_config(keys=None):
             "spam_answer_proof": True,
             "set_time_for_pc": True,
             "set_time_for_tomorrow": False,
-            "answer_timeout": -1
+            "answer_timeout": -1,
+            "read_example_sentences": True,
+            "elevenlabs_voice_id": "JBFqnCBsd6RMkjVDRZzb"
         }
     }
-
+    if default:return default_config
     # 2. Handle File Loading/Creation
     if not os.path.exists(config_path):
         with open(config_path, "w", encoding="UTF-8") as file:
@@ -163,6 +203,15 @@ def get_config(keys=None):
                 config = json.load(file)
             except json.JSONDecodeError:
                 config = default_config # Fallback if file is corrupted
+
+    if not isinstance(config, dict):
+        config = copy.deepcopy(default_config)
+
+    # 2.5 Repair missing keys/sections and persist the updated config
+    config_updated = _merge_missing_config_keys(config, default_config)
+    if config_updated:
+        with open(config_path, "w", encoding="UTF-8") as file:
+            json.dump(config, file, indent=4)
 
     # 3. Return Logic
     if not keys:
@@ -177,7 +226,23 @@ def get_config(keys=None):
             
     return output
 
-import hashlib
+def repair_config():
+    lg("repair_config()")
+    config_path = "config.json"
+    default_config = get_config(default=True)  # This will create the file if it doesn't exist
+    current_config = get_config()  # Load current config (or default if file was missing/corrupted)
+    if default_config != current_config:
+        print(f"{Fore.YELLOW}Config file is different from the default. Checking for repair...{Style.RESET_ALL}")
+
+    # get_config() already adds missing keys; this function is a manual trigger.
+    changed = _merge_missing_config_keys(current_config, default_config)
+    if changed:
+        with open(config_path, "w", encoding="UTF-8") as file:
+            json.dump(current_config, file, indent=4)
+        print(f"{Fore.GREEN}Missing config keys were added successfully.{Style.RESET_ALL}")
+    else:
+        print(f"{Fore.GREEN}Config is already complete. No missing keys found.{Style.RESET_ALL}")
+    
 
 def check_and_update_words_csv(github_repo, github_token=None, local_file="words.csv"):
     """
@@ -318,36 +383,146 @@ def load_words(file_path):
             f_words.append({eng: [tr, w_type, [first_half_exsentence, second_half_exsentence]]})
     return final_words, f_words
 
+def elabs_check_for_quota(api_key,word=""):
+    from elevenlabs.client import ElevenLabs
+    client = ElevenLabs(api_key=api_key)
+    try:
+        user = client.get_user()
+        quota = user.subscription.character_limit - user.subscription.characters_used
+        if quota <= len(word)*2:  # Assuming 1 character --(aprox)> 2 bytes of audio, adjustable if needed.
+            return False
+        else:   return True
+    except Exception as e:
+        lg(f"Error checking ElevenLabs quota: {e}")
+        return True
 
-def get_audio(word,lang_="en",t=1):
-    lg(f"get_audio({word},{lang_},{t})")
-    words,typer = load_words('words.csv')
-    for word_ in words:
-        key = next(iter(word_.keys()))
-        lg(key, word)
-        if key.lower() == word.lower():
-            language = "en"
-            break
+def elabs_get_audio(word,language="en",t=1):
+    from elevenlabs.client import ElevenLabs
+    from elevenlabs import VoiceSettings
+    api_keys_str = str(os.getenv("ELEVENLABS_API_KEY", "[]")).strip()
+    lg(f"elabs_get_audio({word},{language},{t})")
+    
+    # Handle bracket notation: [key1, key2] or [single_key]
+    if api_keys_str.startswith("[") and api_keys_str.endswith("]"):
+        api_keys_str = api_keys_str[1:-1]  # Remove brackets
+        # Split by comma for multiple keys
+        api_keys = [k.strip().strip("'\"") for k in api_keys_str.split(",")]
+        api_keys = [k for k in api_keys if k]  # Remove empty strings
     else:
-        if word not in words:
+        # Single key without brackets
+        api_keys = [api_keys_str] if api_keys_str else []
+    
+    if len(api_keys) == 0:
+        raise ValueError("ELEVENLABS_API_KEY is not set or empty.")
+
+    lg(f"Found {len(api_keys)} ElevenLabs API key(s) in environment.")
+    
+    if len(api_keys) == 1:
+        api_key = api_keys[0]
+    else:
+        for _api_key in api_keys:
+            if elabs_check_for_quota(_api_key,word):
+                api_key = _api_key
+                break
+        else:
+            raise ValueError("All provided ElevenLabs API keys have insufficient quota. Falling back to gTTS.")
+    
+    
+    voice_id = get_config()["general"].get("elevenlabs_voice_id", "JBFqnCBsd6RMkjVDRZzb")
+    
+    client = ElevenLabs(api_key=api_key)
+
+    # Generate the audio
+    audio_generator = client.text_to_speech.convert(
+        voice_id=voice_id,
+        output_format="mp3_44100_128",
+        text=word,
+        model_id="eleven_multilingual_v2",
+        language_code=language,
+        voice_settings=VoiceSettings(
+            stability=0.85,
+            similarity_boost=0.75,
+            speed=0.82
+        )
+    )
+
+    if not os.path.exists(f"pronunciations"):
+        os.makedirs(f"pronunciations")
+
+    # Save the stream to a file (lowercase for consistent cache lookup)
+    filename = os.path.join("pronunciations", f"{word.lower()}.mp3")
+    with open(filename, "wb") as f:
+        for chunk in audio_generator:
+            if chunk:
+                f.write(chunk)
+        f.close()
+    return filename
+
+
+
+def get_audio(word,lang_="en",t=1,server="11",sentence=False):
+    lg(f"get_audio({word},{lang_},{t})")
+    if sentence:
+        # Sentences are not expected to exist in words.csv; trust provided target language.
+        language = lang_
+    else:
+        words,typer = load_words('words.csv')
+        normalized_word = word.lower()
+        english_words = set()
+        turkish_words = set()
+
+        for word_ in words:
+            key = next(iter(word_.keys()))
+            val = next(iter(word_.values()))
+            lg(key, word)
+            english_words.add(key.lower())
+            turkish_words.add(val.lower())
+
+        if normalized_word in english_words:
+            language = "en"
+        elif normalized_word in turkish_words:
+            language = "tr"
+        else:
             lg("This word is not in the database.")
             return None
-        else:language = 'tr'
 
-    if lang_ == language:
+    if lang_ == language or sentence == True:
         lg(f"Detected language: {language}")
+        filename = None
+        if os.environ.get("ELEVENLABS_API_KEY","hi") and server == "11":
+            try:
+                filename = elabs_get_audio(word, language, t)
+            except Exception as e:
+                lg(f"Error generating audio with ElevenLabs: {e}")
+                if t != 3:
+                    lg("Falling back to gTTS...")
+                    return get_audio(word, lang_, t+1,server="gTTS")
+                else:
+                    lg("Failed to generate audio after 3 attempts.")
+                    return None
+        else:
         # Generate audio using gTTS
-        tts = gTTS(text=word, lang=language)
-        os.makedirs("pronunciations", exist_ok=True)
-        filename = f"pronunciations/{word.lower()}.mp3"
-        tts.save(filename)
+            tts = gTTS(text=word, lang=language)
+            os.makedirs("pronunciations", exist_ok=True)
+            filename = f"pronunciations/{word.lower()}.mp3"
+            tts.save(filename)
+        if not filename:
+            return None
         if os.path.exists(filename):
             file_size = os.path.getsize(filename)
             if file_size == 0:
                 if t != 3:
                     lg(f"Hata: {filename} boş (0 byte) oluşturuldu. Siliniyor...")
                     os.remove(filename)
-                    get_audio(word,lang_,t+1)
+                    if os.environ.get("ELEVENLABS_API_KEY") and server == "11":
+                        try:
+                            return elabs_get_audio(word, language, t+1)
+                        except Exception as e:
+                            lg(f"Error generating audio with ElevenLabs: {e}")
+                            lg("Falling back to gTTS...")
+                            return get_audio(word, lang_, t+1,server="gTTS")
+                    else:
+                        return get_audio(word,lang_,t+1)
                 else:
                     lg(f"Hata: {filename} 3 defa indirildi ama başarısız olundu.")
             else:
@@ -455,7 +630,7 @@ def get_folder(folder="pronunciations"):
         lg(f"An error occurred while listing files: {e}")
         return []
 
-def pronounce_word(word, lang_="en"):
+def pronounce_word(word, lang_="en",sentence=False):
     lg(f"pronounce_word({word},{lang_})")
     files = get_folder("pronunciations")
     for file in files:
@@ -464,7 +639,7 @@ def pronounce_word(word, lang_="en"):
             play_audio(os.path.join("pronunciations", file))
             return
     else:
-        audio_file = get_audio(word, lang_)
+        audio_file = get_audio(word, lang_, sentence=sentence)
         if audio_file:
             play_audio(audio_file)
 
@@ -487,12 +662,6 @@ def admin_login_interface(just_auth=False,legacy_selection_menu=False):
     lg(f"admin_login_interface({just_auth},{legacy_selection_menu})")
     cls()
     import getpass
-    try:
-        from dotenv import load_dotenv
-        load_dotenv()
-    except Exception:
-        # dotenv not available; continue and rely on environment or fallback
-        pass
     
     admin_password = os.getenv("ADMIN_PASSWORD")
     password = getpass.getpass("Admin Şifresini giriniz: ")
@@ -535,103 +704,122 @@ def quest(question_amount, wordlist, word_progression, dd, typer, quiz_config, c
     selected_words = random.sample(wordlist, question_amount)
 
     for i, word in enumerate(selected_words):
-        cls()
-        
-        time_ = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-        type_of_word = next((d[word][1] for d in typer if word in d), "Not found")
-        ex_sent = next((d[word][2] for d in typer if word in d), ["", ""])
-        first_hal_exsentence, second_half_exsentence = ex_sent
-        print(f"Örnek Cümle : {first_hal_exsentence} {(len(word)*2-1)*'_'} {second_half_exsentence}")
-        if random.randint(1,2) == 1:
-            # --- Logic for Turkish -> English ---
-            if word in word_progression:
-                basari = word_progression[word][2]*100
-                if basari >= 80: cc = Fore.GREEN
-                elif basari >= 50: cc = Fore.YELLOW
-                elif basari > 20: cc = Fore.LIGHTRED_EX
-                else: cc = Fore.RED
-            try:
-                if word in word_progression:
-                    basari = int(basari)
-                    print(f"{word} kelimesi için başarı oranınız: ",end="")
-                    print(f"{cc}%{basari:.2f}{Style.RESET_ALL}",end="")
-                    print(f" ({word_progression[word][0]}/{word_progression[word][1]})\n")      
-                else: print(f"{word} kelimesi ilk kez soruluyor.\n")
-            except Exception as e: 
-                if word in word_progression:
-                    print(f"Hata : {e}")
-            if get_config(["general"])[0].get("spam_answer_proof"):
-                ss_time = time.time()
-                diff = 0
-            else: ss_time = None; diff = None
-            if ss_time == None and diff == None:
-                answer = get_question_answer(f"{i+1}. '{word}' ({type_of_word}) kelimesinin Türkçe karşılığı nedir? ",timeout_time)
-            while ss_time != None and diff != None and diff < 2:
-                answer = get_question_answer(f"{i+1}. '{word}' ({type_of_word}) kelimesinin Türkçe karşılığı nedir? ",timeout_time)
-                diff = time.time() - ss_time
+        try:
+            cls()
             
-            if answer.lower() == dd[word].lower():
-                print(Fore.GREEN+"\nDoğru!"+Style.RESET_ALL)
-                save_stat(time_,word,dd[word],answer,True,current_level)
-            elif answer == "":
-                print(Fore.LIGHTRED_EX+f"Boş bırakıldı! Doğru cevap: {dd[word]}"+Style.RESET_ALL)
-                save_stat(time_,word,dd[word],answer,"blank",current_level)
-            elif answer.lower() == "exit":
-                os._exit(1)
-            elif answer == "!TimedOut!":
-                print(Fore.RED+f"Süre doldu! ({timeout_time} sn) Cevap: {dd[word]}"+Style.RESET_ALL)
-                save_stat(time_,word,dd[word],answer,"blank",current_level)
+            time_ = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+            type_of_word = next((d[word][1] for d in typer if word in d), "Not found")
+            ex_sent = next((d[word][2] for d in typer if word in d), ["", ""])
+            first_half_exsentence, second_half_exsentence = ex_sent
+            print(f"Örnek Cümle : {first_half_exsentence} {(len(word)*2-1)*'_'} {second_half_exsentence}")
+            if random.randint(1,2) == 1:
+                # --- Logic for Turkish -> English ---
+                if word in word_progression:
+                    basari = word_progression[word][2]*100
+                    if basari >= 80: cc = Fore.GREEN
+                    elif basari >= 50: cc = Fore.YELLOW
+                    elif basari > 20: cc = Fore.LIGHTRED_EX
+                    else: cc = Fore.RED
+                try:
+                    if word in word_progression:
+                        basari = int(basari)
+                        print(f"{word} kelimesi için başarı oranınız: ",end="")
+                        print(f"{cc}%{basari:.2f}{Style.RESET_ALL}",end="")
+                        print(f" ({word_progression[word][0]}/{word_progression[word][1]})\n")      
+                    else: print(f"{word} kelimesi ilk kez soruluyor.\n")
+                except Exception as e: 
+                    if word in word_progression:
+                        print(f"Hata : {e}")
+                if get_config(["general"])[0].get("spam_answer_proof"):
+                    ss_time = time.time()
+                    diff = 0
+                else: ss_time = None; diff = None
+                if ss_time == None and diff == None:
+                    answer = get_question_answer(f"{i+1}. '{word}' ({type_of_word}) kelimesinin Türkçe karşılığı nedir? ",timeout_time)
+                while ss_time != None and diff != None and diff < 2:
+                    answer = get_question_answer(f"{i+1}. '{word}' ({type_of_word}) kelimesinin Türkçe karşılığı nedir? ",timeout_time)
+                    diff = time.time() - ss_time
+                
+                if answer.lower() == dd[word].lower():
+                    print(Fore.GREEN+"\nDoğru!"+Style.RESET_ALL)
+                    save_stat(time_,word,dd[word],answer,True,current_level)
+                elif answer == "":
+                    print(Fore.LIGHTRED_EX+f"Boş bırakıldı! Doğru cevap: {dd[word]}"+Style.RESET_ALL)
+                    save_stat(time_,word,dd[word],answer,"blank",current_level)
+                elif answer.lower() == "exit":
+                    os._exit(1)
+                elif answer == "!TimedOut!":
+                    print(Fore.RED+f"Süre doldu! ({timeout_time} sn) Cevap: {dd[word]}"+Style.RESET_ALL)
+                    save_stat(time_,word,dd[word],answer,"blank",current_level)
+                else:
+                    print(Fore.RED+f"Yanlış! Doğru cevap: {dd[word]}"+Style.RESET_ALL)
+                    save_stat(time_,word,dd[word],answer,False,current_level)
             else:
-                print(Fore.RED+f"Yanlış! Doğru cevap: {dd[word]}"+Style.RESET_ALL)
-                save_stat(time_,word,dd[word],answer,False,current_level)
-        else:
-            # --- Logic for English -> Turkish ---
-            if word in word_progression:
-                basari = word_progression[word][2]*100
-                if basari >= 80: cc = Fore.GREEN
-                elif basari >= 50: cc = Fore.YELLOW
-                elif basari > 20: cc = Fore.LIGHTRED_EX
-                else: cc = Fore.RED
-            try:
+                # --- Logic for English -> Turkish ---
                 if word in word_progression:
-                    basari = int(basari)
-                    print(f"{dd[word]} kelimesi için başarı oranınız: ",end="")
-                    print(f"{cc}%{basari:.2f}{Style.RESET_ALL}",end="")
-                    print(f" ({word_progression[word][0]}/{word_progression[word][1]})\n")      
-                else: print(f"{dd[word]} kelimesi ilk kez soruluyor.\n")
-            except Exception as e: 
-                if word in word_progression:
-                    print(f"Hata : {e}")
+                    basari = word_progression[word][2]*100
+                    if basari >= 80: cc = Fore.GREEN
+                    elif basari >= 50: cc = Fore.YELLOW
+                    elif basari > 20: cc = Fore.LIGHTRED_EX
+                    else: cc = Fore.RED
+                try:
+                    if word in word_progression:
+                        basari = int(basari)
+                        print(f"{dd[word]} kelimesi için başarı oranınız: ",end="")
+                        print(f"{cc}%{basari:.2f}{Style.RESET_ALL}",end="")
+                        print(f" ({word_progression[word][0]}/{word_progression[word][1]})\n")      
+                    else: print(f"{dd[word]} kelimesi ilk kez soruluyor.\n")
+                except Exception as e: 
+                    if word in word_progression:
+                        print(f"Hata : {e}")
 
-            if get_config(["general"])[0].get("spam_answer_proof"):
-                ss_time = time.time()
-                diff = 0
-            else: ss_time = None; diff = None
-            if ss_time == None and diff == None:
-                answer = get_question_answer(f"{i+1}. '{dd[word]}' ({type_of_word}) kelimesinin İngilizce karşılığı nedir? ",timeout_time)
-            while ss_time != None and diff != None and diff < 2:
-                answer = get_question_answer(f"{i+1}. '{dd[word]}' ({type_of_word}) kelimesinin İngilizce karşılığı nedir? ",timeout_time)
-                diff = time.time() - ss_time
+                if get_config(["general"])[0].get("spam_answer_proof"):
+                    ss_time = time.time()
+                    diff = 0
+                else: ss_time = None; diff = None
+                if ss_time == None and diff == None:
+                    answer = get_question_answer(f"{i+1}. '{dd[word]}' ({type_of_word}) kelimesinin İngilizce karşılığı nedir? ",timeout_time)
+                while ss_time != None and diff != None and diff < 2:
+                    answer = get_question_answer(f"{i+1}. '{dd[word]}' ({type_of_word}) kelimesinin İngilizce karşılığı nedir? ",timeout_time)
+                    diff = time.time() - ss_time
+                
+                
+                if answer.lower() == word.lower():
+                    print(Fore.GREEN+"\nDoğru!"+Style.RESET_ALL)
+                    save_stat(time_,word,dd[word],answer,True,current_level)
+                elif answer == "":
+                    print(Fore.LIGHTRED_EX+f"Boş bırakıldı! Doğru cevap: {word}"+Style.RESET_ALL)
+                    save_stat(time_,word,dd[word],"","blank",current_level)
+                elif answer.lower() == "exit":
+                    os._exit(1)
+                elif answer == "!TimedOut!":
+                    print(Fore.RED+f"Süre doldu! ({timeout_time} sn) Cevap: {word}"+Style.RESET_ALL)
+                    save_stat(time_,word,dd[word],answer,"blank",current_level)
+                else:
+                    print(Fore.RED+f"Yanlış! Doğru cevap: {word}"+Style.RESET_ALL)
+                    save_stat(time_,word,dd[word],answer,False,current_level)  
             
-            
-            if answer.lower() == word.lower():
-                print(Fore.GREEN+"\nDoğru!"+Style.RESET_ALL)
-                save_stat(time_,word,dd[word],answer,True,current_level)
-            elif answer == "":
-                print(Fore.LIGHTRED_EX+f"Boş bırakıldı! Doğru cevap: {word}"+Style.RESET_ALL)
-                save_stat(time_,word,dd[word],"","blank",current_level)
-            elif answer.lower() == "exit":
-                os._exit(1)
-            elif answer == "!TimedOut!":
-                print(Fore.RED+f"Süre doldu! ({timeout_time} sn) Cevap: {word}"+Style.RESET_ALL)
-                save_stat(time_,word,dd[word],answer,"blank",current_level)
-            else:
-                print(Fore.RED+f"Yanlış! Doğru cevap: {word}"+Style.RESET_ALL)
-                save_stat(time_,word,dd[word],answer,False,current_level)  
-        
-        if quiz_config.get("pronounce_words") == True:
-            pronounce_word(word)
-        holder = str(input("\n\nDevam etmek için Enter tuşlayınız"))
+            if quiz_config.get("pronounce_words") == True:
+                print("\n\nOkunuyor...")
+                pronounce_word(word)
+            if get_config(["general"])[0].get("read_example_sentences") == True:
+                pronounce_word(f"{first_half_exsentence.strip()} {word} {second_half_exsentence.strip()}", lang_="en",sentence=True)
+
+            print("[Enter] Devam Et\n[P] Kelimeyi Tekrar Dinle\n[S] Cümleyi Tekrar Dinle\n")
+            while True:
+                holder = str(input("> "))
+                sys.stdout.write("\033[A\033[K")
+                sys.stdout.flush()
+                if holder.lower() == "p":
+                    pronounce_word(word)
+                elif holder.lower() == "s":
+                    pronounce_word(f"{first_half_exsentence.strip()} {word} {second_half_exsentence.strip()}", lang_="en",sentence=True)
+                else: break
+        except Exception as e:
+            lg(f"Error in quest function for word '{word}': {e}")
+            print(f"{Fore.RED}An error occurred while processing the word '{word}'. Skipping to the next word.{Style.RESET_ALL}")
+            time.sleep(200)
+            continue
 
 ### IN BETA ADMIN INTERFACE ###
 """ loop = True
@@ -953,7 +1141,7 @@ def main(quiz_config={}, legacy_start_menu=False,mode="play"):
                                         amount_counter += 1
                                         if data[4] == "True":
                                             correct_counter += 1
-                                    if amount_counter != correct_counter != 5:
+                                    if amount_counter != correct_counter and correct_counter != 5:
                                         if word not in unknown_words:
                                             unknown_words.append(word)
                                     if word not in stat_words:
@@ -1477,12 +1665,8 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                         print("Lütfen bekleyiniz...")
 
                         ### Send api post to parental control api to add exceptional time ###
-                        from dotenv import load_dotenv
-                        load_dotenv()
                         import parental_connection as pc
-                        base_url = os.getenv("PARENTAL_CONTROL_URL")
-                        if base_url == None:
-                            print("Hatalı .env dosyası! Dakika eklenemedi!!!")
+                        base_url = os.getenv("PARENTAL_CONTROL_URL","http://IP-TO-YOUR-PCV2-SERVER:5005")
                         ### example structure of resulting var : {"data":[[600,null],[600,null]],"status":"success"}
                         if base_url != None:
                             resulting = pc.get_exceptional_time(base_url, "OVERALL", date)

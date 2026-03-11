@@ -19,6 +19,27 @@ import copy
 from colorama import Fore, Back, Style, init
 import hashlib
 init(autoreset=True)
+if sys.argv[1:]:
+    if "-pack-data" in sys.argv[1]:
+        static_files = [
+            "statistics.csv",
+            "daily_stats.csv",
+            "analytics.csv",
+            "words.csv",
+            "config.json",
+            "sent_tg_messages.json",
+            ".env",
+        ]
+        if not os.path.exists("packaged_data"):
+            os.makedirs("packaged_data")
+        else:
+            shutil.rmtree("packaged_data")
+            os.makedirs("packaged_data")
+        for file in static_files:
+            if os.path.exists(file):
+                shutil.copy2(file, os.path.join("packaged_data", file))
+        print("Data files have been packaged into the 'packaged_data' folder. Exiting...")
+        sys.exit(0)
 
 # Load .env file variables into os.environ before any function uses them
 try:

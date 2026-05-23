@@ -98,6 +98,60 @@ def get_exceptional_time(base_url, app_name, query_date=None):
         # If the API is unreachable, return empty data to allow caller to handle add flow
         return {"data": []}
 
+def get_pending_exceptional_time(base_url, app_name, query_date=None, reason_contains=None):
+    """
+    Returns total queued exception_time (seconds) from PCV2 secondary queue
+    for a specific app/date pair.
+    """
+    if not query_date:
+        query_date = datetime.now().strftime('%Y-%m-%d')
+
+    endpoint = f"{base_url}/api/server/queue"
+
+    try:
+        response = requests.get(endpoint, timeout=5)
+        if response.status_code != 200:
+            return 0
+
+        result = response.json()
+        items = result.get("data", {}).get("items", [])
+        total_pending = 0
+
+        for item in items:
+            if str(item.get("method", "")).upper() != "POST":
+                continue
+            if not str(item.get("endpoint", "")).endswith("/exceptions"):
+                continue
+
+            payload = item.get("data", {})
+            if isinstance(payload, str):
+                try:
+                    payload = json.loads(payload)
+                except json.JSONDecodeError:
+                    continue
+            if not isinstance(payload, dict):
+                continue
+
+            if payload.get("app_name") != app_name or payload.get("date") != query_date:
+                continue
+
+            if reason_contains:
+                reason_text = str(payload.get("reason", ""))
+                if reason_contains.lower() not in reason_text.lower():
+                    continue
+
+            try:
+                pending_seconds = int(payload.get("exception_time", 0))
+            except (TypeError, ValueError):
+                pending_seconds = 0
+
+            if pending_seconds > 0:
+                total_pending += pending_seconds
+
+        return total_pending
+    except requests.exceptions.RequestException:
+        return 0
+
 
 # --- Example Usage ---
 # API_URL = "http://192.168.1.50:5001"

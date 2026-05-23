@@ -1685,7 +1685,8 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                             )
                             if minutes_to_add > total_time_available:
                                 minutes_to_add = minutes_to_add - total_time_available
-                            else: minutes_to_add = 0
+                            else:
+                                minutes_to_add = 0
                         print(f"{o_[0]-minutes_to_add//60} Doğru yaptınız {t} için {minutes_to_add//60} dakika ekleniyor..")
                         try:
                             if base_url != None:
@@ -1847,7 +1848,6 @@ if __name__ == "__main__":
         print("Restarting application in 5 seconds...")
         time.sleep(5)
         restart_application()
-
 
 
 

@@ -144,6 +144,7 @@ PARENTAL_CONTROL_URL=http://your-pcv2-server-ip:5005
         "spam_answer_proof": true,
         "set_time_for_pc": true,
         "set_time_for_tomorrow": false,
+        "pc_time_multiplier": 1,
         "answer_timeout": -1
     }
 }
@@ -269,6 +270,7 @@ The application can automatically add timed exceptions for itself (or another ex
 | `general` | `answer_timeout` | `-1` | Seconds to answer (`-1` = unlimited) |
 | `general` | `set_time_for_pc` | `true` | Request parental-control time exception |
 | `general` | `set_time_for_tomorrow` | `false` | Request exception for tomorrow instead of today |
+| `general` | `pc_time_multiplier` | `1` | Multiplier for awarded PCV2 time (`2` doubles, `0.5` halves) |
 
 ---
 

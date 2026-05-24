@@ -3,7 +3,10 @@ from unittest.mock import Mock, patch
 
 import requests
 
-from parental_connection import get_pending_exceptional_time
+from parental_connection import (
+    calculate_exceptional_time_seconds,
+    get_pending_exceptional_time,
+)
 
 
 class GetPendingExceptionalTimeTests(unittest.TestCase):
@@ -86,6 +89,21 @@ class GetPendingExceptionalTimeTests(unittest.TestCase):
         )
 
         self.assertEqual(total_pending, 0)
+
+
+class CalculateExceptionalTimeSecondsTests(unittest.TestCase):
+    def test_default_multiplier_keeps_existing_behavior(self):
+        self.assertEqual(calculate_exceptional_time_seconds(60), 3600)
+
+    def test_applies_multiplier_to_awarded_time(self):
+        self.assertEqual(calculate_exceptional_time_seconds(60, 2), 7200)
+        self.assertEqual(calculate_exceptional_time_seconds(60, 0.5), 1800)
+
+    def test_invalid_multiplier_type_defaults_to_one(self):
+        self.assertEqual(calculate_exceptional_time_seconds(60, "invalid"), 3600)
+
+    def test_negative_multiplier_returns_zero(self):
+        self.assertEqual(calculate_exceptional_time_seconds(60, -1), 0)
 
 
 if __name__ == "__main__":

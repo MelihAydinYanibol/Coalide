@@ -2,6 +2,29 @@ import requests
 import json
 from datetime import datetime
 
+SECONDS_PER_MINUTE = 60
+
+def calculate_exceptional_time_seconds(correct_answers, multiplier=1):
+    """
+    Calculate exceptional time in seconds.
+
+    :param correct_answers: Number of correct answers.
+    :param multiplier: Time multiplier to apply on awarded time.
+    :return: Awarded exceptional time in seconds.
+
+    Formula: correct_answers * 60 * max(multiplier, 0)
+    Invalid multiplier values default to 1. Negative multipliers are clamped to 0.
+    """
+    try:
+        multiplier_value = float(multiplier)
+    except (TypeError, ValueError):
+        multiplier_value = 1.0
+
+    if multiplier_value < 0:
+        multiplier_value = 0.0
+
+    return int(round(correct_answers * SECONDS_PER_MINUTE * multiplier_value))
+
 def add_exceptional_time(base_url, app_name, duration_seconds, exception_date=None,reason="Sebep belirtilmedi"):
     """
     Sends a POST request to the Secondary API to add an exception for a specific app.

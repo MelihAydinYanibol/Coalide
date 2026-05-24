@@ -23,7 +23,7 @@ def calculate_exceptional_time_seconds(correct_answers, multiplier=1):
     if multiplier_value < 0:
         multiplier_value = 0.0
 
-    return max(0, int(round(correct_answers * SECONDS_PER_MINUTE * multiplier_value)))
+    return int(round(correct_answers * SECONDS_PER_MINUTE * multiplier_value))
 
 def add_exceptional_time(base_url, app_name, duration_seconds, exception_date=None,reason="Sebep belirtilmedi"):
     """

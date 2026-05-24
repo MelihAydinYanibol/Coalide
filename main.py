@@ -1647,7 +1647,7 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                     import parental_connection as pc
 
                     ### Minute calculation
-                    minutes_to_add = pc.calculate_exceptional_time_seconds(
+                    seconds_to_add = pc.calculate_exceptional_time_seconds(
                         o_[0],
                         get_config(["general"])[0].get("pc_time_multiplier", 1)
                     )
@@ -1663,7 +1663,7 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                             lines = f.readlines()
                             for line in lines[::-1]:
                                 print(line)
-                                if line.strip() == f"{date},{o_[0]},{minutes_to_add}":
+                                if line.strip() == f"{date},{o_[0]},{seconds_to_add}":
                                     already_registered = True
                                     break
                             else:raise
@@ -1687,14 +1687,14 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                                 date,
                                 "COALIDE"
                             )
-                            if minutes_to_add > total_time_available:
-                                minutes_to_add = minutes_to_add - total_time_available
+                            if seconds_to_add > total_time_available:
+                                seconds_to_add = seconds_to_add - total_time_available
                             else:
-                                minutes_to_add = 0
-                        print(f"{o_[0]-minutes_to_add//60} Doğru yaptınız {t} için {minutes_to_add//60} dakika ekleniyor..")
+                                seconds_to_add = 0
+                        print(f"{o_[0]-seconds_to_add//60} Doğru yaptınız {t} için {seconds_to_add//60} dakika ekleniyor..")
                         try:
                             if base_url != None:
-                                ifn = pc.add_exceptional_time(base_url, "OVERALL", minutes_to_add,date,f"{o_[0]} Doğru yaptığınız için - COALIDE")
+                                ifn = pc.add_exceptional_time(base_url, "OVERALL", seconds_to_add,date,f"{o_[0]} Doğru yaptığınız için - COALIDE")
                             else: ifn = None
                             if "Connection Error" in str(ifn):raise Exception("Connection Error")
                             if 1 == ifn or '"status":"queued"' in str(ifn):
@@ -1702,7 +1702,7 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                                 if not os.path.exists("used_exceptions.csv"):
                                     with open("used_exceptions.csv","w",encoding="UTF-8") as f:f.close()
                                 with open("used_exceptions.csv","a",encoding="UTF-8") as file:
-                                    file.write(f"{date},{o_[0]},{minutes_to_add}\n")
+                                    file.write(f"{date},{o_[0]},{seconds_to_add}\n")
                                     file.close()
                             elif "Error" in str(ifn): print("Dakika eklenirken sorun oluştu!");print(str(ifn))
                             else: print("Muhtemelen Dakikanız eklendi")
@@ -1852,7 +1852,6 @@ if __name__ == "__main__":
         print("Restarting application in 5 seconds...")
         time.sleep(5)
         restart_application()
-
 
 
 

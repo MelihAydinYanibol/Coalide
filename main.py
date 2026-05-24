@@ -1692,12 +1692,14 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                                 seconds_to_add = seconds_to_add - total_time_available
                             else:
                                 seconds_to_add = 0
-                        try:
-                            multiplier_value = float(general_config.get("pc_time_multiplier", 1))
-                        except (TypeError, ValueError):
-                            multiplier_value = 1.0
-                        multiplier_text = f" (çarpan: {multiplier_value}x)" if multiplier_value != 1 else ""
-                        print(f"{o_[0]} Doğru yaptınız {t} için {seconds_to_add//60} dakika ekleniyor..{multiplier_text}")
+                        multiplier_text = ""
+                        raw_multiplier = general_config.get("pc_time_multiplier", 1)
+                        if str(raw_multiplier) not in ("1", "1.0"):
+                            multiplier_text = f"(çarpan: {raw_multiplier}x)"
+                        if multiplier_text:
+                            print(f"{o_[0]} Doğru yaptınız {t} için {seconds_to_add//60} dakika ekleniyor.. {multiplier_text}")
+                        else:
+                            print(f"{o_[0]} Doğru yaptınız {t} için {seconds_to_add//60} dakika ekleniyor..")
                         try:
                             if base_url != None:
                                 ifn = pc.add_exceptional_time(base_url, "OVERALL", seconds_to_add,date,f"{o_[0]} Doğru yaptığınız için - COALIDE")
@@ -1858,7 +1860,6 @@ if __name__ == "__main__":
         print("Restarting application in 5 seconds...")
         time.sleep(5)
         restart_application()
-
 
 
 

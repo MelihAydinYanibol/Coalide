@@ -187,6 +187,7 @@ def get_config(keys=None,default=False):
             "spam_answer_proof": True,
             "set_time_for_pc": True,
             "set_time_for_tomorrow": False,
+            "pc_time_multiplier": 1,
             "answer_timeout": -1,
             "read_example_sentences": True,
             "elevenlabs_voice_id": "JBFqnCBsd6RMkjVDRZzb"
@@ -1643,9 +1644,13 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                 if get_config(["general"])[0].get("set_time_for_pc"):
                     lg("set_time_for_pc is true")
                     ### Point, Minute Calculation and API post to parental control ###
+                    import parental_connection as pc
 
                     ### Minute calculation
-                    minutes_to_add = o_[0]*60
+                    minutes_to_add = pc.calculate_exceptional_time_seconds(
+                        o_[0],
+                        get_config(["general"])[0].get("pc_time_multiplier", 1)
+                    )
 
                     ### Give the user info ###
                     if get_config(["general"])[0].get("set_time_for_tomorrow"):
@@ -1668,7 +1673,6 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                         print("Lütfen bekleyiniz...")
 
                         ### Send api post to parental control api to add exceptional time ###
-                        import parental_connection as pc
                         base_url = os.getenv("PARENTAL_CONTROL_URL","http://IP-TO-YOUR-PCV2-SERVER:5005")
                         ### example structure of resulting var : {"data":[[600,null],[600,null]],"status":"success"}
                         if base_url != None:
@@ -1848,8 +1852,6 @@ if __name__ == "__main__":
         print("Restarting application in 5 seconds...")
         time.sleep(5)
         restart_application()
-
-
 
 
 

@@ -1645,15 +1645,16 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                     lg("set_time_for_pc is true")
                     ### Point, Minute Calculation and API post to parental control ###
                     import parental_connection as pc
+                    general_config = get_config(["general"])[0]
 
                     ### Minute calculation
                     seconds_to_add = pc.calculate_exceptional_time_seconds(
                         o_[0],
-                        get_config(["general"])[0].get("pc_time_multiplier", 1)
+                        general_config.get("pc_time_multiplier", 1)
                     )
 
                     ### Give the user info ###
-                    if get_config(["general"])[0].get("set_time_for_tomorrow"):
+                    if general_config.get("set_time_for_tomorrow"):
                         t = "yarın"
                         date_val = datetime.date.today() + datetime.timedelta(days=1)
                     else:t="bugün";date_val = datetime.date.today()
@@ -1663,7 +1664,7 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                             lines = f.readlines()
                             for line in lines[::-1]:
                                 print(line)
-                                if line.strip() == f"{date},{o_[0]},{seconds_to_add}":
+                                if line.strip().startswith(f"{date},{o_[0]},"):
                                     already_registered = True
                                     break
                             else:raise
@@ -1691,7 +1692,7 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                                 seconds_to_add = seconds_to_add - total_time_available
                             else:
                                 seconds_to_add = 0
-                        print(f"{o_[0]-seconds_to_add//60} Doğru yaptınız {t} için {seconds_to_add//60} dakika ekleniyor..")
+                        print(f"{o_[0]} Doğru yaptınız {t} için {seconds_to_add//60} dakika ekleniyor..")
                         try:
                             if base_url != None:
                                 ifn = pc.add_exceptional_time(base_url, "OVERALL", seconds_to_add,date,f"{o_[0]} Doğru yaptığınız için - COALIDE")
@@ -1852,7 +1853,6 @@ if __name__ == "__main__":
         print("Restarting application in 5 seconds...")
         time.sleep(5)
         restart_application()
-
 
 
 

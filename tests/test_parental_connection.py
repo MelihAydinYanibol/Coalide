@@ -99,8 +99,10 @@ class CalculateExceptionalTimeSecondsTests(unittest.TestCase):
         self.assertEqual(calculate_exceptional_time_seconds(60, 2), 7200)
         self.assertEqual(calculate_exceptional_time_seconds(60, 0.5), 1800)
 
-    def test_invalid_and_negative_multiplier_are_handled_safely(self):
+    def test_invalid_multiplier_type_defaults_to_one(self):
         self.assertEqual(calculate_exceptional_time_seconds(60, "invalid"), 3600)
+
+    def test_negative_multiplier_returns_zero(self):
         self.assertEqual(calculate_exceptional_time_seconds(60, -1), 0)
 
 

@@ -12,7 +12,7 @@ def calculate_exceptional_time_seconds(correct_answers, multiplier=1):
     :param multiplier: Time multiplier to apply on awarded time.
     :return: Awarded exceptional time in seconds.
 
-    Formula: correct_answers * 60 * multiplier
+    Formula: correct_answers * 60 * max(multiplier, 0)
     Invalid multiplier values default to 1. Negative multipliers are clamped to 0.
     """
     try:

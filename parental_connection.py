@@ -1,6 +1,7 @@
 import requests
 import json
 from datetime import datetime
+from main import lg
 
 SECONDS_PER_MINUTE = 60
 
@@ -61,16 +62,18 @@ def add_exceptional_time(base_url, app_name, duration_seconds, exception_date=No
         # Parse the JSON response
         result = response.json()
         
+
         if response.status_code == 200 or response.status_code == 201:
-            if result.get("status") == "queued":
-                """ return (f"⚠️ [Queued] Primary API offline. Request for {app_name} saved to buffer.") """
+            if result.get("status") != "queued":
+                lg(f"✅ [Success] Exception added for {app_name} on {exception_date}.")
                 return 1
-            else:
-                """ return (f"✅ [Success] Exception added for {app_name} on {exception_date}.") """
+        elif result.get("status") == "queued":
+                lg(f"⚠️ [Queued] Primary API offline. Request for {app_name} saved to buffer.")
                 return 1
         else:
-            return (f"❌ [Error] Server returned status {response.status_code}: {response.text}")
-            """ return None """
+
+            lg(f"❌ [Error] Server returned status {response.status_code}: {response.text}")
+            return None
 
     except requests.exceptions.RequestException as e:
         print(f"🚨 [Connection Error] Could not reach the Secondary API: {e}")

@@ -1697,16 +1697,20 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                         if str(raw_multiplier) not in ("1", "1.0"):
                             multiplier_text = f"(çarpan: {raw_multiplier}x)"
                         if multiplier_text:
-                            print(f"{o_[0]} Doğru yaptınız {t} için {seconds_to_add//60} dakika ekleniyor.. {multiplier_text}")
+                            print(f"{seconds_to_add*raw_multiplier//60} Doğru yaptınız {t} için {seconds_to_add//60} dakika ekleniyor.. {multiplier_text}")
                         else:
-                            print(f"{o_[0]} Doğru yaptınız {t} için {seconds_to_add//60} dakika ekleniyor..")
+                            print(f"{o_[0]} Doğru yaptınız! {t} için {seconds_to_add//60} dakika ekleniyor..")
                         try:
                             if base_url != None:
                                 ifn = pc.add_exceptional_time(base_url, "OVERALL", seconds_to_add,date,f"{o_[0]} Doğru yaptığınız için - COALIDE")
                             else: ifn = None
                             if "Connection Error" in str(ifn):raise Exception("Connection Error")
                             if 1 == ifn or '"status":"queued"' in str(ifn):
-                                print("Dakikalarınız eklendi.")
+                                cls()
+                                if multiplier_text:
+                                    print(f"{seconds_to_add*raw_multiplier//60} Doğru yaptınız {t} için {seconds_to_add//60} dakika ekleniyor.. {multiplier_text}")
+                                else:
+                                    print(f"{o_[0]} Doğru yaptınız! {t} için {seconds_to_add//60} dakika ekleniyor..")
                                 if not os.path.exists("used_exceptions.csv"):
                                     with open("used_exceptions.csv","w",encoding="UTF-8") as f:f.close()
                                 with open("used_exceptions.csv","a",encoding="UTF-8") as file:

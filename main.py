@@ -1720,13 +1720,12 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                             else: print("Muhtemelen Dakikanız eklendi")
                         except:
                             print("İkincil API'ye istek gönderilirken bir hata oluştu! Dakika eklenemedi!!!")
-                        print(f"\n{telegram_text}\n")
-                        s_time = time.time()
-                        while time.time() - s_time < 30:
-                            input(f"Ana menüye dönmek için herhangi bir butona basınız. ({int(time.time() - s_time)}/30 sn)")
+                print(f"\n{telegram_text}\n")
+                s_time = time.time()
+                while time.time() - s_time < 30:
+                    input(f"Ana menüye dönmek için herhangi bir butona basınız. ({int(time.time() - s_time)}/30 sn)")
 
-                    else:
-                        print("Zaten süreniz eklenmiş!")
+                else: print(f"\n{telegram_text}\n")
                 time.sleep(3)
                 cls()
                 ### Restarting the code to fix problems with memory ###

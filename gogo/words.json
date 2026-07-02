@@ -8,7 +8,11 @@
         ],
         "target": "walk",
         "past": "walked",
-        "v3": "walked"
+        "v3": "walked",
+        "source": [
+            "yürümek"
+        ],
+        "next_review_date": null
     },
     {
         "language": "en",
@@ -19,17 +23,25 @@
         ],
         "target": "book",
         "past": "",
-        "v3": ""
+        "v3": "",
+        "source": [
+            "kitap"
+        ],
+        "next_review_date": null
     },
     {
         "language": "en",
         "word_type": "adjective",
         "sentence": [
-            "The",
-            "is very"
+            "you are",
+            ""
         ],
         "target": "beautiful",
         "past": "",
-        "v3": ""
+        "v3": "",
+        "source": [
+            "güzel"
+        ],
+        "next_review_date": null
     }
 ]

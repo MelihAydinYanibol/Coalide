@@ -5,6 +5,8 @@ Question object will have the following attributes:
 - is_source_wanted: bool
 """
 
+from objects.word_obj import Word
+
 class Question:
     def __init__(self, word: Word, is_target_wanted: bool):
         self.word = word

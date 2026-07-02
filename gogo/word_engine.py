@@ -56,6 +56,16 @@ def get_words(file_path: str = "words.json") -> list[Word]:
 
     with open(file_path, 'r', encoding='utf-8') as file:
         data = json.load(file)
+    if not os.path.exists("progress.json"):
+        with open("progress.json", 'w', encoding='utf-8') as file:
+            json.dump({}, file)
+            file.close()
+        progress_data = {}
+    else:
+        with open("progress.json", 'r', encoding='utf-8') as file:
+            progress_data = json.load(file)
+            file.close()
+
 
     words = []
     for item in data:
@@ -64,6 +74,13 @@ def get_words(file_path: str = "words.json") -> list[Word]:
         item = dict(item)
         item["sentence"] = tuple(item["sentence"])
         word = Word(**item)
+        if word.target in list(progress_data.keys()):
+            word.next_review_date = progress_data[word.target]["next_review_date"]
+            word.repetitions = progress_data[word.target]["repetitions"]
+            word.ease_factor = progress_data[word.target]["ease_factor"]
+            word.interval = progress_data[word.target]["interval"]
+        else:
+            word.next_review_date = "2020-10-10"  # or None, depending on how you want to handle it
         words.append(word)
 
     return words

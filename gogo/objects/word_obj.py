@@ -17,7 +17,7 @@ User will be able to set the language when initating the word object. If not set
 """
 
 class Word:
-    def __init__(self, language: str, word_type: str, sentence: tuple[str, str],target: str, past: str = "", v3: str = ""):
+    def __init__(self, language: str, word_type: str, source: list, sentence: tuple[str, str],target: str, past: str = "", v3: str = "", next_review_date: str | None = None):
         if not language:
             raise ValueError("Language must be set for Word object.")
         if not target:
@@ -28,10 +28,23 @@ class Word:
         self.target = target
         self.past = past
         self.v3 = v3
+        self.source = source
+        self.next_review_date = next_review_date
+        self.repetitions = 0
+        self.ease_factor = 2.5
+        self.interval = 0  # in days
+
 
     @property
     def is_verb(self) -> bool:
         return self.word_type.lower() == "verb"
+
+    @property
+    def is_due(self) -> bool:
+        if self.next_review_date is None:
+            return True  # never reviewed = always eligible
+        import datetime
+        return datetime.date.fromisoformat(self.next_review_date) <= datetime.date.today()
 
     def __repr__(self) -> str:
         return (

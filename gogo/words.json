@@ -1,0 +1,35 @@
+[
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "He can",
+            "to school every day"
+        ],
+        "target": "walk",
+        "past": "walked",
+        "v3": "walked"
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "is on the table"
+        ],
+        "target": "book",
+        "past": "",
+        "v3": ""
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "The",
+            "is very"
+        ],
+        "target": "beautiful",
+        "past": "",
+        "v3": ""
+    }
+]

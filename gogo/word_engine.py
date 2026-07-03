@@ -76,6 +76,7 @@ def get_words(file_path: str = "words.json") -> list[Word]:
         word = Word(**item)
         if word.target in list(progress_data.keys()):
             word.next_review_date = progress_data[word.target]["next_review_date"]
+            word.last_review_date = progress_data[word.target].get("last_review_date")
             word.repetitions = progress_data[word.target]["repetitions"]
             word.ease_factor = progress_data[word.target]["ease_factor"]
             word.interval = progress_data[word.target]["interval"]

@@ -17,7 +17,21 @@ User will be able to set the language when initating the word object. If not set
 """
 
 class Word:
-    def __init__(self, language: str, word_type: str, source: list, sentence: tuple[str, str],target: str, past: str = "", v3: str = "", next_review_date: str | None = None):
+    """
+    Word object represents a word in the flashcard system. It contains information about the word, its type, its tenses, and its translations.
+    :param language: The language code of the word (ISO 639 language codes).
+    :param word_type: The type of the word (e.g., "verb", "noun", "adjective").
+    :param sentence: A tuple containing two parts of a sentence where the word is used. The first part is the beginning of the sentence, and the second part is the end of the sentence.
+    :param target: The target word (the word being learned).
+    :param past: The past tense of the word (only relevant for verbs).
+    :param v3: The third form of the word (only relevant for verbs).
+    :param next_review_date: The date when the word is next due for review (in "YYYY-MM-DD" format). If None, the word has never been reviewed.
+    :param last_review_date: The date when the word was last reviewed (in "YYYY-MM-DD" format). If None, the word has never been reviewed.
+    :param repetitions: The number of times the word has been reviewed.
+    :param ease_factor: The ease factor of the word, used in the SM2 algorithm to determine the interval between reviews.
+    :param interval: The interval in days until the next review.
+    """
+    def __init__(self, language: str, word_type: str, source: list, sentence: tuple[str, str],target: str, past: str = "", v3: str = "", next_review_date: str | None = None, last_review_date: str | None = None):
         if not language:
             raise ValueError("Language must be set for Word object.")
         if not target:
@@ -30,9 +44,11 @@ class Word:
         self.v3 = v3
         self.source = source
         self.next_review_date = next_review_date
+        self.last_review_date = last_review_date
         self.repetitions = 0
         self.ease_factor = 2.5
         self.interval = 0  # in days
+        self.id = f"{self.language}_{self.target}"  # Unique identifier for the word
 
 
     @property

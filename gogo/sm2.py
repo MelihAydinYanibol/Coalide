@@ -10,15 +10,6 @@ from objects.word_obj import Word
 from objects.question_obj import Question
 import random
 
-# Box number -> days until next review while in that box
-BOX_INTERVALS = {
-    1: 0, # due immediately / every session (new or just-failed)
-    2: 1,
-    3: 3,
-    4: 7,
-    5: 14,
-}
-
 DAILY_NEW_WORD_CAP  = 15 # how many brand-new words can be introduced per day
 NO_REPEAT_WINDOW = 8 # a word can't repeat within this many questions
 
@@ -30,12 +21,15 @@ word_list.sort(key=attrgetter('next_review_date')) # sort by next review date, e
 
 # if the word is new, it's next_review_date will equal to "00-00-01" which is the earliest possible date, so it will be at the front of the list
 
-def get_next_question() -> Question:
+def get_next_question(feed: list | None = None) -> Question:
     """
     Get the next Question object according to SM-2 algorithm.
 
     :return: The next Question object.
     """
+
+    if feed is None: feed = []
+
     # Filter words that are due for review
     due_words = [word for word in word_list if word.is_due]
 
@@ -44,9 +38,25 @@ def get_next_question() -> Question:
         return None
     due_words.sort(key=attrgetter('next_review_date'))  # sort by next review date, earliest first
     
-    # NO REPEAT WINDOW AND DAILY_NEW_WORD_CAP LOGIC WILL BE ADDED HERE.
-    # Also infinite question support will be added.
-            
+
+    # DAILY_NEW_WORD_CAP LOGIC STARTS HERE
+    from datetime import date
+    todays_answered_words = [word for word in word_list if word.last_review_date == str(date.today())]
+    if len(todays_answered_words) >= DAILY_NEW_WORD_CAP:
+        # Filter out new words (those with next_review_date equal to "2020-10-10")
+        due_words = [word for word in due_words if word.next_review_date != "2020-10-10"]
+        if not due_words:
+            return None  # No more questions can be asked today
+    
+    # NO_REPEAT_WINDOW LOGIC STARTS HERE
+    # Filter out words that have been asked in the last NO_REPEAT_WINDOW questions
+    recent_words = set(feed[-NO_REPEAT_WINDOW:])  # Get the last NO_REPEAT_WINDOW words asked
+    due_words_filtered = [word for word in due_words if word.id not in recent_words]
+    if due_words_filtered == []:
+        # If no words are left after filtering, discard the filter.
+        pass
+    else: due_words = due_words_filtered
+
     # Select the first due word (earliest next_review_date)
     next_word = due_words[0]
 
@@ -110,6 +120,7 @@ def update_sm2(word, quality: int):
     )
  
     word.next_review_date = (date.today() + timedelta(days=word.interval)).isoformat()
+    word.last_review_date = date.today().isoformat()  # Update the last review date to today
     save_progress(word)  # Save the updated word progress to progress.json
     return word
 
@@ -134,6 +145,7 @@ def save_progress(word: Word):
     # Update the progress data for the given word
     progress_data[word.target] = {
         "next_review_date": word.next_review_date,
+        "last_review_date": word.last_review_date,
         "repetitions": word.repetitions,
         "ease_factor": word.ease_factor,
         "interval": word.interval

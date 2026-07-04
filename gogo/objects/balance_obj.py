@@ -11,15 +11,20 @@ parental controls API in parental_api.py.
 import json
 import os
 from datetime import date, timedelta
+from pathlib import Path
  
 from parental_connection import add_exceptional_time
  
 BASE_RATE_PER_MINUTE = 5       # credits per minute -> 300 credits per hour baseline
 ESCALATION_PER_HOUR = 0.5       # each additional hour already redeemed *for that date* makes the next hour's minutes 50% pricier
- 
+
+import dotenv
+dotenv.load_dotenv()  # Load environment variables from .env file
+
 # TODO: fill these in once the parental controls server + monitored app are decided.
 DEFAULT_BASE_URL = os.getenv("PARENTAL_CONTROL_URL","192.168.1.1")   # e.g. "http://192.168.1.50:5001"
 DEFAULT_APP_NAME = "OVERALL"   # e.g. "chrome.exe"
+DATA_DIR = Path(__file__).resolve().parent.parent
  
  
 class Balance:
@@ -96,15 +101,18 @@ class User:
  
         :return: True if screentime was actually granted (or queued), False otherwise.
         """
+        reason = f"{requested_minutes} Dakika Aktarıldı - COALIDE"  # prepend the "5" to the reason so the parental controls server knows it's a COALIDE redemption
         if target_date is None:
             target_date = date.today().isoformat()
  
         if date.fromisoformat(target_date) < date.today():
+            print(f"Cannot redeem for a past date: {target_date}.")
             return False  # can't redeem for a date that's already passed
  
         cost = self.cost_for_minutes(requested_minutes, target_date)
  
         if not self.balance.redeem_credits(cost):
+            print(f"Not enough credits to redeem {requested_minutes} minutes for {target_date}. Needed: {cost}, Available: {self.balance.get_balance()}.")
             return False  # not enough credits -- nothing deducted, nothing to refund
  
         resolved_app = app_name or DEFAULT_APP_NAME
@@ -121,6 +129,7 @@ class User:
         if result is None:
             # Hard failure -- refund the credits, don't record the redemption.
             self.balance.add_credits(cost)
+            print(f"Ooops! Something went wrong, try again. Credits refunded.")
             return False
  
         # result == 1 means the grant succeeded OR was queued for later delivery --
@@ -153,7 +162,9 @@ def save_data(user: User):
         "redeemed_minutes_by_date": user.redeemed_minutes_by_date,
     }
  
-    with open(f"{user.username}_data.json", "w") as f:
+    data_file_path = DATA_DIR / f"{user.username}_data.json"
+
+    with open(data_file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
  
  
@@ -163,12 +174,12 @@ def load_data(username: str) -> User:
     (first time this username has been used), returns a fresh User with
     zero balance and no redemption history.
     """
-    file_path = f"{username}_data.json"
+    file_path = DATA_DIR / f"{username}_data.json"
  
-    if not os.path.exists(file_path):
+    if not file_path.exists():
         return User(username)
  
-    with open(file_path, "r") as f:
+    with open(file_path, "r", encoding="utf-8") as f:
         data = json.load(f)
  
     return User(

@@ -18,7 +18,7 @@ BASE_RATE_PER_MINUTE = 5       # credits per minute -> 300 credits per hour base
 ESCALATION_PER_HOUR = 0.5       # each additional hour already redeemed *for that date* makes the next hour's minutes 50% pricier
  
 # TODO: fill these in once the parental controls server + monitored app are decided.
-DEFAULT_BASE_URL = os.getenv()   # e.g. "http://192.168.1.50:5001"
+DEFAULT_BASE_URL = os.getenv("PARENTAL_CONTROL_URL","192.168.1.1")   # e.g. "http://192.168.1.50:5001"
 DEFAULT_APP_NAME = "OVERALL"   # e.g. "chrome.exe"
  
  

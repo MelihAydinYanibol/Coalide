@@ -2,7 +2,7 @@
 This is for the main program, which is the main entry point for the application. It handles the core logic and flow of the program, including user interactions, data processing, and overall management of the application's functionality.
 
 TO-DO:
-- Also infinite question support will be added.
+- Also infinite question support will be added. (DONE)
 - Credit system will be added, so that user can earn credits for correct answers.
 """
 
@@ -50,7 +50,7 @@ def quest(current_question: Question = None):
                 passthrough = True
                 continue
         elif answer == "":
-            print(f"Blank answer. The correct answer is: {current_question.expected_answer}")
+            print(f"Blank answer. The correct answer is:")
             stat = None
         else:
             print(f"Incorrect. The correct answer is: {current_question.expected_answer}")

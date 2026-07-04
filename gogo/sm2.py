@@ -21,50 +21,52 @@ word_list.sort(key=attrgetter('next_review_date')) # sort by next review date, e
 
 # if the word is new, it's next_review_date will equal to "00-00-01" which is the earliest possible date, so it will be at the front of the list
 
+def _fallback_pool(cap_reached: bool):
+    """
+    Nothing is due right now. Instead of ending the session, serve the
+    soonest-upcoming word early. If the daily new-word cap has been hit,
+    exclude brand-new (sentinel-dated) words from this pool too --
+    otherwise the fallback would quietly blow past the cap it's supposed
+    to respect.
+    """
+    pool = [w for w in word_list if w.next_review_date != "2020-10-10"] if cap_reached else list(word_list)
+    pool.sort(key=attrgetter('next_review_date'))
+    return pool
+
 def get_next_question(feed: list | None = None) -> Question:
     """
     Get the next Question object according to SM-2 algorithm.
-
-    :return: The next Question object.
+    Falls back to early review if nothing is currently due, so the
+    session never runs out of questions to ask.
+ 
+    :return: The next Question object, or None only if the word list itself is empty.
     """
-
-    if feed is None: feed = []
-
-    # Filter words that are due for review
-    due_words = [word for word in word_list if word.is_due]
-
-    # If there are no due words, return None
-    if not due_words:
-        return None
-    due_words.sort(key=attrgetter('next_review_date'))  # sort by next review date, earliest first
-    
-
-    # DAILY_NEW_WORD_CAP LOGIC STARTS HERE
+    if feed is None:
+        feed = []
+ 
     from datetime import date
     todays_answered_words = [word for word in word_list if word.last_review_date == str(date.today())]
-    if len(todays_answered_words) >= DAILY_NEW_WORD_CAP:
-        # Filter out new words (those with next_review_date equal to "2020-10-10")
+    cap_reached = len(todays_answered_words) >= DAILY_NEW_WORD_CAP
+ 
+    due_words = [word for word in word_list if word.is_due]
+    if cap_reached:
         due_words = [word for word in due_words if word.next_review_date != "2020-10-10"]
+ 
+    if not due_words:
+        due_words = _fallback_pool(cap_reached)
         if not due_words:
-            return None  # No more questions can be asked today
-    
-    # NO_REPEAT_WINDOW LOGIC STARTS HERE
-    # Filter out words that have been asked in the last NO_REPEAT_WINDOW questions
-    recent_words = set(feed[-NO_REPEAT_WINDOW:])  # Get the last NO_REPEAT_WINDOW words asked
+            return None  # word list itself is empty -- nothing to fall back to
+ 
+    due_words.sort(key=attrgetter('next_review_date'))
+ 
+    # NO_REPEAT_WINDOW logic
+    recent_words = set(feed[-NO_REPEAT_WINDOW:])
     due_words_filtered = [word for word in due_words if word.id not in recent_words]
-    if due_words_filtered == []:
-        # If no words are left after filtering, discard the filter.
-        pass
-    else: due_words = due_words_filtered
-
-    # Select the first due word (earliest next_review_date)
+    if due_words_filtered:
+        due_words = due_words_filtered
+ 
     next_word = due_words[0]
-
-    if random.randint(0, 1) == 1:
-        is_target_wanted = True
-    else:
-        is_target_wanted = False
-
+    is_target_wanted = random.randint(0, 1) == 1
     return Question(word=next_word, is_target_wanted=is_target_wanted)
 
 def calculate_quality(is_correct, word_length:int, time_taken: float) -> int:
@@ -92,18 +94,12 @@ def calculate_quality(is_correct, word_length:int, time_taken: float) -> int:
         return 0
 
 def update_sm2(word, quality: int):
-    """
-    Standard SM-2 update. Expects `word` to have:
-        - repetitions: int
-        - ease_factor: float (starts at 2.5)
-        - interval: int (days)
-    Mutates them in place and sets next_review_date.
-    """
     from datetime import date, timedelta
- 
+
     if quality < 3:
         word.repetitions = 0
         word.interval = 1
+        word.next_review_date = date.today().isoformat()  # due again today, not tomorrow
     else:
         if word.repetitions == 0:
             word.interval = 1
@@ -112,14 +108,14 @@ def update_sm2(word, quality: int):
         else:
             word.interval = round(word.interval * word.ease_factor)
         word.repetitions += 1
- 
+        word.next_review_date = (date.today() + timedelta(days=word.interval)).isoformat()
+
     # ease factor update (same for pass or fail, standard SM-2 formula)
     word.ease_factor = max(
         1.3,
         word.ease_factor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)),
     )
- 
-    word.next_review_date = (date.today() + timedelta(days=word.interval)).isoformat()
+
     word.last_review_date = date.today().isoformat()  # Update the last review date to today
     save_progress(word)  # Save the updated word progress to progress.json
     return word

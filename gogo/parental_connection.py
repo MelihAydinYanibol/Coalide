@@ -63,15 +63,13 @@ def add_exceptional_time(base_url, app_name, duration_seconds, exception_date=No
         result = response.json()
         
 
-        if response.status_code == 200 or response.status_code == 201:
-            if result.get("status") != "queued":
-                lg(f"✅ [Success] Exception added for {app_name} on {exception_date}.")
-                return 1
-        elif result.get("status") == "queued":
-                lg(f"⚠️ [Queued] Primary API offline. Request for {app_name} saved to buffer.")
-                return 1
+        if result.get("status") == "queued":
+            lg(f"⚠️ [Queued] Primary API offline. Request for {app_name} saved to buffer.")
+            return 1
+        elif response.status_code == 200 or response.status_code == 201:
+            lg(f"✅ [Success] Exception added for {app_name} on {exception_date}.")
+            return 1
         else:
-
             lg(f"❌ [Error] Server returned status {response.status_code}: {response.text}")
             return None
 

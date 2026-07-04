@@ -1,0 +1,23 @@
+{
+    "walk": {
+        "next_review_date": "2026-07-05",
+        "last_review_date": "2026-07-04",
+        "repetitions": 1,
+        "ease_factor": 2.16,
+        "interval": 1
+    },
+    "book": {
+        "next_review_date": "2026-07-10",
+        "last_review_date": "2026-07-04",
+        "repetitions": 2,
+        "ease_factor": 2.7,
+        "interval": 6
+    },
+    "beautiful": {
+        "next_review_date": "2026-07-10",
+        "last_review_date": "2026-07-04",
+        "repetitions": 2,
+        "ease_factor": 2.16,
+        "interval": 6
+    }
+}

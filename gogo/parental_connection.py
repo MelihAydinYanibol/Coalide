@@ -1,10 +1,16 @@
 import requests
 import json
 from datetime import datetime
-def lg(a,b=None,c=None):
-    pass
+def lg(a="",b="",c="",d="",e="",f="",g="",h="",i="",j="",k="",l="",m="",n="",o="",p="",q="",r="",s="",t="",u="",v="",w="",x="",y="",z=""):
+    import sys
+    global DEBUG
+    DEBUG = False
+    if len(sys.argv)>1:
+        if sys.argv[1]=="-debug":
+            DEBUG = True
+            print(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z)
 
-SECONDS_PER_MINUTE = 60
+    return DEBUG
 
 def calculate_exceptional_time_seconds(correct_answers, multiplier=1):
     """
@@ -25,7 +31,7 @@ def calculate_exceptional_time_seconds(correct_answers, multiplier=1):
     if multiplier_value < 0:
         multiplier_value = 0.0
 
-    return int(round(correct_answers * SECONDS_PER_MINUTE * multiplier_value))
+    return int(round(correct_answers * 60 * multiplier_value))
 
 def add_exceptional_time(base_url, app_name, duration_seconds, exception_date=None,reason="Sebep belirtilmedi"):
     """

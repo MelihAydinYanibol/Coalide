@@ -6,7 +6,7 @@ We will have 5 Boxes (lists), each box corresponds to a review interval.
 
 from word_engine import get_words
 from operator import attrgetter
-from objects.word_obj import Word
+from objects.word_obj import Word,save_progress
 from objects.question_obj import Question
 import random
 
@@ -120,34 +120,3 @@ def update_sm2(word, quality: int):
     save_progress(word)  # Save the updated word progress to progress.json
     return word
 
-def save_progress(word: Word):
-    """
-    Save the progress of a word to the progress.json file.
-
-    :param word: The Word object whose progress is to be saved.
-    """
-    import json
-    import os
-
-    progress_file_path = "progress.json"
-
-    # Load existing progress data
-    if os.path.exists(progress_file_path):
-        with open(progress_file_path, 'r', encoding='utf-8') as file:
-            progress_data = json.load(file)
-    else:
-        progress_data = {}
-
-    # Update the progress data for the given word
-    progress_data[word.target] = {
-        "next_review_date": word.next_review_date,
-        "last_review_date": word.last_review_date,
-        "repetitions": word.repetitions,
-        "ease_factor": word.ease_factor,
-        "interval": word.interval
-    }
-
-    # Save the updated progress data back to the file
-    with open(progress_file_path, 'w', encoding='utf-8') as file:
-        json.dump(progress_data, file, ensure_ascii=False, indent=4)
-        file.close()

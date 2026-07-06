@@ -1644,7 +1644,7 @@ def dummy_main(quiz_config={}, legacy_start_menu=False,mode="play"):
                 if get_config(["general"])[0].get("set_time_for_pc"):
                     lg("set_time_for_pc is true")
                     ### Point, Minute Calculation and API post to parental control ###
-                    import parental_connection as pc
+                    import gogo.parental_connection as pc
                     general_config = get_config(["general"])[0]
 
                     ### Minute calculation

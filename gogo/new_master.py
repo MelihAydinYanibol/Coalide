@@ -5,6 +5,10 @@ TO-DO:
 - UI stuff, Telegram reporting, saving and reading stats will be added.
 - All of the functions of the previous main.py will be moved here, and the old main.py will be deleted.
 - LOWERCASE, upercase support.
+- fix credit addition for correct answer
+- auto update
+- fix list outputting
+- add credit resetting every week/add config for it
 """
 
 # Custom modules

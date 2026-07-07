@@ -12,6 +12,8 @@ from objects.word_obj import Word
 from objects.question_obj import Question
 from objects.balance_obj import load_data,User
 from sm2 import get_next_question, calculate_quality, update_sm2
+from logger import lg
+
 
 # Public Modules
 from colorama import Fore, Style
@@ -44,16 +46,6 @@ else:
             if content and not content.endswith('\n'):
                 f.write('\n')
             f.write("ELEVENLABS_API_KEY=[]")
-
-def lg(a="",b="",c="",d="",e="",f="",g="",h="",i="",j="",k="",l="",m="",n="",o="",p="",q="",r="",s="",t="",u="",v="",w="",x="",y="",z=""):
-    global DEBUG
-    DEBUG = False
-    if len(sys.argv)>1:
-        if sys.argv[1]=="-debug":
-            DEBUG = True
-            print(a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z)
-
-    return DEBUG
 
 def cls():
     lg("cls()")
@@ -125,6 +117,9 @@ def quest(user, current_question: Question = None):
             stat = False
         end_time = time.time()
 
+        # Pronuncing the word and the sentence
+        from audio_engine import pronounce
+        pronounce(current_question.word, False);time.sleep(.3) ;pronounce(current_question.word, True)
 
         # Calculating quality and updating the SM2 algorithm, also crediting
 

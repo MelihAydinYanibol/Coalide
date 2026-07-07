@@ -1,6 +1,6 @@
 """
-This module returns the next Question object according to SM-2 algorithm
-We will have 5 Boxes (lists), each box corresponds to a review interval.
+This module returns the next Question object according to SM-2 algorithm.
+
 
 """
 
@@ -20,6 +20,17 @@ print(word_list)
 word_list.sort(key=attrgetter('next_review_date')) # sort by next review date, earliest first
 
 # if the word is new, it's next_review_date will equal to "00-00-01" which is the earliest possible date, so it will be at the front of the list
+
+def reload_words():
+    """
+    Re-read words.json from disk and re-sort word_list. Needed because word_list
+    is loaded once at import time, so callers that update words.json on disk
+    (e.g. check_and_update_words in new_master.py) must call this afterwards for
+    the change to take effect in the current process.
+    """
+    global word_list
+    word_list = get_words("words.json")
+    word_list.sort(key=attrgetter('next_review_date'))
 
 def _fallback_pool(cap_reached: bool):
     """

@@ -21,8 +21,7 @@ ESCALATION_PER_HOUR = 0.5       # each additional hour already redeemed *for tha
 import dotenv
 dotenv.load_dotenv()  # Load environment variables from .env file
 
-# TODO: fill these in once the parental controls server + monitored app are decided.
-DEFAULT_BASE_URL = os.getenv("PARENTAL_CONTROL_URL","192.168.1.1")   # e.g. "http://192.168.1.50:5001"
+DEFAULT_BASE_URL = os.getenv("PARENTAL_CONTROL_URL","192.168.1.1")
 DEFAULT_APP_NAME = "OVERALL"   # e.g. "chrome.exe"
 DATA_DIR = Path(__file__).resolve().parent.parent
  

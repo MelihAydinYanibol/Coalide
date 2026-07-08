@@ -222,6 +222,8 @@ def check_for_updates():
 
 if __name__ == "__main__":
     try:
+        from kiosk_lock import disable_alt_f4
+        disable_alt_f4()  # kiosk: stop kids closing the window with Alt+F4 / the X button
         check_for_updates()
         from new_master import starter
         from menu import main

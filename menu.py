@@ -154,14 +154,38 @@ class MainMenu(Screen):
             with VerticalScroll(id="stats-panel"):
                 yield Static("İstatistikler", id="stats-panel-title")
                 user = load_data(get_current_user())
-                yield Static(f"💵 Kredi:        [b]{user.get_balance()}[/b]", classes="stat-row")
-                today = date.today().isoformat()
-                tomorrow = (date.today() + timedelta(days=1)).isoformat()
-                yield Static(f"⏱  En fazla:     [b]{user.max_redeemable_minutes()} dk (Bugün) | {user.max_redeemable_minutes(tomorrow)} dk (Yarın)[/b]", classes="stat-row")
-                yield Static(f"✅ Kullanılan:   [b]{user.redeemed_minutes_by_date.get(today, 0)} dk (Bugün) | {user.redeemed_minutes_by_date.get(tomorrow, 0)} dk (Yarın)[/b]", classes="stat-row")
+                yield Static(self._balance_text(user), id="stat-balance", classes="stat-row")
+                yield Static(self._max_text(user), id="stat-max", classes="stat-row")
+                yield Static(self._used_text(user), id="stat-used", classes="stat-row")
                 quote, author = random.choice(QUOTES)
                 yield Static(f"\n[i]\"{quote}\"[/i]\n[i]— {author}[/i]")
         yield Footer(show_command_palette=False)
+
+    @staticmethod
+    def _balance_text(user) -> str:
+        return f"💵 Kredi:        [b]{user.get_balance()}[/b]"
+
+    @staticmethod
+    def _max_text(user) -> str:
+        tomorrow = (date.today() + timedelta(days=1)).isoformat()
+        return f"⏱  En fazla:     [b]{user.max_redeemable_minutes()} dk (Bugün) | {user.max_redeemable_minutes(tomorrow)} dk (Yarın)[/b]"
+
+    @staticmethod
+    def _used_text(user) -> str:
+        today = date.today().isoformat()
+        tomorrow = (date.today() + timedelta(days=1)).isoformat()
+        return f"✅ Kullanılan:   [b]{user.redeemed_minutes_by_date.get(today, 0)} dk (Bugün) | {user.redeemed_minutes_by_date.get(tomorrow, 0)} dk (Yarın)[/b]"
+
+    def refresh_stats(self) -> None:
+        """Reload the current user and update the stats panel in place.
+
+        The panel is built once in compose(), so after a subprocess (quiz,
+        redeem, etc.) mutates the user's saved data we have to re-read it and
+        push the new values into the existing widgets."""
+        user = load_data(get_current_user())
+        self.query_one("#stat-balance", Static).update(self._balance_text(user))
+        self.query_one("#stat-max", Static).update(self._max_text(user))
+        self.query_one("#stat-used", Static).update(self._used_text(user))
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         button_id = event.button.id
@@ -190,6 +214,10 @@ class MainMenu(Screen):
             elif id == "credit": from new_master import redeem_flow; redeem_flow(load_data(get_current_user()))
             else:print(f"\n'{id}' Özelliği daha tamamlanmadı, Ana menüye dönülüyor...");time.sleep(3);ret=True
             if not ret:input("\nQuiz finished. Press Enter to return to the menu...")
+        # The subprocess/flow above may have changed the user's credits or
+        # redeemed minutes, so re-read them into the stats panel now that the
+        # TUI has resumed.
+        self.refresh_stats()
 
 class PlaceholderScreen(Screen):
     """Generic placeholder screen for menu items not built out yet."""

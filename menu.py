@@ -12,6 +12,8 @@ import subprocess
 import sys
 import time
 import os
+import random
+from datetime import date, timedelta
 from typing import Iterable
 
 from textual.app import App, ComposeResult, SystemCommand
@@ -29,6 +31,28 @@ except:
 # Path to the external script you want "Quiz" to launch.
 # Change this to wherever your quiz script actually lives.
 APP_PATH = "new_master.py"
+
+
+# Harry Potter quotes shown at the bottom of the menu — one picked at random
+# each time the menu opens.
+QUOTES = [
+    ("Words are, in my not-so-humble opinion, our most inexhaustible source of "
+     "magic. Capable of both inflicting injury, and remedying it.", "Albus Dumbledore"),
+    ("Understanding is the first step to acceptance, and only with acceptance "
+     "can there be recovery.", "Albus Dumbledore"),
+    ("It matters not what someone is born, but what they grow to be.", "Albus Dumbledore"),
+    ("It is our choices, Harry, that show what we truly are, far more than our "
+     "abilities.", "Albus Dumbledore"),
+    ("We must all face the choice between what is right and what is easy.", "Albus Dumbledore"),
+    ("When in doubt, go to the library.", "Hermione Granger"),
+    ("Working hard is important. But there is something that matters even more: "
+     "believing in yourself.", "Harry Potter"),
+    ("It does not do to dwell on dreams and forget to live.", "Albus Dumbledore"),
+    ("Happiness can be found, even in the darkest of times, if one only "
+     "remembers to turn on the light.", "Albus Dumbledore"),
+    ("Of course it is happening inside your head, Harry, but why on earth "
+     "should that mean that it is not real?", "Albus Dumbledore"),
+]
 
 
 class MainMenu(Screen):
@@ -129,11 +153,14 @@ class MainMenu(Screen):
                 yield Button("🚪  Çıkış", id="quit", classes="menu-button")
             with VerticalScroll(id="stats-panel"):
                 yield Static("İstatistikler", id="stats-panel-title")
-                """ yield Static("🔥 Streak:        [b]12 days[/b]", classes="stat-row")
-                yield Static("📖 Words learned: [b]348[/b]", classes="stat-row")
-                yield Static("🎯 Accuracy:      [b]87%[/b]", classes="stat-row")
-                yield Static("⏱  Time today:    [b]22 min[/b]", classes="stat-row") """
-                yield Static("\n[i]\"Words are, in my not-so-humble opinion, our most inexhaustible source of magic.\"[/i]\n[i]— Albus Dumbledore[/i]")
+                user = load_data(get_current_user())
+                yield Static(f"💵 Kredi:        [b]{user.get_balance()}[/b]", classes="stat-row")
+                today = date.today().isoformat()
+                tomorrow = (date.today() + timedelta(days=1)).isoformat()
+                yield Static(f"⏱  En fazla:     [b]{user.max_redeemable_minutes()} dk (Bugün) | {user.max_redeemable_minutes(tomorrow)} dk (Yarın)[/b]", classes="stat-row")
+                yield Static(f"✅ Kullanılan:   [b]{user.redeemed_minutes_by_date.get(today, 0)} dk (Bugün) | {user.redeemed_minutes_by_date.get(tomorrow, 0)} dk (Yarın)[/b]", classes="stat-row")
+                quote, author = random.choice(QUOTES)
+                yield Static(f"\n[i]\"{quote}\"[/i]\n[i]— {author}[/i]")
         yield Footer(show_command_palette=False)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -261,7 +288,48 @@ class LanguageApp(App):
     def on_mount(self) -> None:
         self.push_screen(MainMenu())
 
+def set_console_font_size(height: int = 3) -> None:
+    """
+    Shrink the console font on the classic Windows console (conhost.exe) so
+    the menu fits more comfortably. Font size is otherwise the terminal's job,
+    not the app's -- this uses the Win32 SetCurrentConsoleFontEx API, which
+    only conhost honors. It is a silent no-op on non-Windows and inside
+    Windows Terminal (which has no programmatic font-size support). The change
+    persists for the console session after the app exits.
+    """
+    if os.name != "nt":
+        return
+    try:
+        import ctypes
+        from ctypes import wintypes
+
+        LF_FACESIZE = 32
+        STD_OUTPUT_HANDLE = -11
+
+        class CONSOLE_FONT_INFOEX(ctypes.Structure):
+            _fields_ = [
+                ("cbSize", ctypes.c_ulong),
+                ("nFont", ctypes.c_ulong),
+                ("dwFontSize", wintypes._COORD),
+                ("FontFamily", ctypes.c_uint),
+                ("FontWeight", ctypes.c_uint),
+                ("FaceName", ctypes.c_wchar * LF_FACESIZE),
+            ]
+
+        handle = ctypes.windll.kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
+        font = CONSOLE_FONT_INFOEX()
+        font.cbSize = ctypes.sizeof(CONSOLE_FONT_INFOEX)
+        # Read the current font first so we preserve the face name and weight.
+        ctypes.windll.kernel32.GetCurrentConsoleFontEx(handle, False, ctypes.byref(font))
+        font.dwFontSize.X = 0        # 0 = let Windows pick a matching width
+        font.dwFontSize.Y = height   # pixel height; smaller value = smaller font
+        ctypes.windll.kernel32.SetCurrentConsoleFontEx(handle, False, ctypes.byref(font))
+    except Exception:
+        pass  # never let a cosmetic tweak break app startup
+
+
 def main():
+    set_console_font_size()
     app = LanguageApp()
     app.run()
 

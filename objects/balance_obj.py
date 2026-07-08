@@ -20,6 +20,7 @@ except: from utils import lg,get_config
 config = get_config()
 BASE_RATE_PER_MINUTE = config.get("BASE_RATE_PER_MINUTE", 5) # credits per minute -> 300 credits per hour baseline
 ESCALATION_PER_HOUR = config.get("ESCALATION_PER_HOUR", 0.5) # each additional hour already redeemed *for that date* makes the next hour's minutes 50% pricier
+MINUTES_PER_DAY = 24 * 60  # hard cap: can't redeem more screentime for a date than the day physically has
 
 import dotenv
 dotenv.load_dotenv()  # Load environment variables from .env file
@@ -82,6 +83,34 @@ class User:
             total_cost += rate
         return round(total_cost)
  
+    def max_redeemable_minutes(self, target_date: str | None = None) -> int:
+        """
+        The largest number of minutes of screentime the user can currently
+        afford for target_date (defaults to today), given their balance and
+        how much has already been redeemed for that date. Because the cost
+        per minute escalates each hour, this walks minute-by-minute until the
+        next minute would exceed the balance. Capped so the total redeemed
+        for a date never exceeds 24 hours.
+        """
+        if target_date is None:
+            target_date = date.today().isoformat()
+
+        already_redeemed = self.redeemed_minutes_by_date.get(target_date, 0)
+        budget = self.balance.get_balance()
+
+        minutes = 0
+        total_cost = 0.0
+        max_more = MINUTES_PER_DAY - already_redeemed
+        while minutes < max_more:
+            minute_index = already_redeemed + minutes
+            hour_bracket = minute_index // 60
+            rate = BASE_RATE_PER_MINUTE * (1 + ESCALATION_PER_HOUR * hour_bracket)
+            if round(total_cost + rate) > budget:
+                break
+            total_cost += rate
+            minutes += 1
+        return minutes
+
     def redeem_screentime(
         self,
         requested_minutes: int,
@@ -92,7 +121,11 @@ class User:
     ) -> bool:
         """
         Attempt to redeem `requested_minutes` of screentime for target_date
-        (defaults to today; must not be in the past). If the user can
+        (defaults to today; must not be in the past, and must fall within
+        the current Monday-to-Sunday week, since credits reset on Monday
+        and banking time past the reset would defeat it). The total
+        redeemed for any single date can never exceed 24 hours -- a day
+        doesn't have more minutes than that. If the user can
         afford the escalating cost, this actually calls the parental
         controls API to grant the time.
  
@@ -111,6 +144,17 @@ class User:
         if date.fromisoformat(target_date) < date.today():
             print(f"Cannot redeem for a past date: {target_date}.")
             return False  # can't redeem for a date that's already passed
+
+        if config.get("Credit_Reset_Weekly", True):
+            week_end = date.today() + timedelta(days=6 - date.today().weekday())  # this week's Sunday
+            if date.fromisoformat(target_date) > week_end:
+                print(f"Cannot redeem for {target_date}: credits reset every Monday, so time can only be redeemed through {week_end.isoformat()}.")
+                return False  # banking time past the weekly reset would defeat the reset
+
+        already_redeemed = self.redeemed_minutes_by_date.get(target_date, 0)
+        if already_redeemed + requested_minutes > MINUTES_PER_DAY:
+            print(f"Cannot redeem {requested_minutes} minutes for {target_date}: a day only has {MINUTES_PER_DAY} minutes, and {already_redeemed} are already redeemed for that date (at most {MINUTES_PER_DAY - already_redeemed} more).")
+            return False
  
         cost = self.cost_for_minutes(requested_minutes, target_date)
  

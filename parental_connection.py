@@ -34,7 +34,6 @@ def add_exceptional_time(base_url, app_name, duration_seconds, exception_date=No
     :param exception_date: Date string (YYYY-MM-DD). Defaults to today.
     :return: Response dictionary from the API
     """
-    print(f"Hitting: {base_url}")
     # Default to today's date if not provided
     if not exception_date:
         exception_date = datetime.now().strftime('%Y-%m-%d')

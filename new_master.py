@@ -10,7 +10,7 @@ TO-DO:
 # Custom modules
 from objects.word_obj import Word
 from objects.question_obj import Question
-from objects.balance_obj import load_data,User,check_weekly_reset
+from objects.balance_obj import load_data,User,check_weekly_reset,MINUTES_PER_DAY
 from sm2 import get_next_question, calculate_quality, update_sm2, reload_words
 try:from gogo.utils import lg,get_config,repair_config,get_current_user
 except: from utils import lg,get_config,repair_config,get_current_user
@@ -59,9 +59,12 @@ def cls():
 
 
 def normalize_answer(s: str) -> str:
+    # Drop a trailing comma the user may have typed by accident ("," sits right
+    # next to Enter on the keyboard), then strip again in case of "word , ".
+    s = s.strip().rstrip(",").strip()
     # Python's default .lower() mishandles Turkish "İ"/"I" (produces "i̇"/"i"
     # instead of "i"/"ı"), so map those explicitly before lowercasing the rest.
-    return s.strip().replace("İ", "i").replace("I", "ı").lower()
+    return s.replace("İ", "i").replace("I", "ı").lower()
 
 
 def check_and_update_words(github_repo, github_token=None, local_file="words.json"):
@@ -171,6 +174,7 @@ def quest(user, current_question: Question = None):
             except TimeoutOccurred:
                 print(Fore.LIGHTRED_EX + f"⚠ Süre doldu! Lütfen daha hızlı cevap verin." + Style.RESET_ALL)
                 answer = ""
+                question_number -= 1  # Don't count this question in the stats
                 stat = None
                 time_taken = get_config()["INPUT_TIMEOUT"]
         else:
@@ -252,20 +256,25 @@ def redeem_flow(user):
             if minutes <= 0:
                 print("Lütfen pozitif bir dakika sayısı girin.")
                 continue
+            if minutes > MINUTES_PER_DAY:
+                print(f"Bir günde en fazla {MINUTES_PER_DAY} dakika (24 saat) vardır, daha fazlasını alamazsınız.")
+                continue
             break
         except ValueError:
             print("Bu geçerli bir sayı değil, tekrar deneyin.")
  
+    if get_config()["Credit_Reset_Weekly"]:
+        week_end = date.today() + timedelta(days=6 - date.today().weekday())  # this week's Sunday -- credits reset Monday, so no redeeming past it
+    else:
+        week_end = date.max  # no weekly reset, so banking time ahead is allowed
     print("Bu ekran süresini ne zaman kullanmak istiyorsunuz?")
     print("1: Bugün\n2: Yarın\n3: Belirli bir tarih")
     while True:
         date_choice = input("1, 2 veya 3 seçin: ")
         if date_choice == "1":
             target_date = date.today().isoformat()
-            break
         elif date_choice == "2":
             target_date = (date.today() + timedelta(days=1)).isoformat()
-            break
         elif date_choice == "3":
             raw_date = input("Tarihi girin (YYYY-AA-GG): ")
             try:
@@ -274,11 +283,21 @@ def redeem_flow(user):
                     print("Bu tarih geçmişte kaldı, lütfen başka bir tarih seçin.")
                     continue
                 target_date = raw_date
-                break
             except ValueError:
+                if raw_date.strip().lower() in ["iptal","cancel","h","n"]: return
                 print("Bu geçerli bir tarih gibi görünmüyor (YYYY-AA-GG biçimini kullanın), tekrar deneyin.")
+                continue
         else:
             print("Lütfen 1, 2 veya 3 seçin.")
+            continue
+        if date.fromisoformat(target_date) > week_end:
+            print(f"Krediler her pazartesi sıfırlanır, bu yüzden en geç bu haftanın sonu ({week_end.isoformat()}) için süre alabilirsiniz.")
+            continue
+        already_redeemed = user.redeemed_minutes_by_date.get(target_date, 0)
+        if already_redeemed + minutes > MINUTES_PER_DAY:
+            print(f"{target_date} için zaten {already_redeemed} dakika alınmış; bir gün {MINUTES_PER_DAY} dakikadan uzun olamaz (bu tarih için en fazla {MINUTES_PER_DAY - already_redeemed} dakika daha alabilirsiniz). Başka bir tarih seçin.")
+            continue
+        break
  
     cost = user.cost_for_minutes(minutes, target_date)
     print(f"{target_date} için {minutes} dakikayı kullanmak {cost} krediye mal olacak.")

@@ -16,7 +16,7 @@ Every correct answer earns **credits**, which can be redeemed for real screen ti
 
 The interface is a [Textual](https://textual.textualize.io/) TUI, rendered in Turkish by default, and everything from languages to pricing lives in a self-repairing `config.json`.
 
-> **Status:** `2.0.0-alpha` — a ground-up, object-oriented rewrite of the original procedural app. See [CHANGELOG.md](CHANGELOG.md) for history.
+> **Status:** `2.0.0` — a ground-up, object-oriented rewrite of the original procedural app. See [CHANGELOG.md](CHANGELOG.md) for history.
 
 ---
 
@@ -338,4 +338,4 @@ Licensed under the **GNU General Public License v3.0** — see [LICENSE](LICENSE
 
 ---
 
-**Last Updated:** July 2026 · **Version:** 2.0.0-alpha
+**Last Updated:** July 2026 · **Version:** 2.0.0

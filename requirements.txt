@@ -1,13 +1,9 @@
-asciimatics==1.15.0
 colorama==0.4.6
 elevenlabs==2.56.0
 gTTS==2.5.4
 inputimeout==1.0.4
 mutagen==1.47.0
-numpy==2.5.1
-Pillow==12.3.0
-PyAudio==0.2.14
-pydub==0.25.1
 pyglet==2.1.15
 python-dotenv==1.2.2
 Requests==2.34.2
+textual==8.2.8

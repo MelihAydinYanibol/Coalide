@@ -13,9 +13,8 @@ import os
 from datetime import date, timedelta
 from pathlib import Path
  
-from parental_connection import add_exceptional_time
-try:from gogo.utils import lg,get_config   
-except: from utils import lg,get_config
+from parental_connection import add_exceptional_time  
+from utils import lg,get_config
 
 config = get_config()
 BASE_RATE_PER_MINUTE = config.get("BASE_RATE_PER_MINUTE", 5) # credits per minute -> 300 credits per hour baseline

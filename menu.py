@@ -22,8 +22,8 @@ from textual.containers import Vertical, Horizontal, VerticalScroll
 from textual.screen import Screen
 from textual.widgets import Header, Footer, Static, Button
 try:
-    from gogo.objects.balance_obj import load_data
-    from gogo.utils import get_current_user
+    from objects.balance_obj import load_data
+    from utils import get_current_user
 except:
     from objects.balance_obj import load_data
     from utils import get_current_user

@@ -1,8 +1,7 @@
 import requests
 import json
 from datetime import datetime
-try: from gogo.utils import lg
-except: from utils import lg
+from utils import lg
 def calculate_exceptional_time_seconds(correct_answers, multiplier=1):
     """
     Calculate exceptional time in seconds.

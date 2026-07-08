@@ -12,8 +12,7 @@ import io
 import json
 import fnmatch
 from datetime import datetime
-try: from gogo.utils import lg, get_config
-except: from utils import lg, get_config
+from utils import lg, get_config
 
 sys.stdout.reconfigure(encoding='utf-8')
 sys.stderr.reconfigure(encoding='utf-8')

@@ -12,8 +12,7 @@ from objects.word_obj import Word
 from objects.question_obj import Question
 from objects.balance_obj import load_data,User,check_weekly_reset,MINUTES_PER_DAY
 from sm2 import get_next_question, calculate_quality, update_sm2, reload_words
-try:from gogo.utils import lg,get_config,repair_config,get_current_user
-except: from utils import lg,get_config,repair_config,get_current_user
+from utils import lg,get_config,repair_config,get_current_user
 
 
 # Public Modules
@@ -174,7 +173,6 @@ def quest(user, current_question: Question = None):
             except TimeoutOccurred:
                 print(Fore.LIGHTRED_EX + f"⚠ Süre doldu! Lütfen daha hızlı cevap verin." + Style.RESET_ALL)
                 answer = ""
-                question_number -= 1  # Don't count this question in the stats
                 stat = None
                 time_taken = get_config()["INPUT_TIMEOUT"]
         else:
@@ -186,6 +184,7 @@ def quest(user, current_question: Question = None):
         if get_config()["SPAM_PROTECTION"] and (end_time - start_time < 2) and answer != "exit":
             print(Fore.LIGHTRED_EX + "⚠  Çok hızlı cevap veriyorsun! Lütfen cevap vermeden önce düşün." + Style.RESET_ALL)
             passthrough = True
+            question_number -= 1
             continue
 
         # Evaluating the answer

@@ -18,6 +18,7 @@ STATIC_FILE_PATTERNS = [
     "config.json",
     "sent_tg_messages.json",
     "*_data.json",  # per-user balance/credits files
+    "current_user.json",  # which user is currently logged in
 ]
 
 

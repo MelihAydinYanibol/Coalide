@@ -3,6 +3,7 @@ update.py
 This is the module that will be run to start the application, but before that it will check github repository for new updates and if there are any, it will update the application automatically.
 """
 
+import sys
 import requests
 import os
 import shutil
@@ -11,10 +12,15 @@ import io
 import json
 import fnmatch
 from datetime import datetime
+try: from gogo.utils import lg, get_config
+except: from utils import lg, get_config
+
+sys.stdout.reconfigure(encoding='utf-8')
+sys.stderr.reconfigure(encoding='utf-8')
 
 REPO_OWNER = "MelihAydinYanibol"
 REPO_NAME = "Coalide"
-INCLUDE_PRERELEASES = False
+INCLUDE_PRERELEASES = get_config().get("Update_Prereleases", False)  # Read from config.json
 
 VERSION_FILE = "version.json"
 
@@ -27,6 +33,7 @@ PROTECTED_PATTERNS = [
     "words.json",
     "progress.json",
     "*_data.json",      # per-user balance/credits files
+    "current_user.json",  # which user is currently logged in
     "pronunciations",   # cached generated audio -- runtime data, not source
     VERSION_FILE,        # our own locally-tracked version record
 ]
@@ -214,6 +221,12 @@ def check_for_updates():
 
 
 if __name__ == "__main__":
-    check_for_updates()
-    from new_master import starter
-    starter()
+    try:
+        check_for_updates()
+        from new_master import starter
+        from menu import main
+        starter(get_ready=True)
+        main()
+    except KeyboardInterrupt:
+        print("\nExiting...")
+        os._exit(1)

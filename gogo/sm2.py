@@ -8,15 +8,18 @@ from word_engine import get_words
 from operator import attrgetter
 from objects.word_obj import Word,save_progress
 from objects.question_obj import Question
+try:from gogo.utils import lg,get_config   
+except: from utils import lg,get_config
 import random
 
-DAILY_NEW_WORD_CAP  = 15 # how many brand-new words can be introduced per day
-NO_REPEAT_WINDOW = 8 # a word can't repeat within this many questions
+config = get_config()
 
+DAILY_NEW_WORD_CAP = config.get("Daily_New_Word_Cap", 15) # how many brand-new words can be introduced per day
+NO_REPEAT_WINDOW = config.get("No_Repeat_Window", 8) # a word can't repeat within this many questions
 
 
 word_list = get_words("words.json")
-print(word_list)
+lg(word_list)
 word_list.sort(key=attrgetter('next_review_date')) # sort by next review date, earliest first
 
 # if the word is new, it's next_review_date will equal to "00-00-01" which is the earliest possible date, so it will be at the front of the list
@@ -56,8 +59,10 @@ def get_next_question(feed: list | None = None) -> Question:
         feed = []
  
     from datetime import date
-    todays_answered_words = [word for word in word_list if word.last_review_date == str(date.today())]
-    cap_reached = len(todays_answered_words) >= DAILY_NEW_WORD_CAP
+    # Only words *introduced* (first ever reviewed) today count toward the
+    # daily new-word cap -- reviewing old words shouldn't block new ones.
+    todays_new_words = [word for word in word_list if word.first_review_date == str(date.today())]
+    cap_reached = len(todays_new_words) >= DAILY_NEW_WORD_CAP
  
     due_words = [word for word in word_list if word.is_due]
     if cap_reached:
@@ -127,6 +132,8 @@ def update_sm2(word, quality: int):
         word.ease_factor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)),
     )
 
+    if word.first_review_date is None:
+        word.first_review_date = date.today().isoformat()  # first ever review = word introduced today
     word.last_review_date = date.today().isoformat()  # Update the last review date to today
     save_progress(word)  # Save the updated word progress to progress.json
     return word

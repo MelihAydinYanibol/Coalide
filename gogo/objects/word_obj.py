@@ -63,6 +63,7 @@ class Word:
         # SM2 Algorithm tracking
         self.next_review_date = next_review_date
         self.last_review_date = last_review_date
+        self.first_review_date = None  # date the word was first ever reviewed (i.e. introduced)
         self.repetitions = 0
         self.ease_factor = 2.5
         self.interval = 0  # in days
@@ -88,11 +89,11 @@ class Word:
     def rate(self) -> float:
         """
         Calculate the success rate of the word based on attempts.
-        :return: Success rate as a float between 0 and 1. Returns None if there are no attempts.
+        :return: Success rate as a percentage between 0 and 100. Returns 0.0 if there are no attempts.
         """
         if self.total_attempts == 0:
             return 0.0  # No attempts made yet
-        return round((self.correct_attempts / self.total_attempts) * 10, 1)
+        return round((self.correct_attempts / self.total_attempts) * 100, 1)
 
     def add_result(self, is_correct: bool, is_blank: bool = False):
         """
@@ -116,6 +117,23 @@ class Word:
         self.blank_attempts = self.last_ten_attempts.count(None)
 
         save_progress(self)  # Save progress after updating stats
+
+    def to_dict(self) -> dict:
+        """
+        The static word definition, as stored in words.json. Deliberately
+        excludes runtime/progress state (id, SM2 fields, attempt stats) --
+        progress belongs to progress.json, and Word(**item) only accepts
+        these keys back.
+        """
+        return {
+            "language": self.language,
+            "word_type": self.word_type,
+            "sentence": list(self.sentence),
+            "target": self.target,
+            "past": self.past,
+            "v3": self.v3,
+            "source": self.source,
+        }
 
     def __repr__(self) -> str:
         return (
@@ -159,6 +177,7 @@ def save_progress(word: Word):
     progress_data[word.target] = {
         "next_review_date": word.next_review_date,
         "last_review_date": word.last_review_date,
+        "first_review_date": word.first_review_date,
         "repetitions": word.repetitions,
         "ease_factor": word.ease_factor,
         "interval": word.interval,

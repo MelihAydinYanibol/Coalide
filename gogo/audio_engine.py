@@ -21,11 +21,13 @@ except ImportError:
     pyaudio = _PyaudioFallback()
 
 from objects.word_obj import Word
-from logger import lg
+try: from gogo.utils import lg
+except: from utils import lg
+# elevenlabs being missing is not fatal: every function that needs it imports
+# it locally and returns None on failure, which triggers the gTTS fallback.
 try:import elevenlabs
 except ImportError:
-    lg("Warning: elevenlabs module not installed. Audio features may not work.")
-    os.exit(1)
+    lg("Warning: elevenlabs module not installed. Falling back to gTTS for audio generation.")
 from typing import Literal
 import dotenv
 
@@ -56,8 +58,8 @@ def elevenlabs_check_for_quota(api_key, word:Word):
         return False
     client = ElevenLabs(api_key=api_key)
     try:
-        user = client.get_user()
-        quota = user.subscription.character_limit - user.subscription.character_used
+        user = client.user.get()
+        quota = user.subscription.character_limit - user.subscription.character_count
         return False if quota < len(word.target)*2 else True
     except Exception as e:
         lg(f"Error checking ElevenLabs quota: {e}")
@@ -98,32 +100,40 @@ def elevenlabs_tts(word:Word,sentence:bool=False):
                 api_key = _api_key
                 break
         else:
-            raise ValueError("All provided ElevenLabs API keys have insufficient quota. Falling back to gTTS.")
-    
-    voice_id = get_config()["general"].get("elevenlabs_voice_id", "JBFqnCBsd6RMkjVDRZzb")
-    client = ElevenLabs(api_key=api_key)
-    audio_generator = client.text_to_speech.convert(
-        voice_id=voice_id,
-        output_format="mp3_44100_128",
-        text=word.target if not sentence else word.sentence[0] + f" {word.target} " + word.sentence[1],
-        model_id="eleven_multilingual_v2",
-        language_code=word.language,
-        voice_settings=VoiceSettings(
-            stability=0.85,
-            similarity_boost=0.75,
-            speed=0.82
-        )
-    )
+            lg("All provided ElevenLabs API keys have insufficient quota. Falling back to gTTS.")
+            return None
 
     if not os.path.exists("pronunciations"):
         os.makedirs("pronunciations")
     id = word.id if not sentence else f"{word.id}_sentence"
     filename = os.path.join("pronunciations", f"11-{safe_filename(id)}.mp3")
-    with open(filename, "wb") as f:
-        for chunk in audio_generator:
-            if chunk:
-                f.write(chunk)
-        f.close()
+
+    try:
+        voice_id = get_config()["general"].get("elevenlabs_voice_id", "JBFqnCBsd6RMkjVDRZzb")
+        client = ElevenLabs(api_key=api_key)
+        audio_generator = client.text_to_speech.convert(
+            voice_id=voice_id,
+            output_format="mp3_44100_128",
+            text=word.target if not sentence else word.sentence[0] + f" {word.target} " + word.sentence[1],
+            model_id="eleven_multilingual_v2",
+            language_code=word.language,
+            voice_settings=VoiceSettings(
+                stability=0.85,
+                similarity_boost=0.75,
+                speed=0.82
+            )
+        )
+        with open(filename, "wb") as f:
+            for chunk in audio_generator:
+                if chunk:
+                    f.write(chunk)
+    except Exception as e:
+        lg(f"ElevenLabs TTS failed for '{word.target}': {e}")
+        # Don't leave a partial/empty mp3 behind -- pronounce() would treat it as a valid cache hit.
+        if os.path.exists(filename):
+            try: os.remove(filename)
+            except OSError: pass
+        return None
     if os.path.exists(filename) and os.path.getsize(filename) > 0:
         return filename
     else:
@@ -170,13 +180,15 @@ def generate_audio(
             lg("Falling back to gTTS due to ElevenLabs failure or quota issues.")
             return gtts_tts(word, sentence)
     elif server == "gtts":
-        if gtts_tts(word, sentence) == None:
-            if tries < 3:
-                lg("gTTS failed to generate audio. Trying again")
-                return generate_audio(word, sentence, server, tries=tries+1)
-            else:
-                lg("gTTS failed to generate audio after 3 tries. No audio will be generated.")
-                return None
+        audio_file = gtts_tts(word, sentence)
+        if audio_file:
+            return audio_file
+        if tries < 3:
+            lg("gTTS failed to generate audio. Trying again")
+            return generate_audio(word, sentence, server, tries=tries+1)
+        else:
+            lg("gTTS failed to generate audio after 3 tries. No audio will be generated.")
+            return None
             
 def play_audio(filename):
     lg(f"play_audio({filename})")

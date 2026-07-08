@@ -14,9 +14,12 @@ from datetime import date, timedelta
 from pathlib import Path
  
 from parental_connection import add_exceptional_time
- 
-BASE_RATE_PER_MINUTE = 5       # credits per minute -> 300 credits per hour baseline
-ESCALATION_PER_HOUR = 0.5       # each additional hour already redeemed *for that date* makes the next hour's minutes 50% pricier
+try:from gogo.utils import lg,get_config   
+except: from utils import lg,get_config
+
+config = get_config()
+BASE_RATE_PER_MINUTE = config.get("BASE_RATE_PER_MINUTE", 5) # credits per minute -> 300 credits per hour baseline
+ESCALATION_PER_HOUR = config.get("ESCALATION_PER_HOUR", 0.5) # each additional hour already redeemed *for that date* makes the next hour's minutes 50% pricier
 
 import dotenv
 dotenv.load_dotenv()  # Load environment variables from .env file
@@ -45,10 +48,11 @@ class Balance:
  
  
 class User:
-    def __init__(self, username: str, initial_balance: int = 0, redeemed_minutes_by_date: dict | None = None):
+    def __init__(self, username: str, initial_balance: int = 0, redeemed_minutes_by_date: dict | None = None, last_reset_date: str | None = None):
         self.username = username
         self.balance = Balance(initial_balance)
         self.redeemed_minutes_by_date = redeemed_minutes_by_date if redeemed_minutes_by_date is not None else {}
+        self.last_reset_date = last_reset_date
  
     def add_credits(self, amount: int):
         self.balance.add_credits(amount)
@@ -138,6 +142,28 @@ class User:
         return True
  
  
+def check_weekly_reset(user: User) -> bool:
+    """
+    Reset the user's balance to 0 once a new week has started since the
+    last reset. Weeks turn over at Monday 00:00 (i.e. right after Sunday
+    night), so a user opening the app on e.g. Tuesday will see that no
+    reset has happened yet this week and get reset then.
+
+    :return: True if the balance was reset, False otherwise.
+    """
+    today = date.today()
+    week_start = today - timedelta(days=today.weekday())  # this week's Monday
+
+    last_reset = date.fromisoformat(user.last_reset_date) if user.last_reset_date else date.min
+
+    if last_reset < week_start:
+        user.balance = Balance(0)
+        user.last_reset_date = week_start.isoformat()
+        save_data(user)
+        return True
+    return False
+
+
 def garbage_collect_old_redeemed_minutes(user: User):
     """
     Remove entries from redeemed_minutes_by_date that are older than two months.
@@ -159,6 +185,7 @@ def save_data(user: User):
         "username": user.username,
         "balance": user.balance.get_balance(),
         "redeemed_minutes_by_date": user.redeemed_minutes_by_date,
+        "last_reset_date": user.last_reset_date,
     }
  
     data_file_path = DATA_DIR / f"{user.username}_data.json"
@@ -180,9 +207,17 @@ def load_data(username: str) -> User:
  
     with open(file_path, "r", encoding="utf-8") as f:
         data = json.load(f)
- 
+
+    last_reset_date = data.get("last_reset_date")
+    if last_reset_date is None:
+        # Save file predates weekly reset tracking -- assume already up to
+        # date for the current week so we don't wipe an existing balance.
+        today = date.today()
+        last_reset_date = (today - timedelta(days=today.weekday())).isoformat()
+
     return User(
         username=data["username"],
         initial_balance=data["balance"],
         redeemed_minutes_by_date=data.get("redeemed_minutes_by_date", {}),
+        last_reset_date=last_reset_date,
     )

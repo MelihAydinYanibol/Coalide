@@ -32,7 +32,7 @@ def save_words(Words: list[Word], file_path: str = "words.json", avoid_duplicate
     for word in Words:
         if avoid_duplicates and word in existing_words:
             continue
-        new_data.append(word.__dict__)
+        new_data.append(word.to_dict())
 
     # Append new data to existing data
     existing_data.extend(new_data)
@@ -77,9 +77,17 @@ def get_words(file_path: str = "words.json") -> list[Word]:
         if word.target in list(progress_data.keys()):
             word.next_review_date = progress_data[word.target]["next_review_date"]
             word.last_review_date = progress_data[word.target].get("last_review_date")
+            # Older progress entries predate first_review_date tracking; fall back
+            # to last_review_date so long-known words aren't miscounted as new.
+            word.first_review_date = progress_data[word.target].get("first_review_date", word.last_review_date)
             word.repetitions = progress_data[word.target]["repetitions"]
             word.ease_factor = progress_data[word.target]["ease_factor"]
             word.interval = progress_data[word.target]["interval"]
+            word.last_ten_attempts = progress_data[word.target].get("last_ten_attempts", [])
+            word.total_attempts = progress_data[word.target].get("total_attempts", 0)
+            word.correct_attempts = progress_data[word.target].get("correct_attempts", 0)
+            word.wrong_attempts = progress_data[word.target].get("wrong_attempts", 0)
+            word.blank_attempts = progress_data[word.target].get("blank_attempts", 0)
         else:
             word.next_review_date = "2020-10-10"  # or None, depending on how you want to handle it
         words.append(word)

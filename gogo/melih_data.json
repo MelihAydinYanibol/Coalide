@@ -1,7 +1,8 @@
 {
     "username": "melih",
-    "balance": 2690,
+    "balance": 0,
     "redeemed_minutes_by_date": {
         "2026-07-04": 12
-    }
+    },
+    "last_reset_date": "2026-07-06"
 }

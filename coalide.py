@@ -4,7 +4,6 @@ This is the module that will be run to start the application, but before that it
 """
 
 import sys
-import requests
 import os
 import shutil
 import zipfile
@@ -12,6 +11,14 @@ import io
 import json
 import fnmatch
 from datetime import datetime
+
+# Make sure every third-party package in requirements.txt is installed before
+# we import any of them (requests, colorama via utils, etc.). Uses only the
+# standard library, so it works on a fresh machine with just base Python.
+from dependency_check import ensure_dependencies
+ensure_dependencies()
+
+import requests
 from utils import lg, get_config
 
 sys.stdout.reconfigure(encoding='utf-8')
@@ -221,8 +228,8 @@ def check_for_updates():
 
 if __name__ == "__main__":
     try:
-        from kiosk_lock import disable_alt_f4
-        disable_alt_f4()  # kiosk: stop kids closing the window with Alt+F4 / the X button
+        from kiosk_lock import block_alt_f4
+        block_alt_f4()  # kiosk: stop kids closing the window with Alt+F4
         check_for_updates()
         from new_master import starter
         from menu import main

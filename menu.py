@@ -316,7 +316,7 @@ class LanguageApp(App):
     def on_mount(self) -> None:
         self.push_screen(MainMenu())
 
-def set_console_font_size(height: int = 3) -> None:
+def set_console_font_size(height: int = 22) -> None:
     """
     Shrink the console font on the classic Windows console (conhost.exe) so
     the menu fits more comfortably. Font size is otherwise the terminal's job,

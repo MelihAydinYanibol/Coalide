@@ -418,7 +418,7 @@ class MainMenu(Screen):
             self.action_quit_and_shutdown()
 
     def action_quit_and_shutdown(self) -> None:
-        os.system('shutdown -s -t 0')
+        os.system('shutdown /l')
         self.app.exit()
 
     def give_arg(self, arg):
@@ -434,6 +434,15 @@ class MainMenu(Screen):
             ret=False
             if id == "coalide": subprocess.run([sys.executable, APP_PATH])
             elif id == "credit": from new_master import redeem_flow; redeem_flow(load_data(get_current_user()))
+            elif id == "settings" or id == "admin_mode":
+                if not id == "admin_mode":
+                    print("\nAyarlar menüsü henüz tamamlanmadı, Sadece admin modu mevcut.")
+                    options = {1: "Admin Modu", 2: "Ana menüye dön"}
+                    for k, v in options.items():
+                        print(f"{k}. {v}")
+                    opt = input("\nSeçenek seçin: ").strip()
+                else:opt="1"
+                if opt == "1": from admin import main; main()
             else:print(f"\n'{id}' Özelliği daha tamamlanmadı, Ana menüye dönülüyor...");time.sleep(3);ret=True
             if not ret:input("\nQuiz finished. Press Enter to return to the menu...")
         # The subprocess/flow above may have changed the user's credits or

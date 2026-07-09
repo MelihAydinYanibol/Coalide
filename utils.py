@@ -16,6 +16,11 @@ def lg(a="",b="",c="",d="",e="",f="",g="",h="",i="",j="",k="",l="",m="",n="",o="
 
     return DEBUG
 
+def cls():
+    lg("cls()")
+    if lg() != True:
+        os.system('cls')
+
 def _merge_missing_config_keys(current_config, default_config):
     """
     Add missing keys from default_config into current_config recursively.

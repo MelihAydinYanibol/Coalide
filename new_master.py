@@ -12,7 +12,7 @@ from objects.word_obj import Word
 from objects.question_obj import Question
 from objects.balance_obj import load_data,User,check_weekly_reset,MINUTES_PER_DAY
 from sm2 import get_next_question, calculate_quality, update_sm2, reload_words
-from utils import lg,get_config,repair_config,get_current_user
+from utils import lg,get_config,repair_config,get_current_user,cls
 
 
 # Public Modules
@@ -21,8 +21,6 @@ import os
 import shutil
 import datetime
 from datetime import date, timedelta
-import copy
-import json
 import hashlib
 import sys
 
@@ -50,11 +48,6 @@ else:
             if content and not content.endswith('\n'):
                 f.write('\n')
             f.write("ELEVENLABS_API_KEY=[]")
-
-def cls():
-    lg("cls()")
-    if lg() != True:
-        os.system('cls')
 
 
 def normalize_answer(s: str) -> str:

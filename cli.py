@@ -194,5 +194,6 @@ if sys.argv[1:]:
         print("- -create-tts-cache: Generates TTS cache for words and sentences. Use with additional flags to specify details.")
         print("- -release-ready: Deletes ALL user data, .git, env/venv and caches to prepare the folder for release. Asks for confirmation twice.")
         print("- -debug: Enables debug mode for more verbose output and legacy start menu.")
+        print("- -create-kiosk-batch: Creates a batch file to launch Coalide in kiosk mode, suppressing Alt+F4.")
         print("\nFor detailed instructions on using each argument, please refer to the documentation or use the '-help' flag with the specific argument.")
         sys.exit(0)

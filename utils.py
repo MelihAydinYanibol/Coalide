@@ -129,19 +129,26 @@ def kiosk_batch_creator():
     """
     Writes launch_kiosk.bat next to this file. The batch cd's into the Coalide
     folder (so the app finds config.json, words.json, etc.) and relaunches
-    Coalide in a loop, so if it ever exits it comes straight back. Paths are
-    resolved at runtime, so it works wherever Coalide is installed.
+    Coalide in a loop, so if it ever exits it comes straight back.
+
+    Uses sys.executable -- the interpreter actually running this program -- so it
+    works whether Coalide runs under a venv or the machine's global Python.
     """
     import os
+    import sys
 
     project_dir = os.path.dirname(os.path.abspath(__file__))
-    python_exe = os.path.join(project_dir, "env", "Scripts", "python.exe")
     main_script = os.path.join(project_dir, "coalide.py")
     batch_path = os.path.join(project_dir, "launch_kiosk.bat")
 
-    # Left-aligned: batch files are whitespace-sensitive around labels.
-    # `cd /d "%~dp0"` moves into the .bat's own folder so Coalide's relative
-    # file paths resolve no matter what directory it was launched from.
+    # The interpreter running us right now -- venv or global, always a real path.
+    python_exe = sys.executable
+    # If we're under pythonw (no console), prefer python.exe so the TUI is visible.
+    if os.path.basename(python_exe).lower() == "pythonw.exe":
+        candidate = os.path.join(os.path.dirname(python_exe), "python.exe")
+        if os.path.exists(candidate):
+            python_exe = candidate
+
     batch_content = (
         "@echo off\n"
         "title Coalide\n"

@@ -8,8 +8,7 @@ from word_engine import get_words
 from operator import attrgetter
 from objects.word_obj import Word,save_progress
 from objects.question_obj import Question
-try:from gogo.utils import lg,get_config   
-except: from utils import lg,get_config
+from utils import lg,get_config
 import random
 
 config = get_config()

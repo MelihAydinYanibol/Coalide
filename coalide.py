@@ -228,7 +228,7 @@ def check_for_updates():
 
 if __name__ == "__main__":
     try:
-        from kiosk_lock import block_alt_f4
+        from bypasser import block_alt_f4
         block_alt_f4()  # kiosk: stop kids closing the window with Alt+F4
         check_for_updates()
         from new_master import starter

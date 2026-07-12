@@ -127,10 +127,10 @@ def repair_config():
 
 def kiosk_batch_creator():
     """
-    Writes launch_kiosk.bat next to this file. The batch relaunches Coalide in a
-    loop, so if the window ever exits (a crash, or a close we didn't block) it
-    comes straight back. Paths are resolved at runtime, so it works wherever
-    Coalide is installed on the kid's machine.
+    Writes launch_kiosk.bat next to this file. The batch cd's into the Coalide
+    folder (so the app finds config.json, words.json, etc.) and relaunches
+    Coalide in a loop, so if it ever exits it comes straight back. Paths are
+    resolved at runtime, so it works wherever Coalide is installed.
     """
     import os
 
@@ -139,10 +139,13 @@ def kiosk_batch_creator():
     main_script = os.path.join(project_dir, "coalide.py")
     batch_path = os.path.join(project_dir, "launch_kiosk.bat")
 
-    # Left-aligned on purpose: batch files are whitespace-sensitive around labels.
+    # Left-aligned: batch files are whitespace-sensitive around labels.
+    # `cd /d "%~dp0"` moves into the .bat's own folder so Coalide's relative
+    # file paths resolve no matter what directory it was launched from.
     batch_content = (
         "@echo off\n"
         "title Coalide\n"
+        'cd /d "%~dp0"\n'
         ":loop\n"
         f'"{python_exe}" "{main_script}"\n'
         "timeout /t 1 /nobreak >nul\n"

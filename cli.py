@@ -179,6 +179,15 @@ if sys.argv[1:]:
 
         release_ready()
         sys.exit(0)
+    elif "-create-kiosk-batch" in sys.argv[1:]:
+        if "--help" in sys.argv[2:]:
+            print("Usage: -create-kiosk-batch\nCreates a batch file named 'launch_kiosk.bat' next to this script. The batch file launches Coalide in kiosk mode and suppresses Alt+F4, making it suitable for dedicated kiosk setups where you want to prevent users from closing the application with Alt+F4.")
+            sys.exit(0)
+
+        from utils import kiosk_batch_creator
+        kiosk_batch_creator()
+        print("Batch file 'launch_kiosk.bat' created successfully.")
+        sys.exit(0)
     elif "-help" in sys.argv[1]:
         print("Available command-line arguments:")
         print("- -pack-data: Packages important data files into a 'packaged_data' folder for backup.")

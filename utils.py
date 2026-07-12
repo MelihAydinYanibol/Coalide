@@ -54,7 +54,9 @@ def get_config(default=False):
         "SPAM_PROTECTION":True,
         "INPUT_TIMEOUT":0,
         "Credit_Reset_Weekly":True,
-        "BACKUP_PRONUNCIATIONS":True
+        "BACKUP_PRONUNCIATIONS":True,
+        "KIOSK_MODE":False,
+        "BYPASS_SHORTCUTS":True
 
     }
     if not os.path.exists(config_path):
@@ -122,3 +124,33 @@ def repair_config():
         print(f"{Fore.GREEN}Missing config keys were added successfully.{Style.RESET_ALL}")
     else:
         print(f"{Fore.GREEN}Config is already complete. No missing keys found.{Style.RESET_ALL}")
+
+def kiosk_batch_creator():
+    """
+    Writes launch_kiosk.bat next to this file. The batch relaunches Coalide in a
+    loop, so if the window ever exits (a crash, or a close we didn't block) it
+    comes straight back. Paths are resolved at runtime, so it works wherever
+    Coalide is installed on the kid's machine.
+    """
+    import os
+
+    project_dir = os.path.dirname(os.path.abspath(__file__))
+    python_exe = os.path.join(project_dir, "env", "Scripts", "python.exe")
+    main_script = os.path.join(project_dir, "coalide.py")
+    batch_path = os.path.join(project_dir, "launch_kiosk.bat")
+
+    # Left-aligned on purpose: batch files are whitespace-sensitive around labels.
+    batch_content = (
+        "@echo off\n"
+        "title Coalide\n"
+        ":loop\n"
+        f'"{python_exe}" "{main_script}"\n'
+        "timeout /t 1 /nobreak >nul\n"
+        "goto loop\n"
+    )
+
+    with open(batch_path, "w", encoding="utf-8") as f:
+        f.write(batch_content)
+
+    print(f"{Fore.GREEN}Kiosk launch batch file created at: {batch_path}{Style.RESET_ALL}")
+    return batch_path

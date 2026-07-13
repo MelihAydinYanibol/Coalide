@@ -442,7 +442,9 @@ class MainMenu(Screen):
                         print(f"{k}. {v}")
                     opt = input("\nSeçenek seçin: ").strip()
                 else:opt="1"
-                if opt == "1": from admin import main; main()
+                # Admin is its own Textual app now, so run it as a subprocess
+                # (a nested App inside suspend() would fight over the terminal).
+                if opt == "1": subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "admin.py")])
             elif id == "practice": from practice import main; main()
             # Stats is its own Textual app, so run it as a subprocess (a
             # nested App inside suspend() would fight over the terminal).

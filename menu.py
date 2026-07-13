@@ -443,8 +443,9 @@ class MainMenu(Screen):
                     opt = input("\nSeçenek seçin: ").strip()
                 else:opt="1"
                 if opt == "1": from admin import main; main()
+            elif id == "practice": from practice import main; main()
             else:print(f"\n'{id}' Özelliği daha tamamlanmadı, Ana menüye dönülüyor...");time.sleep(3);ret=True
-            if not ret:input("\nQuiz finished. Press Enter to return to the menu...")
+            """ if not ret:input("\nQuiz finished. Press Enter to return to the menu...") """
         # The subprocess/flow above may have changed the user's credits or
         # redeemed minutes, so re-read them into the stats panel now that the
         # TUI has resumed.

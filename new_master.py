@@ -227,7 +227,6 @@ def quest(user, current_question: Question = None):
             if holder.lower() in ["p","s"]: pronounce(current_question.word, True if holder.lower() == "s" else False)
             elif holder.lower() in ["exit","e","q"]: ex=True;break
             else: break
-        if ex: break
         # Calculating quality and updating the SM2 algorithm, also crediting
 
         time_taken = end_time - start_time
@@ -242,6 +241,7 @@ def quest(user, current_question: Question = None):
         current_question.word.add_result((True if stat == True else False), is_blank=(stat is None))
         update_sm2(current_question.word, quality)
         feed.append(current_question.word.id)
+        if ex: ex=False; break
 
 def redeem_flow(user):
     cls()

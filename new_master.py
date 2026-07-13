@@ -13,6 +13,10 @@ from objects.question_obj import Question
 from objects.balance_obj import load_data,User,check_weekly_reset,MINUTES_PER_DAY
 from sm2 import get_next_question, calculate_quality, update_sm2, reload_words
 from utils import lg,get_config,repair_config,get_current_user,cls
+try:
+    from stats_menu import record_answer
+except Exception:
+    def record_answer(word, result): pass  # stats logging must never block the quiz
 
 
 # Public Modules
@@ -214,14 +218,16 @@ def quest(user, current_question: Question = None):
         from audio_engine import pronounce
         pronounce(current_question.word, False);time.sleep(.3) ;pronounce(current_question.word, True)
 
-        print("[Enter] Devam Et\n[P] Kelimeyi Tekrar Dinle\n[S] Cümleyi Tekrar Dinle\n")
+        print("[Enter] Devam Et\n[P] Kelimeyi Tekrar Dinle\n[S] Cümleyi Tekrar Dinle\n[Q] Çıkış Yap")
         while True:
+            ex = False
             holder = str(input("> "))
             sys.stdout.write("\033[A\033[K")
             sys.stdout.flush()
             if holder.lower() in ["p","s"]: pronounce(current_question.word, True if holder.lower() == "s" else False)
+            elif holder.lower() in ["exit","e","q"]: ex=True;break
             else: break
-
+        if ex: break
         # Calculating quality and updating the SM2 algorithm, also crediting
 
         time_taken = end_time - start_time
@@ -232,6 +238,7 @@ def quest(user, current_question: Question = None):
         quality = calculate_quality(stat,_length, time_taken)
         if stat:
             user.add_credits(7)
+        record_answer(current_question.word.target, stat)
         current_question.word.add_result((True if stat == True else False), is_blank=(stat is None))
         update_sm2(current_question.word, quality)
         feed.append(current_question.word.id)

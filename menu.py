@@ -444,6 +444,9 @@ class MainMenu(Screen):
                 else:opt="1"
                 if opt == "1": from admin import main; main()
             elif id == "practice": from practice import main; main()
+            # Stats is its own Textual app, so run it as a subprocess (a
+            # nested App inside suspend() would fight over the terminal).
+            elif id == "stats": subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "stats_menu.py")])
             else:print(f"\n'{id}' Özelliği daha tamamlanmadı, Ana menüye dönülüyor...");time.sleep(3);ret=True
             """ if not ret:input("\nQuiz finished. Press Enter to return to the menu...") """
         # The subprocess/flow above may have changed the user's credits or

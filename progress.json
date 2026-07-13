@@ -59,5 +59,21 @@
         "last_ten_attempts": [
             true
         ]
+    },
+    "have": {
+        "next_review_date": "2026-07-14",
+        "last_review_date": "2026-07-13",
+        "first_review_date": "2026-07-13",
+        "repetitions": 1,
+        "ease_factor": 2.6,
+        "interval": 1,
+        "rate": 100.0,
+        "total_attempts": 1,
+        "correct_attempts": 1,
+        "wrong_attempts": 0,
+        "blank_attempts": 0,
+        "last_ten_attempts": [
+            true
+        ]
     }
 }

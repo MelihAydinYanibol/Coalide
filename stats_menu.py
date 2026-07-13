@@ -38,6 +38,8 @@ RED = "#ff6b81"
 MUTED = "#9a9ac0"
 
 MATURE_INTERVAL = 21  # days; a word with an SM-2 interval this long counts as "learned"
+CREDITS_PER_CORRECT = 7  # mirrors user.add_credits(7) in new_master.py
+MINUTES_PER_DAY = 24 * 60
 
 
 # --------------------------------------------------------------------------
@@ -109,6 +111,43 @@ def load_user_data() -> dict:
         return {}
     data = _load_json(os.path.join(BASE_DIR, f"{username}_data.json"), {})
     return data if isinstance(data, dict) else {}
+
+
+def _load_credit_config() -> tuple:
+    """(base_rate, escalation, weekly_reset) from config.json — read directly
+    to avoid importing balance_obj (which pulls in the parental-control API)."""
+    cfg = _load_json(os.path.join(BASE_DIR, "config.json"), {})
+    if not isinstance(cfg, dict):
+        cfg = {}
+    return (cfg.get("BASE_RATE_PER_MINUTE", 5),
+            cfg.get("ESCALATION_PER_HOUR", 0.5),
+            cfg.get("Credit_Reset_Weekly", True))
+
+
+def _cost_for_minutes(minutes: int, base: float, esc: float, already: int = 0) -> int:
+    """Credit cost of `minutes` of screen time for one date, given `already`
+    minutes redeemed for that date. Same escalating formula as
+    balance_obj.User.cost_for_minutes — order within a day doesn't matter,
+    so a date's total spend can be reconstructed exactly from its minutes."""
+    total = 0.0
+    for m in range(minutes):
+        hour_bracket = (already + m) // 60
+        total += base * (1 + esc * hour_bracket)
+    return round(total)
+
+
+def _max_redeemable(balance: int, base: float, esc: float, already: int = 0) -> int:
+    """Largest number of minutes affordable with `balance` for a date that
+    already has `already` minutes redeemed (mirrors balance_obj)."""
+    minutes = 0
+    total = 0.0
+    while already + minutes < MINUTES_PER_DAY:
+        rate = base * (1 + esc * ((already + minutes) // 60))
+        if round(total + rate) > balance:
+            break
+        total += rate
+        minutes += 1
+    return minutes
 
 
 def _week_start(d: date) -> date:
@@ -260,6 +299,9 @@ def build_stats() -> dict:
                          for w in words if isinstance(w, dict))
 
     # ---- screen time / credits ----
+    base_rate, escalation, weekly_reset = _load_credit_config()
+    balance = user.get("balance") if isinstance(user.get("balance"), (int, float)) else 0
+
     redeemed = {}
     for k, v in (user.get("redeemed_minutes_by_date") or {}).items():
         pd = _parse_date(k)
@@ -270,6 +312,49 @@ def build_stats() -> dict:
         d = today - timedelta(days=i)
         m = redeemed.get(d, 0)
         redeemed_14.append((_day_label(d), m, YELLOW if m else MUTED))
+
+    # minutes redeemed per week (8 weeks) — history only spans ~60 days
+    # because balance_obj garbage-collects older redemption entries
+    redeemed_weekly = []
+    for i in range(7, -1, -1):
+        ws = ws0 - timedelta(weeks=i)
+        m = sum(v for d, v in redeemed.items() if ws <= d < ws + timedelta(days=7))
+        label = f"{_day_label(ws)} +" if ws != ws0 else "Bu hafta"
+        redeemed_weekly.append((label, m, GREEN if m else MUTED))
+
+    # exact credits spent per day, reconstructed from redeemed minutes
+    spent_by_day = {d: _cost_for_minutes(int(m), base_rate, escalation)
+                    for d, m in redeemed.items()}
+    spent_14 = []
+    for i in range(13, -1, -1):
+        d = today - timedelta(days=i)
+        c = spent_by_day.get(d, 0)
+        spent_14.append((_day_label(d), c, RED if c else MUTED))
+
+    # estimated credits earned per day (correct answers × 7, from the log)
+    earned_by_day = {d: c.get("correct", 0) * CREDITS_PER_CORRECT
+                     for d, c in answers_by_day.items()}
+    earned_14 = []
+    for i in range(13, -1, -1):
+        d = today - timedelta(days=i)
+        c = earned_by_day.get(d, 0)
+        earned_14.append((_day_label(d), c, GREEN if c else MUTED))
+
+    week_start_d = ws0
+    earned_week = sum(v for d, v in earned_by_day.items() if d >= week_start_d)
+    spent_week = sum(v for d, v in spent_by_day.items() if d >= week_start_d)
+    minutes_week = sum(v for d, v in redeemed.items() if d >= week_start_d)
+
+    redeemed_today = int(redeemed.get(today, 0))
+    redeemed_tomorrow = int(redeemed.get(today + timedelta(days=1), 0))
+    max_today = _max_redeemable(balance, base_rate, escalation, redeemed_today)
+    max_tomorrow = _max_redeemable(balance, base_rate, escalation, redeemed_tomorrow)
+    current_rate = base_rate * (1 + escalation * (redeemed_today // 60))
+    price_brackets = [(h, base_rate * (1 + escalation * h)) for h in range(4)]
+    days_to_reset = 7 - today.weekday() if weekly_reset else None
+
+    spark_minutes_30 = [redeemed.get(today - timedelta(days=i), 0)
+                        for i in range(29, -1, -1)]
 
     return {
         "today": today,
@@ -300,9 +385,28 @@ def build_stats() -> dict:
         "hardest": hardest,
         "table_rows": table_rows,
         "word_types": word_types,
-        "balance": user.get("balance"),
+        "balance": balance,
         "redeemed_14": redeemed_14,
         "redeemed_total": sum(redeemed.values()),
+        "redeemed_weekly": redeemed_weekly,
+        "spent_14": spent_14,
+        "spent_total": sum(spent_by_day.values()),
+        "earned_14": earned_14,
+        "earned_total": sum(earned_by_day.values()),
+        "earned_week": earned_week,
+        "spent_week": spent_week,
+        "minutes_week": minutes_week,
+        "redeemed_today": redeemed_today,
+        "redeemed_tomorrow": redeemed_tomorrow,
+        "max_today": max_today,
+        "max_tomorrow": max_tomorrow,
+        "current_rate": current_rate,
+        "price_brackets": price_brackets,
+        "base_rate": base_rate,
+        "escalation": escalation,
+        "days_to_reset": days_to_reset,
+        "last_reset": _parse_date(user.get("last_reset_date")),
+        "spark_minutes_30": spark_minutes_30,
     }
 
 
@@ -428,7 +532,7 @@ class StatsApp(App):
     TabbedContent {{ height: 1fr; }}
     .tab-body {{ padding: 1 2; }}
 
-    #tiles {{
+    .tiles {{
         grid-size: 3;
         grid-gutter: 1 2;
         grid-rows: auto;
@@ -476,6 +580,9 @@ class StatsApp(App):
             with TabPane("📊 Genel Bakış", id="tab-genel"):
                 with VerticalScroll(classes="tab-body"):
                     yield from self._genel(s)
+            with TabPane("💰 Krediler", id="tab-kredi"):
+                with VerticalScroll(classes="tab-body"):
+                    yield from self._krediler(s)
             with TabPane("📅 Haftalık & Günlük", id="tab-hafta"):
                 with VerticalScroll(classes="tab-body"):
                     yield from self._haftalik(s)
@@ -492,8 +599,16 @@ class StatsApp(App):
         return Static(f"[bold {accent}]{title}[/]\n\n{body}",
                       classes=f"panel {accent_class}")
 
+    @staticmethod
+    def _tile_grid(tiles, grid_id: str | None = None) -> ComposeResult:
+        with Grid(id=grid_id, classes="tiles"):
+            for label, value, klass in tiles:
+                with Vertical(classes=f"tile {klass}"):
+                    yield Static(label, classes="tile-label")
+                    yield Digits(str(value))
+
     def _genel(self, s) -> ComposeResult:
-        balance = s["balance"] if isinstance(s["balance"], (int, float)) else 0
+        balance = s["balance"]
         tiles = [
             ("📚 Toplam Kelime", s["total_words"], "t-purple"),
             ("🚀 Başlanan", s["started_count"], "t-green"),
@@ -505,11 +620,7 @@ class StatsApp(App):
             ("🎯 Başarı (%)", round(s["overall_rate"]), "t-green"),
             ("💵 Kredi", balance, "t-yellow"),
         ]
-        with Grid(id="tiles"):
-            for label, value, klass in tiles:
-                with Vertical(classes=f"tile {klass}"):
-                    yield Static(label, classes="tile-label")
-                    yield Digits(str(value))
+        yield from self._tile_grid(tiles, grid_id="tiles")
 
         yield self._panel("📦 Kelime Durumu (SM-2 olgunluk)",
                           hbar_chart(s["buckets"], label_w=20),
@@ -527,12 +638,6 @@ class StatsApp(App):
             yield self._panel("🧗 En Zor 5 Kelime", "\n".join(lines), "p-red", RED)
 
         yield self._panel("♾️ Tüm Zamanlar", self._alltime_text(s), "p-green", GREEN)
-
-        body = hbar_chart(s["redeemed_14"], label_w=8)
-        body += (f"\n\n[{MUTED}]Toplam kullanılan ekran süresi:[/] "
-                 f"[bold {YELLOW}]{s['redeemed_total']} dk[/]")
-        yield self._panel("🖥️ Ekran Süresi (son 14 gün, dakika)", body,
-                          "p-yellow", YELLOW)
 
     @staticmethod
     def _alltime_text(s) -> str:
@@ -567,6 +672,68 @@ class StatsApp(App):
             f"[{YELLOW}]{s10['blank']}∅[/]  (toplam {s['son10_total']})"
         )
         return "\n".join(lines)
+
+    def _krediler(self, s) -> ComposeResult:
+        tiles = [
+            ("💵 Bakiye", s["balance"], "t-yellow"),
+            ("⏱ Alınabilir (dk, bugün)", s["max_today"], "t-green"),
+            ("📺 Bugün Alınan (dk)", s["redeemed_today"], "t-purple"),
+            ("🪙 Bu Hafta Kazanılan", s["earned_week"], "t-green"),
+            ("💸 Bu Hafta Harcanan", s["spent_week"], "t-red"),
+            ("🗓 Sıfırlamaya Kalan (gün)",
+             s["days_to_reset"] if s["days_to_reset"] is not None else 0, "t-red"),
+        ]
+        yield from self._tile_grid(tiles)
+
+        body = hbar_chart(s["earned_14"], label_w=8)
+        body += (f"\n\n[{MUTED}]Her doğru cevap = [bold {GREEN}]"
+                 f"{CREDITS_PER_CORRECT} kredi[/].  Kayıtlı toplam kazanç:[/] "
+                 f"[bold {GREEN}]{s['earned_total']} kredi[/]")
+        if not s["log_total"]:
+            body += (f"\n[{MUTED}]Cevap geçmişi bu sürümle kaydedilmeye başlandı — "
+                     f"kazançlar quiz çözdükçe görünecek.[/]")
+        yield self._panel("🪙 Kazanılan Krediler (son 14 gün)", body, "p-green", GREEN)
+
+        body = hbar_chart(s["spent_14"], label_w=8)
+        body += (f"\n\n[{MUTED}]Alınan dakikalardan birebir hesaplanır. "
+                 f"Toplam harcama (son 60 gün):[/] "
+                 f"[bold {RED}]{s['spent_total']} kredi[/]")
+        yield self._panel("💸 Harcanan Krediler (son 14 gün)", body, "p-red", RED)
+
+        body = hbar_chart(s["redeemed_14"], label_w=8)
+        body += "\n\n" + hbar_chart(s["redeemed_weekly"], label_w=10)
+        body += (f"\n\n[{MUTED}]Bu hafta:[/] [bold {YELLOW}]{s['minutes_week']} dk[/]"
+                 f"   [{MUTED}]Toplam (son 60 gün):[/] "
+                 f"[bold {YELLOW}]{s['redeemed_total']} dk[/]")
+        yield self._panel("📺 Alınan Ekran Süresi — günlük (14 gün) ve haftalık (8 hafta)",
+                          body, "p-yellow", YELLOW)
+
+        lines = []
+        for h, rate in s["price_brackets"]:
+            marker = f"  [bold {YELLOW}]◀ şu an[/]" if h == s["redeemed_today"] // 60 else ""
+            lines.append(f"{h + 1}. saat: [bold]{rate:g} kredi/dk[/]{marker}")
+        lines.append("")
+        lines.append(f"Şu anki dakika fiyatı: [bold {YELLOW}]{s['current_rate']:g} kredi[/]"
+                     f"  [{MUTED}](bugün {s['redeemed_today']} dk alındığı için)[/]")
+        lines.append(f"Bakiyenle alınabilir: [bold {GREEN}]{s['max_today']} dk (bugün)[/]"
+                     f" | [bold {GREEN}]{s['max_tomorrow']} dk (yarın)[/]")
+        mins_per_correct = CREDITS_PER_CORRECT / s["base_rate"] if s["base_rate"] else 0
+        lines.append(f"1 doğru cevap ≈ [bold]{mins_per_correct:.1f} dk[/] ekran süresi"
+                     f"  [{MUTED}](taban fiyattan)[/]")
+        if s["days_to_reset"] is not None:
+            reset_day = s["today"] + timedelta(days=s["days_to_reset"])
+            lines.append("")
+            lines.append(f"[{MUTED}]Krediler her Pazartesi sıfırlanır — sonraki sıfırlama:"
+                         f"[/] [bold {RED}]{_day_label(reset_day)}[/]"
+                         f" [{MUTED}]({s['days_to_reset']} gün sonra)[/]")
+        if s["last_reset"]:
+            lines.append(f"[{MUTED}]Son sıfırlama: {_day_label(s['last_reset'])}[/]")
+        yield self._panel("🏷️ Fiyat Tarifesi — her ek saat dakikayı pahalılaştırır",
+                          "\n".join(lines), "p-purple", PURPLE)
+
+        with Vertical(classes="panel p-yellow"):
+            yield Static(f"[bold {YELLOW}]📉 Ekran süresi — son 30 gün (dk/gün)[/]")
+            yield Sparkline(s["spark_minutes_30"], summary_function=max)
 
     def _haftalik(self, s) -> ComposeResult:
         yield self._panel("🌱 Haftalık Yeni Kelimeler (son 8 hafta)",

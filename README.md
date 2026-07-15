@@ -148,9 +148,9 @@ This checks for updates, prepares config/words, and opens the Textual main menu.
 |---|---|---|
 | 📝 Öğrenmeye Başla! | Start the spaced-repetition quiz | ✅ |
 | 💰 Kredilerini Kullan! | Redeem credits for screen time | ✅ |
-| 📚 Pratik Modu | Practice mode | 🚧 planned |
-| 📊 İstatistikler | Statistics viewer | 🚧 planned |
-| ⚙️ Admin Modu | Admin controls | 🚧 planned |
+| 📚 Pratik Modu | Practice mode | ✅ (Windows-only, `msvcrt`) |
+| 📊 İstatistikler | Statistics viewer | ✅ |
+| ⚙️ Admin Modu | Admin controls | ✅ |
 | 🚪 Çıkış | Quit (shuts the computer down) | ✅ |
 
 Press `F2` inside the menu to open the command palette for the same actions plus developer shortcuts.
@@ -319,11 +319,11 @@ python coalide.py -debug
 
 ## 🗺️ Roadmap
 
-- [ ] Practice mode (Pratik Modu)
-- [ ] In-app statistics viewer (İstatistikler)
-- [ ] Admin controls panel (Admin Modu)
+- [x] Practice mode (Pratik Modu)
+- [x] In-app statistics viewer (İstatistikler)
+- [x] Admin controls panel (Admin Modu)
 - [ ] Telegram progress reporting (wired into the rewrite)
-- [ ] Cross-platform polish
+- [ ] Cross-platform polish — `practice.py` and `bypasser.py` still rely on Windows-only APIs (`msvcrt`, `ctypes.wintypes`)
 
 ---
 

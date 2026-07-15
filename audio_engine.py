@@ -9,16 +9,10 @@ import importlib
 
 try:
     pyaudio = importlib.import_module("pyaudio")
+    _PYAUDIO_AVAILABLE = True
 except ImportError:
-    class _PyaudioFallback:
-        class PyAudio:
-            def get_default_output_device_info(self):
-                raise RuntimeError("pyaudio is not installed")
-
-            def terminate(self):
-                pass
-
-    pyaudio = _PyaudioFallback()
+    pyaudio = None
+    _PYAUDIO_AVAILABLE = False
 
 from objects.word_obj import Word
 try: from gogo.utils import lg
@@ -197,6 +191,10 @@ def play_audio(filename):
 
 def is_output_device_available():
     """Return True if a default output device appears available to PyAudio."""
+    if not _PYAUDIO_AVAILABLE:
+        # pyaudio is an optional dependency used only for this check; without
+        # it, skip detection entirely rather than reporting false negatives.
+        return True
     pa = None
     try:
         pa = pyaudio.PyAudio()

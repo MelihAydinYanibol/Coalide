@@ -78,16 +78,36 @@ def ensure_dependencies():
         print(f"  - {line}")
     print("Installing missing dependencies with pip...")
 
-    try:
-        # Install the exact pinned lines so versions match requirements.txt.
-        # sys.executable ensures we install into the same interpreter/venv
-        # that's actually running the app.
-        subprocess.check_call(
-            [sys.executable, "-m", "pip", "install", *missing]
-        )
-    except subprocess.CalledProcessError as e:
-        print(f"Failed to install dependencies automatically: {e}")
-        print(f"Please run: {sys.executable} -m pip install -r requirements.txt")
+    # Install the exact pinned lines so versions match requirements.txt.
+    # sys.executable ensures we install into the same interpreter/venv
+    # that's actually running the app.
+    result = subprocess.run(
+        [sys.executable, "-m", "pip", "install", *missing],
+        capture_output=True, text=True,
+    )
+    print(result.stdout, end="")
+    print(result.stderr, end="")
+
+    if result.returncode != 0:
+        # Packages installed via the Microsoft Store put user-site packages
+        # under a deeply nested per-user sandbox path (AppData\Local\Packages\...).
+        # Combined with a package that has deeply nested submodules, the full
+        # path can exceed Windows' 260-char MAX_PATH, and pip aborts partway
+        # through -- looking like a completed install (files were written)
+        # right up until it fails, and repeating identically on every launch
+        # since nothing was actually installed.
+        if "No such file or directory" in result.stderr and "Long Path" in result.stderr:
+            print(
+                "\nThis install failed because of Windows' 260-character path limit, "
+                "not because pip or the package is broken -- it will fail the same way "
+                "on every launch until this is fixed. Either:\n"
+                "  1. Enable Windows Long Path support (requires admin): "
+                "https://pip.pypa.io/warnings/enable-long-paths\n"
+                "  2. Or install Python from python.org instead of the Microsoft Store -- "
+                "the Store version sandboxes packages under an unusually long path."
+            )
+        else:
+            print(f"Please run: {sys.executable} -m pip install -r requirements.txt")
         return False
 
     # Re-check so an install that silently produced nothing still surfaces.

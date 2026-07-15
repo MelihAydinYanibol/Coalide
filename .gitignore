@@ -219,3 +219,6 @@ coalide.bat
 config.json
 /pronunciations
 /gogo/pronunciations
+current_user.json
+*_data.json
+progress.json

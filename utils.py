@@ -4,6 +4,7 @@ This files only job is to log.
 
 import sys
 import os
+import re
 import copy
 import json
 from colorama import Fore, Style
@@ -81,6 +82,17 @@ def get_config(default=False):
 
 CURRENT_USER_FILE = os.path.join(os.path.dirname(__file__), "current_user.json")
 
+# Only word characters (letters/digits/underscore, Unicode-aware so Turkish
+# letters survive) and hyphens are kept. This is intentionally strict: the
+# username ends up in a filename (see balance_obj.py), and terminals can
+# leak raw ANSI escape sequences into stdin (e.g. a mouse click while
+# input() is blocking, if mouse-tracking mode is on) which otherwise
+# produces control characters that Windows refuses to use in a path.
+_USERNAME_UNSAFE_RE = re.compile(r"[^\w\-]", re.UNICODE)
+
+def _sanitize_username(raw: str) -> str:
+    return _USERNAME_UNSAFE_RE.sub("", raw).strip()
+
 def get_current_user() -> str:
     """
     Returns the username of the currently logged-in user, read from
@@ -94,13 +106,17 @@ def get_current_user() -> str:
                 data = json.load(f)
             except json.JSONDecodeError:
                 data = {}
-        username = data.get("username") if isinstance(data, dict) else None
-        if username:
-            return username
+        raw_username = data.get("username") if isinstance(data, dict) else None
+        if raw_username:
+            username = _sanitize_username(raw_username)
+            if username:
+                return username
+            # Saved username was corrupted (e.g. control/escape characters) --
+            # fall through and ask again instead of crashing on every run.
 
     username = ""
     while not username:
-        username = input("Giriş yapmak için kullanıcı adınızı giriniz: ").strip()
+        username = _sanitize_username(input("Giriş yapmak için kullanıcı adınızı giriniz: "))
     set_current_user(username)
     return username
 

@@ -10,7 +10,7 @@ parental controls API in parental_api.py.
  
 import json
 import os
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 from pathlib import Path
  
 from parental_connection import add_exceptional_time  
@@ -27,8 +27,35 @@ dotenv.load_dotenv()  # Load environment variables from .env file
 DEFAULT_BASE_URL = os.getenv("PARENTAL_CONTROL_URL","192.168.1.1")
 DEFAULT_APP_NAME = "OVERALL"   # e.g. "chrome.exe"
 DATA_DIR = Path(__file__).resolve().parent.parent
- 
- 
+
+DEFAULT_CREDIT_WINDOW_START = "07:00"
+DEFAULT_CREDIT_WINDOW_END = "22:00"
+
+
+def _parse_window_time(value: str, fallback: str) -> time:
+    try:
+        return datetime.strptime(value, "%H:%M").time()
+    except (TypeError, ValueError):
+        return datetime.strptime(fallback, "%H:%M").time()
+
+
+def is_within_credit_window(now: time | None = None) -> bool:
+    """
+    Whether the kid is currently allowed to earn credits, per the
+    Credit_Window_Start / Credit_Window_End config keys (HH:MM, config.json).
+    Supports an overnight window (e.g. start "22:00", end "06:00") by
+    treating start > end as wrapping past midnight.
+    """
+    cfg = get_config()
+    start = _parse_window_time(cfg.get("Credit_Window_Start", DEFAULT_CREDIT_WINDOW_START), DEFAULT_CREDIT_WINDOW_START)
+    end = _parse_window_time(cfg.get("Credit_Window_End", DEFAULT_CREDIT_WINDOW_END), DEFAULT_CREDIT_WINDOW_END)
+    current = now if now is not None else datetime.now().time()
+
+    if start <= end:
+        return start <= current <= end
+    return current >= start or current <= end
+
+
 class Balance:
     def __init__(self, initial_balance: int = 0):
         self.balance = initial_balance

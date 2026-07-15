@@ -57,7 +57,9 @@ def get_config(default=False):
         "Credit_Reset_Weekly":True,
         "BACKUP_PRONUNCIATIONS":True,
         "KIOSK_MODE":False,
-        "BYPASS_SHORTCUTS":True
+        "BYPASS_SHORTCUTS":True,
+        "Credit_Window_Start":"07:00",
+        "Credit_Window_End":"22:00"
 
     }
     if not os.path.exists(config_path):

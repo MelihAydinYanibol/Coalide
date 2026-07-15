@@ -10,7 +10,7 @@ TO-DO:
 # Custom modules
 from objects.word_obj import Word
 from objects.question_obj import Question
-from objects.balance_obj import load_data,User,check_weekly_reset,MINUTES_PER_DAY
+from objects.balance_obj import load_data,User,check_weekly_reset,MINUTES_PER_DAY,is_within_credit_window
 from sm2 import get_next_question, calculate_quality, update_sm2, reload_words
 from utils import lg,get_config,repair_config,get_current_user,cls
 try:
@@ -236,7 +236,13 @@ def quest(user, current_question: Question = None):
             _length = len(current_question.expected_answer)
         quality = calculate_quality(stat,_length, time_taken)
         if stat:
-            user.add_credits(7)
+            if is_within_credit_window():
+                user.add_credits(7)
+            else:
+                cfg = get_config()
+                window_start = cfg.get("Credit_Window_Start", "07:00")
+                window_end = cfg.get("Credit_Window_End", "22:00")
+                print(Fore.YELLOW + f"Doğru cevap için kredi kazanılmadı: kredi kazanma saatleri {window_start}-{window_end} arası." + Style.RESET_ALL)
         record_answer(current_question.word.target, stat)
         current_question.word.add_result((True if stat == True else False), is_blank=(stat is None))
         update_sm2(current_question.word, quality)

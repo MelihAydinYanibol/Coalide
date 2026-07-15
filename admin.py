@@ -52,6 +52,8 @@ CONFIG_DESCRIPTIONS = {
     "BACKUP_PRONUNCIATIONS": "Telaffuz ses dosyalarını yedekle.",
     "KIOSK_MODE": "Kiosk modu: uygulama kapanınca otomatik yeniden açılır.",
     "BYPASS_SHORTCUTS": "Alt+Tab / Windows tuşu gibi kaçış kısayollarını engelle.",
+    "Credit_Window_Start": "Kredi kazanmanın başladığı saat (SS:DD, örn. 07:00).",
+    "Credit_Window_End": "Kredi kazanmanın bittiği saat (SS:DD, örn. 22:00).",
 }
 
 

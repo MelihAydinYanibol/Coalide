@@ -59,7 +59,8 @@ def get_config(default=False):
         "KIOSK_MODE":False,
         "BYPASS_SHORTCUTS":True,
         "Credit_Window_Start":"07:00",
-        "Credit_Window_End":"22:00"
+        "Credit_Window_End":"22:00",
+        "REQUIRE_INTERNET":True
 
     }
     if not os.path.exists(config_path):

@@ -54,6 +54,22 @@ else:
             f.write("ELEVENLABS_API_KEY=[]")
 
 
+def has_internet(host="8.8.8.8", port=53, timeout=3) -> bool:
+    """
+    Returns True if the machine can reach the internet, by opening a quick TCP
+    socket to Google's public DNS server (8.8.8.8:53). This is more reliable
+    and faster than shelling out to `ping`, and works the same on every OS.
+    """
+    import socket
+    try:
+        socket.setdefaulttimeout(timeout)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect((host, port))
+        return True
+    except OSError:
+        return False
+
+
 def normalize_answer(s: str) -> str:
     # Drop a trailing comma the user may have typed by accident ("," sits right
     # next to Enter on the keyboard), then strip again in case of "word , ".
@@ -429,6 +445,13 @@ def starter(get_ready:bool=False):
     config = get_config()  # Ensure config is loaded and repaired if needed
     SOURCE = config.get("Source_Language", "Türkçe")
     TARGET = config.get("Target_Language", "İngilizce")
+
+    # If REQUIRE_INTERNET is enabled, refuse to start the quiz while offline.
+    if config.get("REQUIRE_INTERNET", False) and not has_internet():
+        print(Fore.RED + "İnternet bağlantısı yok. Sorular başlatılamıyor (REQUIRE_INTERNET etkin)." + Style.RESET_ALL)
+        lg("REQUIRE_INTERNET is enabled but no internet connection was detected. Aborting quiz start.")
+        sys.exit(0)
+
     cls()
     if not get_ready:
         main()

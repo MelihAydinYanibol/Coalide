@@ -412,6 +412,14 @@ def backup_data():
 
 
 def main():
+    # If REQUIRE_INTERNET is enabled, refuse to start the quiz while offline.
+    # This only blocks the question-asking (credit-earning) flow -- the menu,
+    # redeem, practice and stats screens all remain usable offline.
+    if get_config().get("REQUIRE_INTERNET", False) and not has_internet():
+        print(Fore.RED + "İnternet bağlantısı yok. Soru sorma özelliği devre dışı (REQUIRE_INTERNET etkin)." + Style.RESET_ALL)
+        lg("REQUIRE_INTERNET is enabled but no internet connection was detected. Aborting quiz start.")
+        input("\nAna menüye dönmek için Enter'a basın...")
+        return
     user = load_data(get_current_user())
     if get_config()["Credit_Reset_Weekly"]:
         if check_weekly_reset(user):
@@ -445,13 +453,6 @@ def starter(get_ready:bool=False):
     config = get_config()  # Ensure config is loaded and repaired if needed
     SOURCE = config.get("Source_Language", "Türkçe")
     TARGET = config.get("Target_Language", "İngilizce")
-
-    # If REQUIRE_INTERNET is enabled, refuse to start the quiz while offline.
-    if config.get("REQUIRE_INTERNET", False) and not has_internet():
-        print(Fore.RED + "İnternet bağlantısı yok. Sorular başlatılamıyor (REQUIRE_INTERNET etkin)." + Style.RESET_ALL)
-        lg("REQUIRE_INTERNET is enabled but no internet connection was detected. Aborting quiz start.")
-        sys.exit(0)
-
     cls()
     if not get_ready:
         main()

@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coalide — Yönetim</title>
+<style>
+  :root{
+    --bg:#0d0d18; --surface:#16162a; --surface2:#1c1c33; --border:#2a2a45; --grid:#23233c;
+    --purple:#7c5cff; --green:#42d6a4; --yellow:#f5c542; --red:#ff6b81; --blue:#5cc8ff;
+    --ink:#ececf6; --ink2:#b8b8d4; --muted:#8686a8;
+    --shadow:0 1px 3px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.28);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:
+      radial-gradient(1200px 600px at 12% -10%,rgba(124,92,255,.10),transparent 60%),
+      radial-gradient(1000px 500px at 100% 0%,rgba(66,214,164,.07),transparent 55%),var(--bg);
+    color:var(--ink);font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+    font-size:14px;line-height:1.45;min-height:100vh;-webkit-font-smoothing:antialiased;}
+  header{position:sticky;top:0;z-index:20;background:rgba(13,13,24,.85);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:11px;}
+  .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--purple),#b79bff);
+    display:grid;place-items:center;font-size:18px;box-shadow:0 4px 14px rgba(124,92,255,.4);}
+  .brand .t{font-size:16px;font-weight:700;} .brand .s{font-size:11px;color:var(--muted);margin-top:-2px;}
+  .spacer{flex:1;}
+  a.link{color:var(--blue);text-decoration:none;font-size:13px;} a.link:hover{text-decoration:underline;}
+  select,button,input,textarea{font-family:inherit;}
+  button{background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:9px;
+    padding:8px 14px;font-size:13px;cursor:pointer;transition:border-color .15s,background .15s;}
+  button:hover{border-color:var(--purple);} button:active{transform:translateY(1px);}
+  button.primary{background:linear-gradient(135deg,var(--purple),#9a7dff);border-color:transparent;color:#fff;font-weight:600;}
+  button.danger{border-color:var(--red);color:var(--red);} button.danger:hover{background:rgba(255,107,129,.12);}
+  button.ok{border-color:var(--green);color:var(--green);} button.ok:hover{background:rgba(66,214,164,.12);}
+  input[type=text],input[type=number],input[type=password],textarea,select{
+    background:var(--surface);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;width:100%;}
+  textarea{min-height:64px;resize:vertical;font-family:ui-monospace,Consolas,monospace;}
+  main{max-width:1100px;margin:0 auto;padding:22px 24px 60px;}
+
+  /* login */
+  .login-wrap{max-width:420px;margin:9vh auto;}
+  .card{background:linear-gradient(180deg,var(--surface),var(--surface2));border:1px solid var(--border);
+    border-radius:16px;padding:22px 24px;box-shadow:var(--shadow);}
+  .card h2{margin:0 0 6px;font-size:17px;} .card .sub{color:var(--muted);font-size:13px;margin-bottom:16px;}
+  .msg{margin-top:12px;font-size:13px;min-height:18px;}
+  .msg.err{color:var(--red);} .msg.okc{color:var(--green);}
+
+  .tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+  .tab{padding:9px 16px;border-radius:999px;border:1px solid var(--border);background:var(--surface);
+    color:var(--ink2);cursor:pointer;font-size:13px;font-weight:600;}
+  .tab.active{color:#fff;background:linear-gradient(135deg,var(--purple),#9a7dff);border-color:transparent;box-shadow:0 4px 14px rgba(124,92,255,.35);}
+  section.page{display:none;} section.page.active{display:block;}
+
+  .panel{background:linear-gradient(180deg,var(--surface),var(--surface2));border:1px solid var(--border);
+    border-radius:16px;padding:18px 20px;box-shadow:var(--shadow);margin-bottom:18px;}
+  .panel h3{margin:0 0 4px;font-size:15px;} .panel .desc{color:var(--muted);font-size:12.5px;margin-bottom:14px;}
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
+  .toolbar .spacer{flex:1;}
+
+  .cfg-row{display:grid;grid-template-columns:1fr 320px;gap:14px;align-items:center;
+    padding:12px 0;border-bottom:1px solid var(--grid);}
+  .cfg-row:last-of-type{border-bottom:0;}
+  .cfg-row .k{font-weight:700;} .cfg-row .d{color:var(--muted);font-size:12px;margin-top:2px;}
+  @media(max-width:720px){.cfg-row{grid-template-columns:1fr;}}
+
+  /* toggle */
+  .toggle{position:relative;display:inline-block;width:46px;height:26px;}
+  .toggle input{display:none;}
+  .toggle .sl{position:absolute;inset:0;background:var(--grid);border-radius:999px;transition:.15s;border:1px solid var(--border);}
+  .toggle .sl::before{content:"";position:absolute;width:18px;height:18px;left:3px;top:3px;background:var(--ink2);border-radius:50%;transition:.15s;}
+  .toggle input:checked + .sl{background:var(--green);}
+  .toggle input:checked + .sl::before{transform:translateX(20px);background:#08120d;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--grid);}
+  thead th{position:sticky;top:0;background:var(--surface2);color:var(--muted);z-index:1;}
+  tbody tr:hover{background:rgba(124,92,255,.06);}
+  .table-wrap{max-height:60vh;overflow:auto;border:1px solid var(--border);border-radius:12px;}
+  .rowbtns{display:flex;gap:6px;} .rowbtns button{padding:4px 9px;font-size:12px;}
+  .count{color:var(--muted);font-size:12.5px;}
+
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(6,6,14,.72);display:none;align-items:center;justify-content:center;z-index:50;padding:20px;}
+  .overlay.show{display:flex;}
+  .modal{background:linear-gradient(180deg,var(--surface),var(--surface2));border:1px solid var(--purple);
+    border-radius:16px;padding:20px 22px;width:560px;max-width:100%;max-height:90vh;overflow:auto;box-shadow:var(--shadow);}
+  .modal h3{margin:0 0 14px;} .field{margin-bottom:12px;} .field label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px;}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .modal-btns{display:flex;justify-content:flex-end;gap:10px;margin-top:16px;}
+
+  #toast{position:fixed;right:20px;bottom:20px;z-index:100;display:flex;flex-direction:column;gap:8px;}
+  .tmsg{background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--green);
+    border-radius:10px;padding:10px 14px;box-shadow:var(--shadow);font-size:13px;opacity:0;transform:translateY(8px);
+    transition:.2s;max-width:340px;}
+  .tmsg.show{opacity:1;transform:none;} .tmsg.err{border-left-color:var(--red);}
+  .empty{color:var(--muted);font-style:italic;padding:16px 0;}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="logo">🛠️</div><div><div class="t">COALIDE</div><div class="s">Yönetim Paneli</div></div></div>
+  <div class="spacer"></div>
+  <a class="link" href="/">← Panele dön</a>
+  <button id="logout" style="display:none">🚪 Çıkış</button>
+</header>
+
+<main>
+  <!-- LOGIN -->
+  <div class="login-wrap" id="login">
+    <div class="card">
+      <h2>🔒 Admin Girişi</h2>
+      <div class="sub">Devam etmek için Coalide admin şifresini girin.</div>
+      <input type="password" id="pw" placeholder="Admin şifresi" autocomplete="current-password">
+      <div style="margin-top:12px"><button class="primary" id="login-btn" style="width:100%">Giriş Yap</button></div>
+      <div class="msg" id="login-msg"></div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="app" style="display:none">
+    <div class="tabs">
+      <div class="tab active" data-tab="coalide">🎛️ Coalide Yapılandırması</div>
+      <div class="tab" data-tab="server">🖥️ Sunucu (.env) Ayarları</div>
+    </div>
+
+    <section class="page active" data-page="coalide">
+      <div class="panel" id="cfg-panel">
+        <h3>⚙️ Coalide Ayarları (config.json)</h3>
+        <div class="desc">Değişiklikler sunucuda saklanır ve çocuğun cihazı menüyü bir sonraki açtığında uygulanır.</div>
+        <div id="cfg-body"><div class="empty">Yükleniyor…</div></div>
+        <div class="toolbar" style="margin-top:16px;margin-bottom:0">
+          <span class="count" id="cfg-rev"></span><div class="spacer"></div>
+          <button class="primary" id="cfg-save">💾 Ayarları Kaydet</button>
+        </div>
+      </div>
+
+      <div class="panel" id="words-panel">
+        <h3>🔤 Kelimeler (words.json)</h3>
+        <div class="desc">Kelime ekleyin, düzenleyin veya silin. Silinen kelimenin ilerleme kaydı çocuğun cihazında temizlenir.</div>
+        <div class="toolbar">
+          <input type="text" id="word-search" placeholder="🔍 Kelime ara…" style="max-width:280px">
+          <span class="count" id="word-count"></span>
+          <div class="spacer"></div>
+          <button class="ok" id="word-add">➕ Kelime Ekle</button>
+        </div>
+        <div id="words-body"><div class="empty">Yükleniyor…</div></div>
+      </div>
+    </section>
+
+    <section class="page" data-page="server">
+      <div class="panel">
+        <h3>🖥️ Sunucu Yapılandırması (.env)</h3>
+        <div class="desc">Bu sunucunun kendi ayarları (Telegram raporu vb.). Rapor ayarları anında geçerli olur;
+          host/port değişikliği için sunucuyu yeniden başlatın.</div>
+        <div id="env-body"><div class="empty">Yükleniyor…</div></div>
+        <div class="toolbar" style="margin-top:14px;margin-bottom:0">
+          <button id="env-add-key">➕ Anahtar Ekle</button>
+          <div class="spacer"></div>
+          <button class="primary" id="env-save">💾 Kaydet</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- word modal -->
+<div class="overlay" id="word-overlay">
+  <div class="modal">
+    <h3 id="word-modal-title">Kelime</h3>
+    <input type="hidden" id="w-index">
+    <div class="field"><label>Hedef kelime (öğrenilen dilde) *</label><input type="text" id="w-target" placeholder="örn. run"></div>
+    <div class="field"><label>Anlamları — virgülle ayırın (kaynak dilde) *</label><input type="text" id="w-source" placeholder="örn. koşmak, kaçmak"></div>
+    <div class="two">
+      <div class="field"><label>Kelime türü</label><select id="w-type"></select></div>
+      <div class="field"><label>Dil kodu (ISO 639)</label><input type="text" id="w-lang" placeholder="en"></div>
+    </div>
+    <div class="two">
+      <div class="field"><label>Cümle — boşluktan ÖNCE</label><input type="text" id="w-s1" placeholder="He can"></div>
+      <div class="field"><label>Cümle — boşluktan SONRA</label><input type="text" id="w-s2" placeholder="very fast"></div>
+    </div>
+    <div class="two">
+      <div class="field"><label>Geçmiş zaman (V2) — fiiller için</label><input type="text" id="w-past" placeholder="ran"></div>
+      <div class="field"><label>Üçüncü hâl (V3) — fiiller için</label><input type="text" id="w-v3" placeholder="run"></div>
+    </div>
+    <div class="modal-btns">
+      <button id="w-cancel">İptal</button>
+      <button class="primary" id="w-save">💾 Kaydet</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+"use strict";
+// ---- compact SHA-256 (geraintluff, public domain) — needed because
+// crypto.subtle is unavailable over plain http on a LAN IP ----
+function sha256(ascii){
+  function rr(v,a){return (v>>>a)|(v<<(32-a));}
+  var mp=Math.pow,mw=mp(2,32),i,j,result='';
+  var words=[],bl=ascii.length*8;
+  var h=sha256.h=sha256.h||[],k=sha256.k=sha256.k||[],pc=k.length,comp={};
+  for(var c=2;pc<64;c++){ if(!comp[c]){ for(i=0;i<313;i+=c)comp[i]=c;
+      h[pc]=(mp(c,.5)*mw)|0; k[pc++]=(mp(c,1/3)*mw)|0; } }
+  ascii+='\x80'; while(ascii.length%64-56)ascii+='\x00';
+  for(i=0;i<ascii.length;i++){ j=ascii.charCodeAt(i); if(j>>8)return; words[i>>2]|=j<<((3-i)%4)*8; }
+  words[words.length]=(bl/mw)|0; words[words.length]=bl;
+  for(j=0;j<words.length;){
+    var w=words.slice(j,j+=16),oh=h; h=h.slice(0,8);
+    for(i=0;i<64;i++){
+      var w15=w[i-15],w2=w[i-2],a=h[0],e=h[4];
+      var t1=h[7]+(rr(e,6)^rr(e,11)^rr(e,25))+((e&h[5])^((~e)&h[6]))+k[i]
+        +(w[i]=(i<16)?w[i]:(w[i-16]+(rr(w15,7)^rr(w15,18)^(w15>>>3))+w[i-7]
+        +(rr(w2,17)^rr(w2,19)^(w2>>>10)))|0);
+      var t2=(rr(a,2)^rr(a,13)^rr(a,22))+((a&h[1])^(a&h[2])^(h[1]&h[2]));
+      h=[(t1+t2)|0].concat(h); h[4]=(h[4]+t1)|0;
+    }
+    for(i=0;i<8;i++)h[i]=(h[i]+oh[i])|0;
+  }
+  for(i=0;i<8;i++)for(j=3;j+1;j--){var b=(h[i]>>(j*8))&255;result+=((b<16)?0:'')+b.toString(16);}
+  return result;
+}
+function hashPw(pw){ return sha256(unescape(encodeURIComponent(pw))); }
+
+const WORD_TYPES=["noun","verb","adjective","adverb","pronoun","preposition","other"];
+let TOKEN=sessionStorage.getItem('coalide_admin_token')||null;
+let CONFIG_ORIG={}, WORDS=[], WORDS_REV=0;
+
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function toast(msg,isErr){
+  const t=document.createElement('div'); t.className='tmsg'+(isErr?' err':''); t.textContent=msg;
+  $('toast').appendChild(t); requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),250);},3600);
+}
+async function api(path,{method="GET",body=null}={}){
+  const opt={method,headers:{}};
+  if(TOKEN)opt.headers['X-Admin-Token']=TOKEN;
+  if(body){opt.headers['Content-Type']='application/json';opt.body=JSON.stringify(body);}
+  const res=await fetch(path,opt);
+  if(res.status===401){ logout(); throw new Error("Oturum sona erdi, tekrar giriş yapın."); }
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok)throw new Error(data.error||res.statusText);
+  return data;
+}
+
+// ---- auth ----
+async function doLogin(){
+  const pw=$('pw').value;
+  const msg=$('login-msg'); msg.className='msg'; msg.textContent='';
+  if(!pw){msg.className='msg err';msg.textContent='Şifre girin.';return;}
+  try{
+    const data=await api('/api/admin/login',{method:'POST',body:{hash:hashPw(pw)}});
+    TOKEN=data.token; sessionStorage.setItem('coalide_admin_token',TOKEN);
+    showApp();
+  }catch(e){
+    msg.className='msg err';
+    msg.textContent = /not_synced/.test(e.message)
+      ? "Çocuğun cihazı henüz sunucuyla eşitlenmedi. Uygulamada menüyü bir kez açın."
+      : "Yanlış şifre.";
+    $('pw').value='';
+  }
+}
+function logout(){
+  if(TOKEN){ api('/api/admin/logout',{method:'POST'}).catch(()=>{}); }
+  TOKEN=null; sessionStorage.removeItem('coalide_admin_token');
+  $('app').style.display='none'; $('logout').style.display='none'; $('login').style.display='block';
+}
+function showApp(){
+  $('login').style.display='none'; $('app').style.display='block'; $('logout').style.display='inline-block';
+  loadConfig(); loadWords(); loadEnv();
+}
+
+// ---- config editor ----
+async function loadConfig(){
+  const body=$('cfg-body');
+  try{
+    const d=await api('/api/admin/coalide-config');
+    if(!d.synced){ body.innerHTML='<div class="empty">Çocuğun cihazı henüz eşitlenmedi — ayarlar uygulamada menü açılınca görünür.</div>'; $('cfg-rev').textContent=''; return; }
+    CONFIG_ORIG=d.config||{}; $('cfg-rev').textContent='Sürüm '+d.rev+(d.updated_at?' · '+new Date(d.updated_at).toLocaleString('tr-TR'):'');
+    body.innerHTML='';
+    for(const [key,val] of Object.entries(CONFIG_ORIG)){
+      const row=document.createElement('div'); row.className='cfg-row';
+      const left=document.createElement('div');
+      left.innerHTML='<div class="k">'+esc(key)+'</div>'+(d.descriptions[key]?'<div class="d">'+esc(d.descriptions[key])+'</div>':'');
+      const right=document.createElement('div');
+      right.appendChild(cfgInput(key,val));
+      row.appendChild(left); row.appendChild(right); body.appendChild(row);
+    }
+  }catch(e){ body.innerHTML='<div class="empty">Yüklenemedi: '+esc(e.message)+'</div>'; }
+}
+function cfgInput(key,val){
+  if(typeof val==='boolean'){
+    const l=document.createElement('label'); l.className='toggle';
+    l.innerHTML='<input type="checkbox" data-k="'+esc(key)+'" data-t="bool"'+(val?' checked':'')+'><span class="sl"></span>';
+    return l;
+  }
+  if(typeof val==='number'){
+    const i=document.createElement('input'); i.type='number'; i.step='any'; i.value=val; i.dataset.k=key; i.dataset.t='number'; return i;
+  }
+  if(typeof val==='string'){
+    const i=document.createElement('input'); i.type='text'; i.value=val; i.dataset.k=key; i.dataset.t='string'; return i;
+  }
+  const t=document.createElement('textarea'); t.value=JSON.stringify(val,null,0); t.dataset.k=key; t.dataset.t='json'; return t;
+}
+async function saveConfig(){
+  const out={}; let bad=null;
+  document.querySelectorAll('#cfg-body [data-k]').forEach(el=>{
+    if(bad)return; const key=el.dataset.k, t=el.dataset.t;
+    if(t==='bool')out[key]=el.checked;
+    else if(t==='number'){const n=parseFloat(el.value);if(isNaN(n)){bad=key;return;}out[key]=Number.isInteger(n)&&!/[.eE]/.test(el.value)?parseInt(el.value,10):n;}
+    else if(t==='string')out[key]=el.value;
+    else{try{out[key]=JSON.parse(el.value);}catch(_){bad=key;}}
+  });
+  if(bad){toast("'"+bad+"' için geçersiz değer.",true);return;}
+  try{const d=await api('/api/admin/coalide-config',{method:'POST',body:{config:out}});
+    CONFIG_ORIG=out; $('cfg-rev').textContent='Sürüm '+d.rev+' · az önce kaydedildi';
+    toast('Ayarlar kaydedildi. Çocuğun cihazına bir sonraki menü açılışında uygulanacak.');
+  }catch(e){toast('Kaydedilemedi: '+e.message,true);}
+}
+
+// ---- words ----
+async function loadWords(){
+  const body=$('words-body');
+  try{
+    const d=await api('/api/admin/words');
+    if(!d.synced){ body.innerHTML='<div class="empty">Çocuğun cihazı henüz eşitlenmedi.</div>'; $('word-count').textContent=''; return; }
+    WORDS=d.words||[]; WORDS_REV=d.rev; renderWords();
+  }catch(e){ body.innerHTML='<div class="empty">Yüklenemedi: '+esc(e.message)+'</div>'; }
+}
+function renderWords(){
+  const q=($('word-search').value||'').trim().toLowerCase();
+  const body=$('words-body');
+  const rows=WORDS.map((w,i)=>({w,i})).filter(({w})=>{
+    if(!q)return true;
+    return (w.target||'').toLowerCase().includes(q) || (w.source||[]).join(',').toLowerCase().includes(q);
+  });
+  $('word-count').textContent=WORDS.length+' kelime'+(q?(' · '+rows.length+' eşleşme'):'');
+  if(!WORDS.length){body.innerHTML='<div class="empty">Kayıtlı kelime yok.</div>';return;}
+  const wrap=document.createElement('div'); wrap.className='table-wrap';
+  const tbl=document.createElement('table');
+  tbl.innerHTML='<thead><tr><th>Hedef</th><th>Anlam</th><th>Tür</th><th>Cümle</th><th>V2</th><th>V3</th><th></th></tr></thead>';
+  const tb=document.createElement('tbody');
+  for(const {w,i} of rows){
+    const s=(w.sentence||['','']); const sent=((s[0]||'')+' ___ '+(s[1]||'')).trim();
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td><b>'+esc(w.target)+'</b></td><td style="color:var(--green)">'+esc((w.source||[]).join(', '))+
+      '</td><td style="color:var(--purple)">'+esc(w.word_type||'')+'</td><td style="color:var(--muted)">'+esc(sent)+
+      '</td><td>'+esc(w.past||'')+'</td><td>'+esc(w.v3||'')+'</td>';
+    const td=document.createElement('td');
+    const btns=document.createElement('div'); btns.className='rowbtns';
+    const eb=document.createElement('button'); eb.textContent='✏️'; eb.title='Düzenle'; eb.onclick=()=>openWordModal(i);
+    const db=document.createElement('button'); db.className='danger'; db.textContent='🗑'; db.title='Sil'; db.onclick=()=>deleteWord(i,w.target);
+    btns.appendChild(eb); btns.appendChild(db); td.appendChild(btns); tr.appendChild(td);
+    tb.appendChild(tr);
+  }
+  tbl.appendChild(tb); wrap.appendChild(tbl); body.innerHTML=''; body.appendChild(wrap);
+}
+function openWordModal(index){
+  const editing=index!=null && index>=0;
+  const w=editing?WORDS[index]:{};
+  $('word-modal-title').textContent=editing?'✏️ Kelimeyi Düzenle':'➕ Yeni Kelime';
+  $('w-index').value=editing?index:'';
+  $('w-target').value=w.target||''; $('w-source').value=(w.source||[]).join(', ');
+  $('w-lang').value=w.language||'en';
+  const s=(w.sentence||['','']); $('w-s1').value=s[0]||''; $('w-s2').value=s[1]||'';
+  $('w-past').value=w.past||''; $('w-v3').value=w.v3||'';
+  const sel=$('w-type'); sel.innerHTML='';
+  const cur=(w.word_type||'noun').toLowerCase(); const types=[...WORD_TYPES]; if(!types.includes(cur))types.push(cur);
+  types.forEach(t=>{const o=document.createElement('option');o.value=t;o.textContent=t;if(t===cur)o.selected=true;sel.appendChild(o);});
+  $('word-overlay').classList.add('show');
+}
+function closeWordModal(){$('word-overlay').classList.remove('show');}
+async function saveWord(){
+  const idx=$('w-index').value;
+  const word={
+    target:$('w-target').value.trim(),
+    source:$('w-source').value,
+    word_type:$('w-type').value,
+    language:$('w-lang').value.trim()||'en',
+    sentence:[$('w-s1').value.trim(),$('w-s2').value.trim()],
+    past:$('w-past').value.trim(), v3:$('w-v3').value.trim(),
+  };
+  if(!word.target){toast('Hedef kelime boş olamaz.',true);return;}
+  const isEdit=idx!=='';
+  try{
+    const d=await api('/api/admin/words',{method:'POST',body:isEdit?{action:'edit',index:parseInt(idx,10),word}:{action:'add',word}});
+    closeWordModal(); toast((isEdit?"'"+d.target+"' güncellendi.":"'"+d.target+"' eklendi.")+' Toplam '+d.count+' kelime.');
+    await loadWords();
+  }catch(e){toast('Kaydedilemedi: '+e.message,true);}
+}
+async function deleteWord(index,target){
+  if(!confirm("'"+target+"' silinsin mi? İlerleme kaydı da çocuğun cihazında temizlenir."))return;
+  try{const d=await api('/api/admin/words',{method:'POST',body:{action:'delete',index}});
+    toast("'"+d.target+"' silindi. Kalan: "+d.count+" kelime."); await loadWords();
+  }catch(e){toast('Silinemedi: '+e.message,true);}
+}
+
+// ---- server env ----
+const ENV_LABELS={
+  TELEGRAM_BOT_TOKEN:['Telegram Bot Token','password'],
+  TELEGRAM_CHAT_ID:['Telegram Chat ID','text'],
+  COALIDE_REPORT_TIME:['Günlük rapor saati (SS:DD)','text'],
+  COALIDE_REPORT_ENABLED:['Rapor açık mı (true/false)','text'],
+  COALIDE_DASHBOARD_URL:['Panel adresi (rapor linki)','text'],
+  COALIDE_STATS_HOST:['Sunucu host (yeniden başlatma gerekir)','text'],
+  COALIDE_STATS_PORT:['Sunucu port (yeniden başlatma gerekir)','text'],
+};
+async function loadEnv(){
+  const body=$('env-body');
+  try{
+    const d=await api('/api/admin/server-env');
+    const env=d.env||{}, known=d.known||[];
+    const keys=[...known, ...Object.keys(env).filter(k=>!known.includes(k))];
+    body.innerHTML='';
+    keys.forEach(k=>body.appendChild(envRow(k,env[k]!=null?env[k]:'')));
+    if(!keys.length)body.innerHTML='<div class="empty">Anahtar yok.</div>';
+  }catch(e){ body.innerHTML='<div class="empty">Yüklenemedi: '+esc(e.message)+'</div>'; }
+}
+function envRow(key,val){
+  const [label,type]=ENV_LABELS[key]||[key,'text'];
+  const row=document.createElement('div'); row.className='cfg-row';
+  const left=document.createElement('div');
+  left.innerHTML='<div class="k">'+esc(key)+'</div>'+(ENV_LABELS[key]?'<div class="d">'+esc(label)+'</div>':'');
+  const right=document.createElement('div'); right.style.display='flex'; right.style.gap='8px';
+  const inp=document.createElement('input'); inp.type=type; inp.value=val; inp.dataset.envk=key; inp.style.flex='1';
+  right.appendChild(inp);
+  if(!(key in ENV_LABELS)){
+    const rm=document.createElement('button'); rm.className='danger'; rm.textContent='✕'; rm.title='Kaldır';
+    rm.onclick=()=>row.remove(); right.appendChild(rm);
+  }
+  row.appendChild(left); row.appendChild(right); return row;
+}
+function addEnvKey(){
+  const key=prompt('Yeni anahtar adı (A-Z, 0-9, _):'); if(!key)return;
+  if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)){toast('Geçersiz anahtar adı.',true);return;}
+  $('env-body').appendChild(envRow(key,''));
+}
+async function saveEnv(){
+  const env={};
+  document.querySelectorAll('#env-body [data-envk]').forEach(el=>{ env[el.dataset.envk]=el.value; });
+  try{await api('/api/admin/server-env',{method:'POST',body:{env}});
+    toast('Sunucu ayarları kaydedildi.');
+  }catch(e){toast('Kaydedilemedi: '+e.message,true);}
+}
+
+// ---- wire up ----
+$('login-btn').onclick=doLogin;
+$('pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+$('logout').onclick=logout;
+$('cfg-save').onclick=saveConfig;
+$('word-add').onclick=()=>openWordModal(null);
+$('word-search').addEventListener('input',renderWords);
+$('w-cancel').onclick=closeWordModal;
+$('w-save').onclick=saveWord;
+$('word-overlay').addEventListener('click',e=>{if(e.target===$('word-overlay'))closeWordModal();});
+$('env-add-key').onclick=addEnvKey;
+$('env-save').onclick=saveEnv;
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===t));
+  document.querySelectorAll('section.page').forEach(p=>p.classList.toggle('active',p.dataset.page===t.dataset.tab));
+});
+
+// If we already hold a token, try to use it; otherwise show login.
+if(TOKEN){ api('/api/admin/coalide-config').then(()=>showApp()).catch(()=>logout()); }
+</script>
+</body>
+</html>

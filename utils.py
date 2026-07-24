@@ -60,7 +60,10 @@ def get_config(default=False):
         "BYPASS_SHORTCUTS":True,
         "Credit_Window_Start":"07:00",
         "Credit_Window_End":"22:00",
-        "REQUIRE_INTERNET":True
+        "REQUIRE_INTERNET":True,
+        "STATS_REPORTING_ENABLED":True,
+        "STATS_SERVER_URL":"http://IP-TO-YOUR-PARENT-SERVER:5055",
+        "CONFIG_SYNC_ENABLED":True
 
     }
     if not os.path.exists(config_path):

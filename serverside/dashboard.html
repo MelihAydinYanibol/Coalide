@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coalide — Veli Paneli</title>
+<style>
+  :root {
+    --bg: #0d0d18;
+    --surface: #16162a;
+    --surface2: #1c1c33;
+    --border: #2a2a45;
+    --grid: #23233c;
+    --purple: #7c5cff;
+    --green: #42d6a4;
+    --yellow: #f5c542;
+    --red: #ff6b81;
+    --blue: #5cc8ff;
+    --ink: #ececf6;
+    --ink2: #b8b8d4;
+    --muted: #8686a8;
+    --shadow: 0 1px 3px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.28);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background:
+      radial-gradient(1200px 600px at 12% -10%, rgba(124,92,255,.10), transparent 60%),
+      radial-gradient(1000px 500px at 100% 0%, rgba(66,214,164,.07), transparent 55%),
+      var(--bg);
+    color: var(--ink);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* ---------- top bar ---------- */
+  header {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(13,13,24,.82);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: 11px; }
+  .logo {
+    width: 34px; height: 34px; border-radius: 9px; flex: none;
+    background: linear-gradient(135deg, var(--purple), #b79bff);
+    display: grid; place-items: center; font-size: 18px;
+    box-shadow: 0 4px 14px rgba(124,92,255,.4);
+  }
+  .brand .t { font-size: 16px; font-weight: 700; letter-spacing: .2px; }
+  .brand .s { font-size: 11px; color: var(--muted); margin-top: -2px; }
+  .spacer { flex: 1; }
+  .ctl { display: flex; align-items: center; gap: 8px; }
+  .ctl label { font-size: 12px; color: var(--muted); }
+  select, button {
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--border); border-radius: 9px;
+    padding: 8px 12px; font-size: 13px; font-family: inherit; cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  select:hover, button:hover { border-color: var(--purple); }
+  button:active { transform: translateY(1px); }
+  .updated { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+
+  /* ---------- layout ---------- */
+  main { max-width: 1240px; margin: 0 auto; padding: 22px 24px 56px; }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+  .tab {
+    padding: 8px 15px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--ink2); cursor: pointer; font-size: 13px;
+    font-weight: 600; transition: all .15s;
+  }
+  .tab:hover { border-color: var(--purple); color: var(--ink); }
+  .tab.active { color: #fff; background: linear-gradient(135deg, var(--purple), #9a7dff); border-color: transparent; box-shadow: 0 4px 14px rgba(124,92,255,.35); }
+  section.page { display: none; }
+  section.page.active { display: block; animation: fade .25s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(12, 1fr); }
+  .col-12 { grid-column: span 12; } .col-8 { grid-column: span 8; }
+  .col-6 { grid-column: span 6; } .col-4 { grid-column: span 4; }
+  .col-3 { grid-column: span 3; }
+  @media (max-width: 900px) {
+    .col-8, .col-6, .col-4, .col-3 { grid-column: span 12; }
+  }
+
+  .card {
+    background: linear-gradient(180deg, var(--surface), var(--surface2));
+    border: 1px solid var(--border); border-radius: 16px;
+    padding: 18px 20px; box-shadow: var(--shadow);
+  }
+  .card > .h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+  .card .title { font-size: 14px; font-weight: 700; }
+  .card .sub { font-size: 11.5px; color: var(--muted); }
+  .card .body { margin-top: 12px; }
+
+  /* KPI tiles */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 15px 16px; position: relative; overflow: hidden; }
+  .kpi::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent, var(--purple)); }
+  .kpi .l { font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 7px; }
+  .kpi .v { font-size: 27px; font-weight: 800; letter-spacing: -.5px; }
+  .kpi .u { font-size: 12px; color: var(--muted); font-weight: 600; margin-left: 3px; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--ink2); }
+  .legend .it { display: flex; align-items: center; gap: 6px; }
+  .legend .sw { width: 11px; height: 11px; border-radius: 3px; }
+  .legend .sw.line { width: 15px; height: 3px; border-radius: 2px; }
+
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 9px 16px; font-size: 13.5px; align-items: baseline; }
+  .kv .k { color: var(--muted); } .kv .v { font-weight: 600; text-align: right; }
+  .note { color: var(--muted); font-size: 12px; margin: 12px 0 0; }
+  .empty { color: var(--muted); font-style: italic; padding: 20px 0; text-align: center; }
+
+  /* hardest words */
+  .hrow { display: grid; grid-template-columns: 1fr 44px 90px; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--grid); }
+  .hrow:last-child { border-bottom: 0; }
+  .hrow .w { font-weight: 700; }
+  .hrow .track { grid-column: 1 / -1; height: 6px; background: var(--grid); border-radius: 4px; overflow: hidden; margin-top: -2px; }
+  .hrow .fill { height: 100%; border-radius: 4px; }
+  .hrow .pct { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .hrow .cnt { text-align: right; font-size: 12px; color: var(--ink2); }
+
+  /* progress ring center */
+  .ringwrap { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .ringwrap .meta { flex: 1; min-width: 160px; }
+
+  /* table */
+  .table-wrap { max-height: 560px; overflow: auto; border-radius: 12px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+  thead th { position: sticky; top: 0; background: var(--surface2); color: var(--muted); cursor: pointer; user-select: none; font-weight: 600; z-index: 1; }
+  thead th:hover { color: var(--ink); }
+  tbody tr:hover { background: rgba(124,92,255,.06); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-weight: 700; font-size: 12px; }
+
+  /* meter (price tariff) */
+  .meter { margin: 9px 0; }
+  .meter .top { display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 4px; }
+  .meter .top .now { color: var(--yellow); font-weight: 700; }
+  .meter .track { height: 9px; background: var(--grid); border-radius: 5px; overflow: hidden; }
+  .meter .fill { height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--green), var(--yellow) 60%, var(--red)); }
+
+  /* svg chart chrome */
+  svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
+  .ax { fill: var(--muted); font-size: 10.5px; }
+  .gridline { stroke: var(--grid); stroke-width: 1; }
+  .hit { fill: transparent; cursor: crosshair; }
+  .crosshair { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; pointer-events: none; opacity: 0; }
+
+  /* tooltip */
+  #tip {
+    position: fixed; z-index: 100; pointer-events: none; opacity: 0;
+    transform: translate(-50%, -114%); transition: opacity .1s;
+    background: rgba(20,20,36,.97); border: 1px solid var(--border);
+    border-radius: 10px; padding: 9px 11px; box-shadow: var(--shadow);
+    font-size: 12.5px; min-width: 120px; backdrop-filter: blur(4px);
+  }
+  #tip .tt { color: var(--muted); font-size: 11px; margin-bottom: 6px; }
+  #tip .tr { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
+  #tip .tr .k { display: flex; align-items: center; gap: 6px; color: var(--ink2); }
+  #tip .tr .sw { width: 9px; height: 9px; border-radius: 2px; }
+  #tip .tr .sw.line { width: 13px; height: 3px; }
+  #tip .tr .val { margin-left: auto; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+  #banner-msg { text-align: center; padding: 80px 20px; color: var(--muted); font-size: 15px; }
+</style>
+</head>
+<body data-palette="#42d6a4,#ff6b81,#f5c542,#7c5cff,#5cc8ff">
+<header>
+  <div class="brand">
+    <div class="logo">🌍</div>
+    <div><div class="t">COALIDE</div><div class="s">Veli Paneli</div></div>
+  </div>
+  <div class="spacer"></div>
+  <div class="ctl">
+    <label for="user">Öğrenci</label>
+    <select id="user"></select>
+  </div>
+  <button id="refresh">🔄 Yenile</button>
+  <a href="/admin" style="text-decoration:none"><button id="admin-btn">🛠️ Yönetim</button></a>
+  <div class="updated" id="updated"></div>
+</header>
+
+<main>
+  <div id="banner-msg">Yükleniyor…</div>
+  <div id="content" style="display:none">
+    <div class="tabs" id="tabs"></div>
+    <section class="page" data-page="genel"></section>
+    <section class="page" data-page="kredi"></section>
+    <section class="page" data-page="hafta"></section>
+    <section class="page" data-page="kelime"></section>
+    <section class="page" data-page="gelecek"></section>
+  </div>
+</main>
+<div id="tip"></div>
+
+<script>
+"use strict";
+const css = k => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+const C = {
+  purple: css('--purple'), green: css('--green'), yellow: css('--yellow'),
+  red: css('--red'), blue: css('--blue'), muted: css('--muted'),
+  ink: css('--ink'), ink2: css('--ink2'), grid: css('--grid'), surface: css('--surface'),
+};
+// Sequential single-hue ramp (light -> dark) for the ORDERED maturity buckets.
+const PURPLE_SEQ = ['#d9cfff','#baa4ff','#9a79ff','#7c5cff','#5f40c4','#43298c'];
+const MATURE = 21, CREDITS_PER_CORRECT = 7;
+const TR_MONTHS = ["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];
+
+// ---------- DOM helpers ----------
+function el(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+function txt(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+const SVGNS = "http://www.w3.org/2000/svg";
+function s(tag, attrs) { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+function num(v) { return (v == null || isNaN(v)) ? 0 : +v; }
+function rateColor(r) { return r >= 80 ? C.green : r >= 50 ? C.yellow : C.red; }
+function fmtNum(v) { v = num(v); return Number.isInteger(v) ? v.toLocaleString("tr-TR") : v.toFixed(v < 1 ? 2 : 1); }
+function niceMax(m) { if (m <= 0) return 1; const p = Math.pow(10, Math.floor(Math.log10(m))); const n = m / p; const step = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10; return step * p; }
+function dayLabel(d) { return `${d.getDate()} ${TR_MONTHS[d.getMonth()]}`; }
+function backLabels(todayStr, n) { const out = []; const t = new Date(todayStr + "T00:00:00"); for (let i = n - 1; i >= 0; i--) { const d = new Date(t); d.setDate(t.getDate() - i); out.push(dayLabel(d)); } return out; }
+
+// ---------- tooltip ----------
+const tip = document.getElementById("tip");
+function showTip(title, rows, x, y) {
+  tip.innerHTML = "";
+  tip.appendChild(txt("div", "tt", title));
+  for (const r of rows) {
+    const tr = el("div", "tr");
+    const k = el("div", "k");
+    const sw = el("span", "sw" + (r.line ? " line" : "")); sw.style.background = r.color;
+    k.appendChild(sw); k.appendChild(txt("span", null, r.name));
+    tr.appendChild(k);
+    tr.appendChild(txt("span", "val", r.value));
+    tip.appendChild(tr);
+  }
+  tip.style.left = x + "px"; tip.style.top = y + "px"; tip.style.opacity = 1;
+}
+function hideTip() { tip.style.opacity = 0; }
+
+// ---------- cards ----------
+function card(title, sub, cls) {
+  const c = el("div", "card " + (cls || ""));
+  const h = el("div", "h");
+  h.appendChild(txt("div", "title", title));
+  if (sub) h.appendChild(txt("div", "sub", sub));
+  c.appendChild(h);
+  const b = el("div", "body"); c.appendChild(b);
+  c._body = b; return c;
+}
+function legendBar(items) {
+  const l = el("div", "legend");
+  for (const [color, name, isLine] of items) {
+    const it = el("div", "it");
+    const sw = el("span", "sw" + (isLine ? " line" : "")); sw.style.background = color;
+    it.appendChild(sw); it.appendChild(txt("span", null, name));
+    l.appendChild(it);
+  }
+  return l;
+}
+
+// =====================================================================
+//  CHART PRIMITIVES (inline SVG, no dependencies)
+// =====================================================================
+const W = 720; // viewBox width; height varies per chart. Scales via width:100%.
+
+// Line / area chart with crosshair + all-series tooltip.
+function lineChart(opts) {
+  const { labels, series, height = 230, area = false, valueFmt = fmtNum } = opts;
+  const H = height, padL = 44, padR = 14, padT = 14, padB = 26;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const n = labels.length;
+  const allVals = series.flatMap(se => se.values.map(num));
+  const ymax = niceMax(Math.max(1, ...allVals));
+  const X = i => padL + (n <= 1 ? plotW / 2 : (i / (n - 1)) * plotW);
+  const Y = v => padT + plotH - (num(v) / ymax) * plotH;
+  const svg = s("svg", { class: "chart", viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: "none" });
+
+  // y gridlines + ticks
+  const ticks = 4;
+  for (let t = 0; t <= ticks; t++) {
+    const v = ymax * t / ticks, y = Y(v);
+    svg.appendChild(s("line", { class: "gridline", x1: padL, y1: y, x2: W - padR, y2: y }));
+    const lbl = s("text", { class: "ax", x: padL - 8, y: y + 3, "text-anchor": "end" });
+    lbl.textContent = valueFmt(Math.round(v)); svg.appendChild(lbl);
+  }
+  // x labels (thin to ~6)
+  const step = Math.max(1, Math.ceil(n / 6));
+  for (let i = 0; i < n; i += step) {
+    const tx = s("text", { class: "ax", x: X(i), y: H - 8, "text-anchor": "middle" });
+    tx.textContent = labels[i]; svg.appendChild(tx);
+  }
+  // series
+  for (const se of series) {
+    const pts = se.values.map((v, i) => [X(i), Y(v)]);
+    const d = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+    if (area && series.length === 1) {
+      const ad = d + ` L ${X(n - 1).toFixed(1)} ${Y(0)} L ${X(0).toFixed(1)} ${Y(0)} Z`;
+      const fill = s("path", { d: ad, fill: se.color, "fill-opacity": .12, stroke: "none" });
+      svg.appendChild(fill);
+    }
+    svg.appendChild(s("path", { d, fill: "none", stroke: se.color, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+    // end dot with surface ring
+    const lx = X(n - 1), ly = Y(se.values[n - 1]);
+    svg.appendChild(s("circle", { cx: lx, cy: ly, r: 4, fill: se.color, stroke: C.surface, "stroke-width": 2 }));
+  }
+  // crosshair + hover
+  const cross = s("line", { class: "crosshair", y1: padT, y2: padT + plotH });
+  svg.appendChild(cross);
+  const dots = series.map(se => { const c = s("circle", { r: 4, fill: se.color, stroke: C.surface, "stroke-width": 2, opacity: 0 }); svg.appendChild(c); return c; });
+  const hit = s("rect", { class: "hit", x: padL, y: padT, width: plotW, height: plotH });
+  svg.appendChild(hit);
+  const pxToView = (clientX, rect) => (clientX - rect.left) / rect.width * W;
+  hit.addEventListener("pointermove", ev => {
+    const rect = svg.getBoundingClientRect();
+    const vx = pxToView(ev.clientX, rect);
+    let i = Math.round((vx - padL) / plotW * (n - 1)); i = Math.max(0, Math.min(n - 1, i));
+    cross.setAttribute("x1", X(i)); cross.setAttribute("x2", X(i)); cross.setAttribute("opacity", 1);
+    dots.forEach((dot, k) => { dot.setAttribute("cx", X(i)); dot.setAttribute("cy", Y(series[k].values[i])); dot.setAttribute("opacity", 1); });
+    showTip(labels[i], series.map(se => ({ color: se.color, name: se.name, value: valueFmt(num(se.values[i])), line: true })), ev.clientX, rect.top + Y(Math.max(...series.map(se => num(se.values[i])))));
+  });
+  hit.addEventListener("pointerleave", () => { cross.setAttribute("opacity", 0); dots.forEach(d => d.setAttribute("opacity", 0)); hideTip(); });
+  return svg;
+}
+
+// Column chart — single or grouped series. rows-agnostic; per-series values.
+function columnChart(opts) {
+  const { labels, series, height = 230, valueFmt = fmtNum, colorsPerBar = null } = opts;
+  const H = height, padL = 44, padR = 14, padT = 14, padB = 28;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const n = labels.length, g = series.length;
+  const allVals = series.flatMap(se => se.values.map(num));
+  const ymax = niceMax(Math.max(1, ...allVals));
+  const Y = v => padT + plotH - (num(v) / ymax) * plotH;
+  const band = plotW / n;
+  const innerPad = Math.min(band * 0.25, 10);
+  const groupW = band - innerPad;
+  const barW = Math.min(groupW / g, 24);
+  const gap = 2; // surface gap between adjacent bars
+  const svg = s("svg", { class: "chart", viewBox: `0 0 ${W} ${H}`, preserveAspectRatio: "none" });
+  const ticks = 4;
+  for (let t = 0; t <= ticks; t++) {
+    const v = ymax * t / ticks, y = Y(v);
+    svg.appendChild(s("line", { class: "gridline", x1: padL, y1: y, x2: W - padR, y2: y }));
+    const lbl = s("text", { class: "ax", x: padL - 8, y: y + 3, "text-anchor": "end" }); lbl.textContent = valueFmt(Math.round(v)); svg.appendChild(lbl);
+  }
+  const step = Math.max(1, Math.ceil(n / 8));
+  for (let i = 0; i < n; i++) {
+    const cx = padL + band * i + band / 2;
+    if (i % step === 0) { const tx = s("text", { class: "ax", x: cx, y: H - 9, "text-anchor": "middle" }); tx.textContent = labels[i]; svg.appendChild(tx); }
+    const groupStart = cx - (barW * g + gap * (g - 1)) / 2;
+    series.forEach((se, k) => {
+      const v = num(se.values[i]); if (v <= 0 && g > 1) { /* still draw hit? skip zero */ }
+      const h = Math.max(0, (v / ymax) * plotH);
+      const x = groupStart + k * (barW + gap);
+      const y = Y(v);
+      const color = colorsPerBar ? colorsPerBar[i] : se.color;
+      const r = Math.min(4, barW / 2, h);
+      // rounded top, square baseline
+      const path = h > 0
+        ? `M${x} ${y + r} a${r} ${r} 0 0 1 ${r} ${-r} h${barW - 2 * r} a${r} ${r} 0 0 1 ${r} ${r} v${h - r} h${-barW} Z`
+        : "";
+      if (h > 0) {
+        const bar = s("path", { d: path, fill: color });
+        bar.style.transition = "opacity .12s";
+        bar.addEventListener("pointerenter", ev => { bar.setAttribute("opacity", .8); const rect = svg.getBoundingClientRect(); showTip(labels[i], series.map(ss => ({ color: colorsPerBar ? colorsPerBar[i] : ss.color, name: ss.name, value: valueFmt(num(ss.values[i])) })), ev.clientX, rect.top + rect.height * (y / H)); });
+        bar.addEventListener("pointerleave", () => { bar.setAttribute("opacity", 1); hideTip(); });
+        svg.appendChild(bar);
+      }
+    });
+  }
+  return svg;
+}
+
+// Stacked-100% horizontal distribution bar with sequential ramp (ordered cats).
+function stackedDistribution(rows) {
+  // rows: [{label, value, color}]
+  const total = rows.reduce((a, r) => a + num(r.value), 0) || 1;
+  const wrap = el("div");
+  const barH = 26;
+  const bar = el("div"); bar.style.cssText = `display:flex; height:${barH}px; border-radius:8px; overflow:hidden; background:var(--grid); gap:2px;`;
+  rows.forEach(r => {
+    if (num(r.value) <= 0) return;
+    const seg = el("div");
+    seg.style.cssText = `width:${num(r.value) / total * 100}%; background:${r.color};`;
+    seg.addEventListener("pointerenter", ev => showTip(r.label, [{ color: r.color, name: "Kelime", value: fmtNum(r.value) + `  (%${(num(r.value) / total * 100).toFixed(0)})` }], ev.clientX, ev.clientY));
+    seg.addEventListener("pointermove", ev => { tip.style.left = ev.clientX + "px"; tip.style.top = ev.clientY + "px"; });
+    seg.addEventListener("pointerleave", hideTip);
+    bar.appendChild(seg);
+  });
+  wrap.appendChild(bar);
+  // legend grid with counts
+  const leg = el("div"); leg.style.cssText = "display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px 16px; margin-top:14px;";
+  rows.forEach(r => {
+    const it = el("div"); it.style.cssText = "display:flex; align-items:center; gap:8px; font-size:12.5px;";
+    const sw = el("span"); sw.style.cssText = `width:11px;height:11px;border-radius:3px;background:${r.color};flex:none;`;
+    it.appendChild(sw);
+    it.appendChild(txt("span", null, r.label));
+    const v = txt("span", null, fmtNum(r.value)); v.style.cssText = "margin-left:auto; font-weight:700; color:var(--ink2);";
+    it.appendChild(v);
+    leg.appendChild(it);
+  });
+  wrap.appendChild(leg);
+  return wrap;
+}
+
+// Donut with hover + center total.
+function donut(opts) {
+  const { segments, centerValue, centerLabel, size = 190 } = opts;
+  const total = segments.reduce((a, x) => a + num(x.value), 0);
+  const r = size / 2, cx = r, cy = r, thick = size * 0.19, rr = r - thick / 2;
+  const svg = s("svg", { class: "chart", viewBox: `0 0 ${size} ${size}`, width: size, height: size, style: "width:" + size + "px; max-width:100%;" });
+  if (total <= 0) {
+    svg.appendChild(s("circle", { cx, cy, r: rr, fill: "none", stroke: C.grid, "stroke-width": thick }));
+  } else {
+    let a0 = -Math.PI / 2;
+    const gap = 0.03; // radians surface gap
+    segments.forEach(seg => {
+      const v = num(seg.value); if (v <= 0) return;
+      const frac = v / total; const a1 = a0 + frac * Math.PI * 2;
+      const s0 = a0 + gap / 2, s1 = a1 - gap / 2;
+      const large = (s1 - s0) > Math.PI ? 1 : 0;
+      const x0 = cx + rr * Math.cos(s0), y0 = cy + rr * Math.sin(s0);
+      const x1 = cx + rr * Math.cos(s1), y1 = cy + rr * Math.sin(s1);
+      const path = s("path", { d: `M${x0} ${y0} A${rr} ${rr} 0 ${large} 1 ${x1} ${y1}`, fill: "none", stroke: seg.color, "stroke-width": thick, "stroke-linecap": "butt" });
+      path.style.transition = "stroke-width .12s";
+      path.addEventListener("pointerenter", ev => { path.setAttribute("stroke-width", thick + 5); showTip(seg.name, [{ color: seg.color, name: "Adet", value: fmtNum(v) + `  (%${(frac * 100).toFixed(0)})` }], ev.clientX, ev.clientY); });
+      path.addEventListener("pointermove", ev => { tip.style.left = ev.clientX + "px"; tip.style.top = ev.clientY + "px"; });
+      path.addEventListener("pointerleave", () => { path.setAttribute("stroke-width", thick); hideTip(); });
+      svg.appendChild(path);
+      a0 = a1;
+    });
+  }
+  const t1 = s("text", { x: cx, y: cy - 2, "text-anchor": "middle", fill: C.ink, "font-size": size * 0.2, "font-weight": 800 }); t1.textContent = centerValue;
+  const t2 = s("text", { x: cx, y: cy + size * 0.13, "text-anchor": "middle", fill: C.muted, "font-size": size * 0.075 }); t2.textContent = centerLabel;
+  svg.appendChild(t1); svg.appendChild(t2);
+  return svg;
+}
+
+// Progress ring (single value, status color).
+function progressRing(opts) {
+  const { value, max = 100, color, label, size = 180, unit = "%" } = opts;
+  const r = size / 2, cx = r, cy = r, thick = size * 0.11, rr = r - thick / 2;
+  const frac = Math.max(0, Math.min(1, num(value) / max));
+  const circ = 2 * Math.PI * rr;
+  const svg = s("svg", { class: "chart", viewBox: `0 0 ${size} ${size}`, width: size, height: size, style: "width:" + size + "px;" });
+  svg.appendChild(s("circle", { cx, cy, r: rr, fill: "none", stroke: C.grid, "stroke-width": thick }));
+  svg.appendChild(s("circle", { cx, cy, r: rr, fill: "none", stroke: color, "stroke-width": thick, "stroke-linecap": "round", "stroke-dasharray": `${circ * frac} ${circ}`, transform: `rotate(-90 ${cx} ${cy})` }));
+  const t1 = s("text", { x: cx, y: cy + size * 0.02, "text-anchor": "middle", fill: C.ink, "font-size": size * 0.26, "font-weight": 800 }); t1.textContent = Math.round(num(value)) + unit;
+  const t2 = s("text", { x: cx, y: cy + size * 0.19, "text-anchor": "middle", fill: C.muted, "font-size": size * 0.08 }); t2.textContent = label;
+  svg.appendChild(t1); svg.appendChild(t2);
+  return svg;
+}
+
+// KPI tiles
+function kpiRow(items) {
+  const g = el("div", "kpis");
+  for (const it of items) {
+    const k = el("div", "kpi"); k.style.setProperty("--accent", it.color || C.purple);
+    k.appendChild(txt("div", "l", it.label));
+    const v = el("div", "v"); v.appendChild(txt("span", null, fmtNum(it.value)));
+    if (it.unit) v.appendChild(txt("span", "u", it.unit));
+    k.appendChild(v);
+    g.appendChild(k);
+  }
+  return g;
+}
+
+// =====================================================================
+//  PAGES
+// =====================================================================
+function gcol(span, node) { const d = el("div", "col-" + span); d.appendChild(node); return d; }
+
+function pageGenel(st) {
+  const root = el("div", "grid");
+
+  // Hero: success ring + KPIs
+  const heroCard = card("Genel Başarı", "tüm kayıtlı cevaplara göre");
+  const ring = el("div", "ringwrap");
+  ring.appendChild(progressRing({ value: num(st.overall_rate), color: rateColor(num(st.overall_rate)), label: "başarı oranı" }));
+  const meta = el("div", "meta");
+  const lt = st.log_totals || {};
+  meta.appendChild(kpiRow([
+    { label: "Doğru", value: num(lt.correct), unit: "", color: C.green },
+    { label: "Yanlış", value: num(lt.wrong), color: C.red },
+    { label: "Boş", value: num(lt.blank), color: C.yellow },
+    { label: "Seri", value: num(st.streak), unit: "gün", color: C.purple },
+  ]));
+  ring.appendChild(meta);
+  heroCard._body.appendChild(ring);
+  root.appendChild(gcol(5, heroCard));
+
+  // KPI overview
+  const kpiCard = card("Özet", "");
+  kpiCard._body.appendChild(kpiRow([
+    { label: "Toplam kelime", value: st.total_words, color: C.purple },
+    { label: "Başlanan", value: st.started_count, color: C.green },
+    { label: `Öğrenilen (${MATURE}g+)`, value: st.mastered, color: C.yellow },
+    { label: "Bugün yeni", value: st.new_today, color: C.green },
+    { label: "Tekrar bekleyen", value: st.due_now, color: C.red },
+    { label: "Kredi", value: st.balance, color: C.yellow },
+  ]));
+  root.appendChild(gcol(7, kpiCard));
+
+  // Maturity distribution (ordered -> sequential ramp)
+  const buckets = (st.buckets || []).map((b, i) => ({ label: b[0], value: b[1], color: PURPLE_SEQ[i] || C.purple }));
+  const matCard = card("Kelime Olgunluğu", "SM-2 aralığına göre dağılım");
+  matCard._body.appendChild(stackedDistribution(buckets));
+  root.appendChild(gcol(8, matCard));
+
+  // All-time donut
+  const dCard = card("Cevap Dağılımı", "tüm zamanlar");
+  if (num(st.log_total) > 0) {
+    const dwrap = el("div"); dwrap.style.cssText = "display:flex; flex-direction:column; align-items:center; gap:12px;";
+    dwrap.appendChild(donut({ segments: [
+      { name: "Doğru", value: num(lt.correct), color: C.green },
+      { name: "Yanlış", value: num(lt.wrong), color: C.red },
+      { name: "Boş", value: num(lt.blank), color: C.yellow },
+    ], centerValue: fmtNum(st.log_total), centerLabel: "cevap" }));
+    dwrap.appendChild(legendBar([[C.green, "Doğru"], [C.red, "Yanlış"], [C.yellow, "Boş"]]));
+    dCard._body.appendChild(dwrap);
+  } else { dCard._body.appendChild(el("div", "empty", "Henüz cevap kaydı yok.")); }
+  root.appendChild(gcol(4, dCard));
+
+  // Activity 30d line
+  const actCard = card("Aktivite", "günlük cevap sayısı · son 30 gün");
+  actCard._body.appendChild(lineChart({ labels: backLabels(st.today, (st.spark_30 || []).length), series: [{ name: "Cevap", color: C.green, values: st.spark_30 || [] }], area: true }));
+  root.appendChild(gcol(8, actCard));
+
+  // Hardest words
+  const hCard = card("En Zor Kelimeler", "en düşük başarı");
+  if (st.hardest && st.hardest.length) {
+    for (const e of st.hardest) {
+      const rc = rateColor(num(e.rate));
+      const row = el("div", "hrow");
+      row.appendChild(txt("div", "w", e.word));
+      row.appendChild(txt("div", "pct", "%" + Math.round(num(e.rate)))).style.color = rc;
+      row.appendChild(txt("div", "cnt", `${e.correct}✓ ${e.wrong}✗ ${e.blank}∅`));
+      const track = el("div", "track"); const fill = el("div", "fill");
+      fill.style.width = Math.max(3, num(e.rate)) + "%"; fill.style.background = rc; track.appendChild(fill);
+      row.appendChild(track);
+      hCard._body.appendChild(row);
+    }
+  } else { hCard._body.appendChild(el("div", "empty", "Henüz veri yok.")); }
+  root.appendChild(gcol(4, hCard));
+
+  return root;
+}
+
+function pageKredi(st) {
+  const root = el("div", "grid");
+  const kCard = card("Kredi Özeti", "");
+  kCard._body.appendChild(kpiRow([
+    { label: "Bakiye", value: st.balance, color: C.yellow },
+    { label: "Alınabilir bugün", value: st.max_today, unit: "dk", color: C.green },
+    { label: "Bugün alınan", value: st.redeemed_today, unit: "dk", color: C.purple },
+    { label: "Bu hafta kazanılan", value: st.earned_week, color: C.green },
+    { label: "Bu hafta harcanan", value: st.spent_week, color: C.red },
+    { label: "Sıfırlamaya", value: st.days_to_reset == null ? 0 : st.days_to_reset, unit: "gün", color: C.red },
+  ]));
+  root.appendChild(gcol(12, kCard));
+
+  // Earned vs spent grouped columns (14d)
+  const earned = st.earned_14 || [], spent = st.spent_14 || [];
+  const labels = earned.map(r => r[0]);
+  const esCard = card("Kazanılan vs Harcanan Kredi", "son 14 gün");
+  esCard._body.appendChild(legendBar([[C.green, "Kazanılan"], [C.red, "Harcanan"]]));
+  const esWrap = el("div"); esWrap.style.marginTop = "10px";
+  esWrap.appendChild(columnChart({ labels, series: [
+    { name: "Kazanılan", color: C.green, values: earned.map(r => r[1]) },
+    { name: "Harcanan", color: C.red, values: spent.map(r => r[1]) },
+  ] }));
+  esCard._body.appendChild(esWrap);
+  esCard._body.appendChild(txt("p", "note", `Toplam kazanç ${fmtNum(st.earned_total)} · toplam harcama ${fmtNum(st.spent_total)} kredi (son 60 gün). Her doğru cevap = ${CREDITS_PER_CORRECT} kredi.`));
+  root.appendChild(gcol(7, esCard));
+
+  // Screen time 30d area
+  const stCard = card("Ekran Süresi", "dk/gün · son 30 gün");
+  stCard._body.appendChild(lineChart({ labels: backLabels(st.today, (st.spark_minutes_30 || []).length), series: [{ name: "Dakika", color: C.yellow, values: st.spark_minutes_30 || [] }], area: true, valueFmt: v => v }));
+  root.appendChild(gcol(5, stCard));
+
+  // Redeemed weekly columns
+  const rw = st.redeemed_weekly || [];
+  const rwCard = card("Haftalık Ekran Süresi", "son 8 hafta · dakika");
+  rwCard._body.appendChild(columnChart({ labels: rw.map(r => r[0]), series: [{ name: "Dakika", color: C.blue, values: rw.map(r => r[1]) }], valueFmt: v => v }));
+  root.appendChild(gcol(7, rwCard));
+
+  // Price tariff meter
+  const tCard = card("Fiyat Tarifesi", "her ek saat dakikayı pahalılaştırır");
+  const nowHour = Math.floor(num(st.redeemed_today) / 60);
+  const brackets = st.price_brackets || [];
+  const maxRate = Math.max(1, ...brackets.map(b => num(b[1])));
+  brackets.forEach(([h, rate]) => {
+    const m = el("div", "meter");
+    const top = el("div", "top");
+    top.appendChild(txt("span", null, `${h + 1}. saat`));
+    const rt = el("span", (h === nowHour) ? "now" : null, fmtNum(rate) + " kredi/dk" + (h === nowHour ? "  ◀ şu an" : ""));
+    top.appendChild(rt);
+    m.appendChild(top);
+    const track = el("div", "track"); const fill = el("div", "fill");
+    fill.style.width = (num(rate) / maxRate * 100) + "%"; track.appendChild(fill); m.appendChild(track);
+    tCard._body.appendChild(m);
+  });
+  tCard._body.appendChild(txt("p", "note", `Bakiyeyle alınabilir: ${fmtNum(st.max_today)} dk (bugün) · ${fmtNum(st.max_tomorrow)} dk (yarın).`));
+  root.appendChild(gcol(5, tCard));
+
+  return root;
+}
+
+function pageHafta(st) {
+  const root = el("div", "grid");
+  // Daily answers grouped columns (14d)
+  const da = st.daily_answers || [];
+  const daCard = card("Günlük Cevaplar", "son 14 gün");
+  daCard._body.appendChild(legendBar([[C.green, "Doğru"], [C.red, "Yanlış"], [C.yellow, "Boş"]]));
+  const daWrap = el("div"); daWrap.style.marginTop = "10px";
+  daWrap.appendChild(columnChart({ labels: da.map(r => r[0]), series: [
+    { name: "Doğru", color: C.green, values: da.map(r => (r[1][0] || [0])[0]) },
+    { name: "Yanlış", color: C.red, values: da.map(r => (r[1][1] || [0])[0]) },
+    { name: "Boş", color: C.yellow, values: da.map(r => (r[1][2] || [0])[0]) },
+  ] }));
+  daCard._body.appendChild(daWrap);
+  root.appendChild(gcol(12, daCard));
+
+  // Weekly new columns
+  const wn = st.weekly_new || [];
+  const wnCard = card("Haftalık Yeni Kelimeler", "son 8 hafta");
+  wnCard._body.appendChild(columnChart({ labels: wn.map(r => r[0]), series: [{ name: "Yeni kelime", color: C.green, values: wn.map(r => r[1]) }] }));
+  root.appendChild(gcol(6, wnCard));
+
+  // Daily new columns
+  const dn = st.daily_new || [];
+  const dnCard = card("Günlük Yeni Kelimeler", "son 14 gün");
+  dnCard._body.appendChild(columnChart({ labels: dn.map(r => r[0]), series: [{ name: "Yeni kelime", color: C.purple, values: dn.map(r => r[1]) }] }));
+  root.appendChild(gcol(6, dnCard));
+
+  // New words 30d line
+  const nwCard = card("Yeni Kelime Trendi", "son 30 gün");
+  nwCard._body.appendChild(lineChart({ labels: backLabels(st.today, (st.spark_new_30 || []).length), series: [{ name: "Yeni kelime", color: C.purple, values: st.spark_new_30 || [] }], area: true }));
+  root.appendChild(gcol(12, nwCard));
+
+  return root;
+}
+
+let _tableSort = { col: "rate", dir: 1 };
+function pageKelime(st) {
+  const root = el("div", "grid");
+  // Word types bars
+  const types = Object.entries(st.word_types || {}).sort((a, b) => b[1] - a[1]);
+  const tCard = card("Kelime Türleri", "");
+  tCard._body.appendChild(columnChart({ labels: types.map(t => t[0]), series: [{ name: "Adet", color: C.blue, values: types.map(t => t[1]) }], height: 200 }));
+  root.appendChild(gcol(12, tCard));
+
+  // Table
+  const wCard = card("Tüm Kelimeler", `${st.started_count} başlanan · en zordan kolaya`);
+  const cols = [["word", "Kelime", 0], ["rate", "Başarı", 1], ["correct", "✓", 1], ["wrong", "✗", 1], ["blank", "∅", 1], ["repetitions", "Tekrar", 1], ["interval", "Aralık", 1], ["next", "Sonraki tekrar", 0]];
+  const wrap = el("div", "table-wrap");
+  const table = el("table"); const thead = el("thead"); const htr = el("tr");
+  cols.forEach(([key, label, isNum]) => {
+    const th = txt("th", isNum ? "num" : null, label);
+    th.onclick = () => { _tableSort.dir = (_tableSort.col === key) ? -_tableSort.dir : 1; _tableSort.col = key; render(); };
+    htr.appendChild(th);
+  });
+  thead.appendChild(htr); table.appendChild(thead);
+  const tbody = el("tbody"); table.appendChild(tbody); wrap.appendChild(table);
+  wCard._body.appendChild(wrap); root.appendChild(gcol(12, wCard));
+
+  const rows = (st.table_rows || []).slice(); const today = st.today;
+  function render() {
+    const k = _tableSort.col, d = _tableSort.dir;
+    rows.sort((a, b) => { let x = a[k], y = b[k]; if (typeof x === "string" || typeof y === "string") return String(x || "").localeCompare(String(y || "")) * d; return (num(x) - num(y)) * d; });
+    tbody.innerHTML = "";
+    for (const e of rows) {
+      const tr = el("tr"); const rc = rateColor(num(e.rate));
+      tr.appendChild(txt("td", null, e.word)).style.fontWeight = 700;
+      const rateTd = el("td", "num");
+      if (e.total) { const p = txt("span", "pill", "%" + Math.round(num(e.rate))); p.style.color = rc; p.style.background = "rgba(255,255,255,.05)"; rateTd.appendChild(p); } else rateTd.textContent = "—";
+      tr.appendChild(rateTd);
+      tr.appendChild(txt("td", "num", num(e.correct))).style.color = C.green;
+      tr.appendChild(txt("td", "num", num(e.wrong))).style.color = C.red;
+      tr.appendChild(txt("td", "num", num(e.blank))).style.color = C.yellow;
+      tr.appendChild(txt("td", "num", num(e.repetitions)));
+      tr.appendChild(txt("td", "num", num(e.interval) + "g"));
+      const nx = el("td");
+      if (e.next) { const delta = Math.round((new Date(e.next) - new Date(today)) / 86400000); const c = txt("span", null, `${e.next} (${delta >= 0 ? "+" : ""}${delta}g)`); c.style.color = delta <= 0 ? C.red : C.muted; nx.appendChild(c); } else nx.textContent = "—";
+      tr.appendChild(nx);
+      tbody.appendChild(tr);
+    }
+  }
+  render();
+  return root;
+}
+
+function pageGelecek(st) {
+  const root = el("div", "grid");
+  const fc = st.forecast || [];
+  const fCard = card("Tekrar Takvimi", "gelecek 14 gün");
+  const colors = fc.map((r, i) => i === 0 ? C.red : (i === 1 ? C.yellow : C.purple));
+  fCard._body.appendChild(columnChart({ labels: fc.map(r => r[0]), series: [{ name: "Kelime", color: C.purple, values: fc.map(r => r[1]) }], colorsPerBar: colors }));
+  root.appendChild(gcol(8, fCard));
+
+  const sCard = card("SM-2 Sağlığı", "aralık algoritması");
+  const eases = st.eases || [], intervals = st.intervals || [];
+  if (eases.length) {
+    const avg = a => a.reduce((x, y) => x + y, 0) / a.length;
+    const kv = el("div", "kv");
+    const add = (k, v) => { kv.appendChild(txt("div", "k", k)); const d = el("div", "v"); d.innerHTML = v; kv.appendChild(d); };
+    add("Ortalama kolaylık (EF)", `${avg(eases).toFixed(2)}`);
+    add("En düşük / yüksek EF", `${Math.min(...eases).toFixed(2)} / ${Math.max(...eases).toFixed(2)}`);
+    add("Ortalama aralık", `${Math.round(avg(intervals))} gün`);
+    if (st.longest) { kv.appendChild(txt("div", "k", "En uzun aralık")); const d = el("div", "v"); d.appendChild(txt("span", null, st.longest.word + " ")); const g = txt("span", null, `(${st.longest.interval} gün)`); g.style.color = C.green; d.appendChild(g); kv.appendChild(d); }
+    sCard._body.appendChild(kv);
+    sCard._body.appendChild(txt("p", "note", "EF: 1.30 en zor, 2.50 varsayılan."));
+  } else { sCard._body.appendChild(el("div", "empty", "Henüz çalışılmış kelime yok.")); }
+  root.appendChild(gcol(4, sCard));
+
+  return root;
+}
+
+const PAGES = {
+  genel: ["📊 Genel Bakış", pageGenel],
+  kredi: ["💰 Krediler", pageKredi],
+  hafta: ["📅 Haftalık & Günlük", pageHafta],
+  kelime: ["🔤 Kelimeler", pageKelime],
+  gelecek: ["🔮 Gelecek & SM-2", pageGelecek],
+};
+let _active = "genel";
+function buildTabs() {
+  const t = document.getElementById("tabs"); t.innerHTML = "";
+  Object.entries(PAGES).forEach(([key, [label]]) => {
+    const b = txt("div", "tab" + (key === _active ? " active" : ""), label);
+    b.onclick = () => { _active = key; showPage(); };
+    t.appendChild(b);
+  });
+}
+function showPage() {
+  const keys = Object.keys(PAGES);
+  document.querySelectorAll(".tab").forEach((t, i) => t.classList.toggle("active", keys[i] === _active));
+  document.querySelectorAll("section.page").forEach(sec => sec.classList.toggle("active", sec.dataset.page === _active));
+}
+function renderAll(stats) {
+  Object.entries(PAGES).forEach(([key, [, builder]]) => {
+    const sec = document.querySelector(`section.page[data-page="${key}"]`);
+    sec.innerHTML = "";
+    try { sec.appendChild(builder(stats)); }
+    catch (err) { sec.appendChild(el("div", "empty", "Bu sekme çizilemedi: " + err.message)); console.error(err); }
+  });
+  buildTabs(); showPage();
+}
+
+// ---------- data ----------
+async function loadUsers() { const r = await fetch("/api/users"); return (await r.json()).users || []; }
+async function loadStats(u) { const r = await fetch("/api/stats" + (u ? "?user=" + encodeURIComponent(u) : "")); if (!r.ok) throw new Error((await r.json()).error || r.statusText); return r.json(); }
+function timeAgo(iso) { if (!iso) return ""; const secs = Math.round((Date.now() - new Date(iso).getTime()) / 1000); if (secs < 60) return "az önce"; if (secs < 3600) return Math.floor(secs / 60) + " dk önce"; if (secs < 86400) return Math.floor(secs / 3600) + " saat önce"; return new Date(iso).toLocaleString("tr-TR"); }
+
+async function refresh() {
+  const banner = document.getElementById("banner-msg"), content = document.getElementById("content"), sel = document.getElementById("user");
+  try {
+    const users = await loadUsers();
+    if (!users.length) { content.style.display = "none"; banner.style.display = "block"; banner.textContent = "Henüz veri yok. Çocuğun uygulaması menüyü açtığında istatistikler burada görünecek."; return; }
+    const prev = sel.value; sel.innerHTML = "";
+    users.forEach(u => { const o = txt("option", null, u.username); o.value = u.username; sel.appendChild(o); });
+    if (prev && users.some(u => u.username === prev)) sel.value = prev;
+    const rec = await loadStats(sel.value);
+    const up = document.getElementById("updated"); up.innerHTML = ""; up.appendChild(el("span", "dot")); up.appendChild(txt("span", null, "Güncellendi: " + timeAgo(rec.updated_at)));
+    banner.style.display = "none"; content.style.display = "block";
+    renderAll(rec.stats || {});
+  } catch (err) { content.style.display = "none"; banner.style.display = "block"; banner.textContent = "Yüklenemedi: " + err.message; }
+}
+document.getElementById("refresh").onclick = refresh;
+document.getElementById("user").onchange = refresh;
+refresh();
+setInterval(refresh, 30000);
+</script>
+</body>
+</html>

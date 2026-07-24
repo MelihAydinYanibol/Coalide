@@ -147,6 +147,7 @@ def quest(user, current_question: Question = None):
     passthrough = False
     question_number = 0
     while True:
+        
         cls() if not passthrough else None
         question_number += 1
 
@@ -199,6 +200,13 @@ def quest(user, current_question: Question = None):
             passthrough = True
             question_number -= 1
             continue
+
+        # Check for internet connectivity if REQUIRE_INTERNET is enabled
+        if get_config().get("REQUIRE_INTERNET", False) and not has_internet():
+                    print(Fore.RED + "İnternet bağlantısı yok. Soru sorma özelliği devre dışı (REQUIRE_INTERNET etkin)." + Style.RESET_ALL)
+                    lg("REQUIRE_INTERNET is enabled but no internet connection was detected. Aborting quiz start.")
+                    input("\nAna menüye dönmek için Enter'a basın...")
+                    break
 
         # Evaluating the answer
 

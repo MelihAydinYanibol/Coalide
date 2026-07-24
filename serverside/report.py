@@ -1,25 +1,36 @@
 """
-Coalide — daily Telegram report (server side).
+Coalide — daily parental report (server side).
 
 Builds a text summary of every learner's stored stats and sends it to the
-parent over Telegram, once a day at a configured time (midnight by default).
-The dashboard URL is appended at the end so the parent can open the full view.
+parent once a day at a configured time (midnight by default), over Telegram
+and/or ntfy.sh. The dashboard URL is appended at the end so the parent can
+open the full view.
+
+Both channels are optional and independent: if both are configured the report
+goes to both; if only one is configured it goes to that one; if neither is
+configured the report is skipped silently.
 
 Zero dependencies — uses only the standard library (urllib for the Telegram
-Bot API), so it ships inside `serverside/` without touching the main app's
-requirements.
+Bot API and ntfy HTTP publishing), so it ships inside `serverside/` without
+touching the main app's requirements.
 
 Configuration (environment variables, or a `.env` file next to server.py /
 in its parent folder). Both the Telegram-style and Coalide-style names work:
 
     TELEGRAM_BOT_TOKEN / BOT_TOKEN     Telegram bot token
     TELEGRAM_CHAT_ID   / CHAT_ID       Chat/channel id to send to
+
+    NTFY_TOPIC                         ntfy.sh topic to publish to
+    NTFY_SERVER                        ntfy base URL, default "https://ntfy.sh"
+    NTFY_URL                           full topic URL (overrides SERVER + TOPIC)
+    NTFY_TOKEN                         optional bearer token for protected topics
+
     COALIDE_DASHBOARD_URL              Public dashboard URL (for the footer link)
     COALIDE_REPORT_TIME               "HH:MM" 24h local time, default "00:00"
-    COALIDE_REPORT_ENABLED            "true"/"false"; defaults to on when a token
-                                      and chat id are both present
+    COALIDE_REPORT_ENABLED            "true"/"false"; defaults to on when at least
+                                      one channel (Telegram or ntfy) is configured
 
-The daily report is skipped silently when no token/chat is configured.
+The daily report is skipped silently when no channel is configured.
 """
 
 import json
@@ -59,7 +70,7 @@ def _looks_like_placeholder(v: str) -> bool:
     if not v:
         return True
     bad = ("ENTER_YOUR_TOKEN", "YOUR_CHAT_ID", "YOUR_BOT_TOKEN", "YOUR-BOT-TOKEN",
-           "IP-TO-YOUR", "YOUR-PARENT-SERVER")
+           "IP-TO-YOUR", "YOUR-PARENT-SERVER", "YOUR_NTFY_TOPIC", "YOUR-NTFY-TOPIC")
     return v.startswith("[") or any(b in v for b in bad)
 
 
@@ -86,6 +97,25 @@ def load_settings(host: str, port: int) -> dict:
         token = None
     if _looks_like_placeholder(chat):
         chat = None
+    telegram_ok = bool(token and chat)
+
+    # ntfy.sh: either a full topic URL, or a topic name on a (default) server.
+    ntfy_url = get("NTFY_URL")
+    ntfy_topic = get("NTFY_TOPIC")
+    ntfy_server = (get("NTFY_SERVER", default="https://ntfy.sh") or "").strip()
+    ntfy_token = get("NTFY_TOKEN")
+    if _looks_like_placeholder(ntfy_url):
+        ntfy_url = None
+    if _looks_like_placeholder(ntfy_topic):
+        ntfy_topic = None
+    if _looks_like_placeholder(ntfy_token):
+        ntfy_token = None
+    if not ntfy_url and ntfy_topic:
+        base = ntfy_server or "https://ntfy.sh"
+        if not base.startswith(("http://", "https://")):
+            base = "https://" + base
+        ntfy_url = base.rstrip("/") + "/" + ntfy_topic.strip().lstrip("/")
+    ntfy_ok = bool(ntfy_url)
 
     shown_host = host if host not in ("0.0.0.0", "") else "localhost"
     url = get("COALIDE_DASHBOARD_URL", default=f"http://{shown_host}:{port}/")
@@ -96,18 +126,23 @@ def load_settings(host: str, port: int) -> dict:
     except (ValueError, AttributeError):
         report_time = "00:00"
 
+    any_channel = telegram_ok or ntfy_ok
     enabled_raw = get("COALIDE_REPORT_ENABLED")
     if enabled_raw is None:
-        enabled = bool(token and chat)
+        enabled = any_channel
     else:
         enabled = enabled_raw.strip().lower() in ("1", "true", "yes", "on")
 
     return {
         "token": token,
         "chat": chat,
+        "telegram_enabled": telegram_ok,
+        "ntfy_url": ntfy_url,
+        "ntfy_token": ntfy_token,
+        "ntfy_enabled": ntfy_ok,
         "url": url,
         "report_time": report_time,
-        "enabled": enabled and bool(token and chat),
+        "enabled": enabled and any_channel,
     }
 
 
@@ -210,19 +245,68 @@ def send_telegram(text: str, token: str, chat_id: str) -> tuple:
         return False, str(e)
 
 
+_TAG_RE = None  # lazily compiled below
+
+
+def _html_to_plain(text: str) -> str:
+    """Turn the Telegram-HTML report into plain text for ntfy.sh."""
+    global _TAG_RE
+    if _TAG_RE is None:
+        import re
+        _TAG_RE = re.compile(r"</?(?:b|i|u|s|code|pre|a)(?:\s[^>]*)?>")
+    plain = _TAG_RE.sub("", text)
+    return (plain.replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&"))
+
+
+def send_ntfy(text: str, topic_url: str, token: str = None) -> tuple:
+    """Publish `text` to an ntfy.sh topic. Returns (ok: bool, detail: str)."""
+    body = _html_to_plain(text).encode("utf-8")
+    # ntfy header values must be ASCII, so keep the title plain and let the
+    # (Unicode) heading live in the body.
+    headers = {
+        "Title": "Coalide Gunluk Rapor",
+        "Priority": "default",
+        "Tags": "books",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    try:
+        req = urllib.request.Request(topic_url, data=body, headers=headers)
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            ok = 200 <= resp.status < 300
+            detail = resp.read().decode("utf-8", "replace")[:300]
+            return ok, detail
+    except Exception as e:
+        return False, str(e)
+
+
 def run_report(records_provider, settings: dict, log=print) -> bool:
-    """Build and send the report now. Returns True on success."""
+    """Build and send the report now over every configured channel.
+
+    Returns True only if every channel that was attempted succeeded."""
     if not settings.get("enabled"):
-        log("Report skipped: Telegram not configured.")
+        log("Report skipped: no channel (Telegram / ntfy) configured.")
         return False
     records = records_provider() or []
     text = build_report_text(records, settings["url"])
-    ok, detail = send_telegram(text, settings["token"], settings["chat"])
-    if ok:
-        log(f"Daily report sent to Telegram chat {settings['chat']}.")
-    else:
-        log(f"Daily report FAILED to send: {detail}")
-    return ok
+
+    results = []
+    if settings.get("telegram_enabled"):
+        ok, detail = send_telegram(text, settings["token"], settings["chat"])
+        results.append(ok)
+        if ok:
+            log(f"Daily report sent to Telegram chat {settings['chat']}.")
+        else:
+            log(f"Daily report FAILED to send to Telegram: {detail}")
+    if settings.get("ntfy_enabled"):
+        ok, detail = send_ntfy(text, settings["ntfy_url"], settings.get("ntfy_token"))
+        results.append(ok)
+        if ok:
+            log(f"Daily report sent to ntfy {settings['ntfy_url']}.")
+        else:
+            log(f"Daily report FAILED to send to ntfy: {detail}")
+
+    return bool(results) and all(results)
 
 
 # --------------------------------------------------------------------------

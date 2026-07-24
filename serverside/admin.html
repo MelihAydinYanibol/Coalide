@@ -159,6 +159,16 @@
           <button class="primary" id="env-save">💾 Kaydet</button>
         </div>
       </div>
+      <div class="panel">
+        <h3>📊 Günlük Rapor</h3>
+        <div class="desc">Günlük özet raporunu, zamanlamayı beklemeden şimdi gönder.
+          Ayarlı olan tüm kanallara (Telegram / ntfy.sh) iletilir.</div>
+        <div class="toolbar" style="margin-top:4px;margin-bottom:0">
+          <button class="primary" id="report-send">📨 Raporu Şimdi Gönder</button>
+          <div class="spacer"></div>
+        </div>
+        <div id="report-status" class="empty" style="margin-top:12px;display:none"></div>
+      </div>
     </section>
   </div>
 </main>
@@ -399,6 +409,9 @@ async function deleteWord(index,target){
 const ENV_LABELS={
   TELEGRAM_BOT_TOKEN:['Telegram Bot Token','password'],
   TELEGRAM_CHAT_ID:['Telegram Chat ID','text'],
+  NTFY_TOPIC:['ntfy.sh konu adı (topic)','text'],
+  NTFY_SERVER:['ntfy sunucusu (varsayılan https://ntfy.sh)','text'],
+  NTFY_TOKEN:['ntfy erişim anahtarı (korumalı konu için)','password'],
   COALIDE_REPORT_TIME:['Günlük rapor saati (SS:DD)','text'],
   COALIDE_REPORT_ENABLED:['Rapor açık mı (true/false)','text'],
   COALIDE_DASHBOARD_URL:['Panel adresi (rapor linki)','text'],
@@ -442,6 +455,23 @@ async function saveEnv(){
     toast('Sunucu ayarları kaydedildi.');
   }catch(e){toast('Kaydedilemedi: '+e.message,true);}
 }
+async function sendReportNow(){
+  const btn=$('report-send'), box=$('report-status');
+  btn.disabled=true; const label=btn.textContent; btn.textContent='Gönderiliyor…';
+  box.style.display='block'; box.className='empty'; box.textContent='Rapor gönderiliyor…';
+  try{
+    const d=await api('/api/report/send',{method:'POST',body:{}});
+    const chans=(d.channels||[]).join(', ')||'—';
+    const okMsg=d.sent?('Rapor gönderildi ('+chans+').'):('Bazı kanallara gönderilemedi ('+chans+').');
+    box.className=''; box.style.whiteSpace='pre-wrap';
+    box.textContent=okMsg+(d.log&&d.log.length?('\n\n'+d.log.join('\n')):'');
+    toast(okMsg,!d.sent);
+  }catch(e){
+    box.className='empty'; box.style.whiteSpace='pre-wrap';
+    const msg=e.message==='no_channel'?'Telegram/ntfy ayarlı değil.':('Gönderilemedi: '+e.message);
+    box.textContent=msg; toast(msg,true);
+  }finally{ btn.disabled=false; btn.textContent=label; }
+}
 
 // ---- wire up ----
 $('login-btn').onclick=doLogin;
@@ -455,6 +485,7 @@ $('w-save').onclick=saveWord;
 $('word-overlay').addEventListener('click',e=>{if(e.target===$('word-overlay'))closeWordModal();});
 $('env-add-key').onclick=addEnvKey;
 $('env-save').onclick=saveEnv;
+$('report-send').onclick=sendReportNow;
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===t));
   document.querySelectorAll('section.page').forEach(p=>p.classList.toggle('active',p.dataset.page===t.dataset.tab));

@@ -265,6 +265,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._post_words()
         if path == "/api/admin/server-env":
             return self._post_server_env()
+        if path == "/api/report/send":
+            return self._post_send_report()
 
         return self._send_json({"error": "not found"}, status=404)
 
@@ -350,6 +352,35 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as e:
             return self._send_json({"error": str(e)}, status=400)
         return self._send_json({"status": "ok"})
+
+    def _post_send_report(self):
+        if not self._require_admin():
+            return
+        settings = report.load_settings(HOST, PORT)
+        if not settings.get("enabled"):
+            return self._send_json(
+                {"error": "no_channel",
+                 "detail": "Telegram/ntfy ayarlı değil."}, status=400)
+
+        lines = []
+        def log(msg):
+            print(msg)
+            lines.append(str(msg))
+
+        channels = []
+        if settings.get("telegram_enabled"):
+            channels.append("Telegram")
+        if settings.get("ntfy_enabled"):
+            channels.append("ntfy")
+
+        try:
+            ok = report.run_report(all_records, settings, log=log)
+        except Exception as e:
+            return self._send_json({"error": "send_failed", "detail": str(e)},
+                                   status=500)
+        return self._send_json({"status": "ok" if ok else "partial",
+                                "sent": ok, "channels": channels,
+                                "log": lines})
 
     # Quieter, single-line access log.
     def log_message(self, fmt, *args):

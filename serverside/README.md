@@ -19,9 +19,9 @@ the same information as the in-app **İstatistikler** screen.
 | `server.py` | HTTP server: stats API, sync API, admin API + serves the pages |
 | `dashboard.html` | The web dashboard (single self-contained page) |
 | `admin.html` | The web admin panel (config + words + server settings) |
-| `report.py` | Daily Telegram report (summary text + dashboard link) |
+| `report.py` | Daily report over Telegram / ntfy.sh (summary text + dashboard link) |
 | `admin_api.py` | Admin auth + config/words sync backend |
-| `.env.example` | Template for Telegram / report configuration |
+| `.env.example` | Template for report configuration (Telegram / ntfy.sh) |
 | `data/` | Created at runtime: per-user stats + synced config/words |
 
 ## Running it (on the parent's machine)
@@ -57,19 +57,28 @@ placeholder (`IP-TO-YOUR-PARENT-SERVER`), so nothing is sent until you set a rea
 address. The push runs on a background thread with a short timeout and fails
 silently — it can never slow down or break the learner's app.
 
-## Daily Telegram report
+## Daily report (Telegram + ntfy.sh)
 
 Once a day (at **midnight** by default) the server sends a text summary of every
-learner's stats to a Telegram chat, ending with a link back to the dashboard
-(`🔗 Daha fazla bilgi: <url>`).
+learner's stats, ending with a link back to the dashboard
+(`🔗 Daha fazla bilgi: <url>`). It can deliver over **Telegram**, **ntfy.sh**, or
+both — each channel is independent. If both are configured the report goes to
+both; if only one is configured it goes to that one.
 
 Configure it via environment variables or a `.env` file next to `server.py`
-(copy `.env.example` → `.env`). The report turns on automatically once a bot
-token and chat id are set:
+(copy `.env.example` → `.env`). The report turns on automatically once at least
+one channel is configured:
 
 ```env
+# Telegram (bot token + chat id)
 TELEGRAM_BOT_TOKEN=123456:ABC-your-token
 TELEGRAM_CHAT_ID=123456789
+
+# ntfy.sh (just a topic name; subscribe to it in the ntfy app / on ntfy.sh)
+NTFY_TOPIC=some-hard-to-guess-topic
+# NTFY_SERVER=https://ntfy.sh    # optional, for a self-hosted ntfy server
+# NTFY_TOKEN=tk_...              # optional, for a protected topic
+
 COALIDE_REPORT_TIME=00:00          # 24h local time; default midnight
 COALIDE_DASHBOARD_URL=http://192.168.1.50:5055/
 ```
@@ -78,7 +87,7 @@ Test it without waiting for midnight:
 
 ```bash
 python server.py --report-preview   # print the message, don't send
-python server.py --send-report      # send it right now via Telegram
+python server.py --send-report      # send it right now to every configured channel
 ```
 
 You can also `GET /api/report/preview` to see the current report text as JSON.

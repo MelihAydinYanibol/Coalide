@@ -48,6 +48,7 @@ def pack_data(target_dir=".", output_dir="packaged_data"):
 RELEASE_CLEAN_PATTERNS = [
     ".git",
     ".env",
+    "serverside",       # parent-side stats API + web dashboard (never ships)
     "env",
     "venv",
     ".venv",
@@ -59,6 +60,7 @@ RELEASE_CLEAN_PATTERNS = [
     "words.json",
     "*_data.json",      # per-user balance/credits files
     "current_user.json",
+    ".config_sync.json",  # local record of the last synced config/words revision
     "version.json",
     "config.json",      # regenerated with defaults on first run
     "sent_tg_messages.json",

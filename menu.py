@@ -28,6 +28,23 @@ except:
     from objects.balance_obj import load_data
     from utils import get_current_user
 
+# Parental stats reporting: pushes the current stats to the parent-side web
+# dashboard/API (serverside/) when the menu opens. Guarded so a missing/broken
+# reporter can never stop the menu from loading.
+try:
+    from stats_reporter import report_stats_async
+except Exception:
+    def report_stats_async():
+        return None
+
+# Config/words sync: pulls parent-made changes from the server and applies them
+# locally when the menu opens. Guarded like the reporter above.
+try:
+    from config_sync import sync_config_async
+except Exception:
+    def sync_config_async():
+        return None
+
 # Path to the external script you want "Quiz" to launch.
 # Change this to wherever your quiz script actually lives.
 APP_PATH = "new_master.py"
@@ -294,6 +311,8 @@ class MainMenu(Screen):
         self.query_one("#stat-balance", Static).update(self._balance_text(user))
         self.query_one("#stat-max", Static).update(self._max_text(user))
         self.query_one("#stat-used", Static).update(self._used_text(user))
+        # A quiz/redeem flow just changed the data — push the update too.
+        report_stats_async()
 
     @staticmethod
     def _random_quote_text() -> str:
@@ -351,6 +370,11 @@ class MainMenu(Screen):
         # Easter egg: a friendly greeting based on the time of day.
         title, message = self._time_greeting()
         self.app.notify(message, title=title, timeout=6)
+
+        # Pull any parent-made config/word changes, then push a fresh stats
+        # snapshot to the parental dashboard (both non-blocking).
+        sync_config_async()
+        report_stats_async()
 
     def on_key(self, event) -> None:
         """Easter eggs: Konami code (↑↑↓↓←→←→ B A) and typed secret words."""

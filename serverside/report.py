@@ -58,7 +58,8 @@ def _parse_env_file(path: str) -> dict:
 def _looks_like_placeholder(v: str) -> bool:
     if not v:
         return True
-    bad = ("ENTER_YOUR_TOKEN", "YOUR_CHAT_ID", "IP-TO-YOUR", "YOUR-PARENT-SERVER")
+    bad = ("ENTER_YOUR_TOKEN", "YOUR_CHAT_ID", "YOUR_BOT_TOKEN", "YOUR-BOT-TOKEN",
+           "IP-TO-YOUR", "YOUR-PARENT-SERVER")
     return v.startswith("[") or any(b in v for b in bad)
 
 

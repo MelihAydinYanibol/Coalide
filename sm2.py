@@ -15,11 +15,35 @@ config = get_config()
 
 DAILY_NEW_WORD_CAP = config.get("Daily_New_Word_Cap", 15) # how many brand-new words can be introduced per day
 NO_REPEAT_WINDOW = config.get("No_Repeat_Window", 8) # a word can't repeat within this many questions
+SHUFFLE_NEW_WORDS = config.get("SHUFFLE_NEW_WORDS", False) # introduce new words in random order instead of words.json order
+
+NEW_WORD_SENTINEL = "2020-10-10" # next_review_date assigned to brand-new (never-reviewed) words
+
+
+def _order_word_list(words: list[Word]):
+    """
+    Sort words by next_review_date (earliest first) in place.
+
+    Brand-new words all share NEW_WORD_SENTINEL, the earliest possible date, so
+    they land at the front of the list. By default they stay in words.json order;
+    when SHUFFLE_NEW_WORDS is enabled we shuffle just those new words among
+    themselves so they're introduced in a random order. Because every downstream
+    sort is a stable sort on the same key, this randomized order is preserved
+    throughout the session.
+    """
+    words.sort(key=attrgetter('next_review_date')) # sort by next review date, earliest first
+    if SHUFFLE_NEW_WORDS:
+        new_words = [w for w in words if w.next_review_date == NEW_WORD_SENTINEL]
+        if len(new_words) > 1:
+            random.shuffle(new_words)
+            others = [w for w in words if w.next_review_date != NEW_WORD_SENTINEL]
+            words[:] = new_words + others
+    return words
 
 
 word_list = get_words("words.json")
 lg(word_list)
-word_list.sort(key=attrgetter('next_review_date')) # sort by next review date, earliest first
+_order_word_list(word_list)
 
 # if the word is new, it's next_review_date will equal to "00-00-01" which is the earliest possible date, so it will be at the front of the list
 
@@ -32,7 +56,7 @@ def reload_words():
     """
     global word_list
     word_list = get_words("words.json")
-    word_list.sort(key=attrgetter('next_review_date'))
+    _order_word_list(word_list)
 
 def _fallback_pool(cap_reached: bool):
     """

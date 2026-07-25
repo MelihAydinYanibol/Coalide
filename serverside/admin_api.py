@@ -51,6 +51,7 @@ WORD_TYPES = ["noun", "verb", "adjective", "adverb", "pronoun", "preposition", "
 CONFIG_DESCRIPTIONS = {
     "Daily_New_Word_Cap": "Bir günde en fazla kaç yeni kelime tanıtılır.",
     "No_Repeat_Window": "Aynı kelime tekrar sorulmadan önce kaç soru geçmeli.",
+    "SHUFFLE_NEW_WORDS": "Yeni kelimeler liste sırasıyla değil rastgele tanıtılsın mı.",
     "Repo_Owner": "Güncellemelerin indirildiği GitHub kullanıcısı.",
     "Repo_Name": "Güncellemelerin indirildiği GitHub deposu.",
     "Update_Prereleases": "Ön sürüm (beta) güncellemeleri de yüklensin mi.",

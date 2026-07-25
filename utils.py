@@ -45,6 +45,7 @@ def get_config(default=False):
     default_config = {
         "Daily_New_Word_Cap":15,
         "No_Repeat_Window":8,
+        "SHUFFLE_NEW_WORDS":False,
         "Repo_Owner":"MelihAydinYanibol",
         "Repo_Name":"Coalide",
         "Update_Prereleases":False,

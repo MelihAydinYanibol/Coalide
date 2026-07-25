@@ -56,6 +56,8 @@ def get_config(default=False):
         "SPAM_PROTECTION":True,
         "INPUT_TIMEOUT":0,
         "Credit_Reset_Weekly":True,
+        "PRONOUNCE_WORDS":True,
+        "PRONOUNCE_SENTENCES":True,
         "BACKUP_PRONUNCIATIONS":True,
         "KIOSK_MODE":False,
         "BYPASS_SHORTCUTS":True,

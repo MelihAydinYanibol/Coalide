@@ -62,6 +62,8 @@ CONFIG_DESCRIPTIONS = {
     "SPAM_PROTECTION": "Art arda rastgele cevap yazmayı engelle.",
     "INPUT_TIMEOUT": "Cevap için süre sınırı, saniye (0 = kapalı).",
     "Credit_Reset_Weekly": "Krediler her Pazartesi sıfırlansın mı.",
+    "PRONOUNCE_WORDS": "Kelimeler sesli olarak okunsun mu.",
+    "PRONOUNCE_SENTENCES": "Örnek cümleler sesli olarak okunsun mu.",
     "BACKUP_PRONUNCIATIONS": "Telaffuz ses dosyalarını yedekle.",
     "KIOSK_MODE": "Kiosk modu: uygulama kapanınca otomatik yeniden açılır.",
     "BYPASS_SHORTCUTS": "Alt+Tab / Windows tuşu gibi kaçış kısayollarını engelle.",

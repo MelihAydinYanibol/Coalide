@@ -289,6 +289,21 @@ def get_folder(folder="pronunciations"):
     
 def pronounce(word:Word, sentence=False):
     lg(f"pronounce_word({word}, {sentence})")
+
+    # Respect the parent-controlled config switches. PRONOUNCE_WORDS gates
+    # single-word playback; PRONOUNCE_SENTENCES gates the example-sentence
+    # playback. Either being off makes this a no-op for that mode -- no cache
+    # lookup, no generation (gTTS or ElevenLabs), no playback.
+    try: from gogo.utils import get_config as _app_config
+    except: from utils import get_config as _app_config
+    config = _app_config()
+    if sentence and not config.get("PRONOUNCE_SENTENCES", True):
+        lg("PRONOUNCE_SENTENCES is disabled; skipping sentence pronunciation.")
+        return
+    if not sentence and not config.get("PRONOUNCE_WORDS", True):
+        lg("PRONOUNCE_WORDS is disabled; skipping word pronunciation.")
+        return
+
     files = get_folder("pronunciations")
     for file in files: # Going through the files in the pronunciations folder
         file = safe_filename(file)

@@ -29,6 +29,35 @@ browser, with **per-user progress** kept separately for each learner.
   required. (The terminal app's ElevenLabs/gTTS pipeline is not needed here.)
 - **Stats dashboard** — words seen, due now, well-known count and overall
   success rate.
+- **Admin dashboard** — a password-protected parent panel at `/admin`,
+  connected to the web app's own data: see every learner's progress and
+  balance, adjust credits, and edit the shared `config.json` from the browser.
+
+## Admin dashboard
+
+Open <http://localhost:5000/admin> (there's also a link on the login page). It's
+gated by the same `ADMIN_PASSWORD` the terminal admin uses — read from the
+`ADMIN_PASSWORD` environment variable, else the `ADMIN_PASSWORD=` line in the
+project's `../.env`, else the placeholder default `0000`. **Set a real password
+before exposing the app beyond localhost.**
+
+![Admin dashboard](docs/admin.png)
+
+From the panel a parent can:
+
+- **Users** — list every web-app learner with balance, words seen, words due,
+  well-known count, overall success rate and minutes already redeemed today;
+  adjust any learner's credits with one click (−10 / +10 / +100).
+- **Ayarlar (Settings)** — edit a whitelisted set of `config.json` keys
+  (new-word cap, no-repeat window, credit pricing/window, spam protection,
+  language labels, …) with type-aware inputs and toggles. These write the same
+  `config.json` the quiz engine reads, so changes take effect on the next
+  question — and are shared with the terminal app.
+
+The admin panel is deliberately connected to the web app's **own** per-user data
+under `webapp/data/`, so no separate server process is required. (This is
+distinct from the terminal project's separate `serverside/` parental server,
+which stores pushed snapshots from the terminal client.)
 
 ## Running it
 
@@ -81,16 +110,18 @@ would restore the real grant.
 
 ```
 webapp/
-├── app.py            # Flask app: pages + JSON API
+├── app.py            # Flask app: pages + JSON API (quiz + admin)
 ├── engine.py         # per-user SM-2 learning engine (reuses words.json + Word)
 ├── credits.py        # per-user credit earning / pricing / redemption
 ├── requirements.txt
 ├── templates/
 │   ├── login.html
-│   └── index.html    # single-page quiz / rewards / stats UI
+│   ├── index.html    # single-page quiz / rewards / stats UI
+│   └── admin.html    # parent admin dashboard (users + settings)
 ├── static/
 │   ├── style.css
-│   └── app.js
+│   ├── app.js        # quiz front-end logic
+│   └── admin.js      # admin dashboard logic
 └── data/             # per-user progress + balances (gitignored)
 ```
 

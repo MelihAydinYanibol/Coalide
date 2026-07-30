@@ -60,6 +60,8 @@ def get_config() -> dict:
         "Credit_Window_Start": "07:00",
         "Credit_Window_End": "22:00",
         "CREDITS_PER_CORRECT": 7,
+        "BASE_RATE_PER_MINUTE": 5,
+        "ESCALATION_PER_HOUR": 0.5,
     }
     config_path = os.path.join(PROJECT_ROOT, "config.json")
     try:
@@ -365,6 +367,74 @@ def grade_answer(word: Word, is_target_wanted: bool, answer: str, time_taken: fl
 # --------------------------------------------------------------------------- #
 # Session / user stats                                                         #
 # --------------------------------------------------------------------------- #
+
+def list_usernames() -> list[str]:
+    """Every learner who has data on disk (progress or a credit balance)."""
+    names: set[str] = set()
+    try:
+        for fname in os.listdir(DATA_DIR):
+            for suffix in ("_progress.json", "_data.json"):
+                if fname.endswith(suffix):
+                    names.add(fname[: -len(suffix)])
+    except OSError:
+        pass
+    return sorted(names)
+
+
+# Config keys a parent may edit from the web admin, with a type and a
+# Turkish description. Kept to safe, self-contained keys (no server URLs /
+# secrets) since editing them writes the shared config.json.
+EDITABLE_CONFIG_KEYS: dict[str, dict] = {
+    "Daily_New_Word_Cap": {"type": "int", "desc": "Bir günde en fazla kaç yeni kelime tanıtılır."},
+    "No_Repeat_Window": {"type": "int", "desc": "Aynı kelime tekrar sorulmadan önce kaç soru geçmeli."},
+    "SHUFFLE_NEW_WORDS": {"type": "bool", "desc": "Yeni kelimeler rastgele sırayla tanıtılsın mı."},
+    "SPAM_PROTECTION": {"type": "bool", "desc": "2 saniyeden hızlı cevaplar reddedilsin mi."},
+    "Credit_Reset_Weekly": {"type": "bool", "desc": "Bakiye her pazartesi sıfırlansın mı."},
+    "CREDITS_PER_CORRECT": {"type": "int", "desc": "Her doğru cevap için kazanılan kredi."},
+    "BASE_RATE_PER_MINUTE": {"type": "int", "desc": "Dakika başına temel kredi ücreti."},
+    "ESCALATION_PER_HOUR": {"type": "float", "desc": "Aynı gün için her saatte ücret artış oranı."},
+    "Credit_Window_Start": {"type": "str", "desc": "Kredi kazanma başlangıç saati (SS:DD)."},
+    "Credit_Window_End": {"type": "str", "desc": "Kredi kazanma bitiş saati (SS:DD)."},
+    "Source_Language": {"type": "str", "desc": "Kaynak dil etiketi."},
+    "Target_Language": {"type": "str", "desc": "Hedef dil etiketi."},
+}
+
+
+def _coerce_config_value(key: str, raw):
+    spec = EDITABLE_CONFIG_KEYS[key]
+    t = spec["type"]
+    if t == "bool":
+        return bool(raw) if isinstance(raw, bool) else str(raw).strip().lower() in ("1", "true", "on", "yes", "evet")
+    if t == "int":
+        return int(raw)
+    if t == "float":
+        return float(raw)
+    return str(raw)
+
+
+def save_config(updates: dict) -> dict:
+    """
+    Apply a partial config update to the project's shared ``config.json`` and
+    return the full config. Only whitelisted keys are accepted; values are
+    coerced to the declared type. Raises ValueError on a bad value.
+    """
+    config_path = os.path.join(PROJECT_ROOT, "config.json")
+    # Start from the full merged config so existing keys (including terminal-only
+    # ones) are preserved and nothing is dropped when only a few keys change.
+    config = get_config()
+
+    for key, raw in (updates or {}).items():
+        if key not in EDITABLE_CONFIG_KEYS:
+            continue
+        try:
+            config[key] = _coerce_config_value(key, raw)
+        except (TypeError, ValueError):
+            raise ValueError(f"'{key}' için geçersiz değer.")
+
+    with open(config_path, "w", encoding="utf-8") as f:
+        json.dump(config, f, ensure_ascii=False, indent=4)
+    return config
+
 
 def user_stats(username: str) -> dict:
     """Aggregate learning stats for the dashboard header."""

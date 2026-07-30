@@ -110,6 +110,14 @@ def award_credits(username: str) -> dict:
     return {"awarded": amount if in_window else 0, "balance": data["balance"], "in_window": in_window}
 
 
+def adjust_balance(username: str, delta: int) -> int:
+    """Add (or subtract, if negative) credits for a user. Balance never goes below 0."""
+    data = load_user(username)
+    data["balance"] = max(0, data["balance"] + int(delta))
+    save_user(data)
+    return data["balance"]
+
+
 def cost_for_minutes(data: dict, requested_minutes: int, target_date: str) -> int:
     """Escalating cost: each hour already redeemed for ``target_date`` makes the next hour pricier."""
     cfg = get_config()

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coalide — Giriş</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="login-body">
+    <main class="login-card">
+        <div class="brand">
+            <span class="brand-mark">📚</span>
+            <h1>Coalide</h1>
+        </div>
+        <p class="tagline">Aralıklı tekrar ile kelime öğren.</p>
+        <form id="login-form" autocomplete="off">
+            <label for="username">Kullanıcı adınız</label>
+            <input id="username" name="username" type="text" placeholder="örn. melih" maxlength="32" required autofocus>
+            <button type="submit">Giriş Yap</button>
+            <p class="login-error" id="login-error"></p>
+        </form>
+        <p class="login-hint">İlerlemeniz kullanıcı adınıza göre kaydedilir.</p>
+    </main>
+    <script>
+        const form = document.getElementById('login-form');
+        const errEl = document.getElementById('login-error');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errEl.textContent = '';
+            const username = document.getElementById('username').value.trim();
+            if (!username) return;
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username})
+            });
+            const data = await res.json();
+            if (data.ok) {
+                window.location.href = '/';
+            } else {
+                errEl.textContent = data.error || 'Giriş başarısız.';
+            }
+        });
+    </script>
+</body>
+</html>

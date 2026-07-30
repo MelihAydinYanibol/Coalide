@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coalide</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <div class="brand small">
+                <span class="brand-mark">📚</span>
+                <span>Coalide</span>
+            </div>
+            <nav class="tabs">
+                <button class="tab active" data-view="quiz">📝 Öğren</button>
+                <button class="tab" data-view="rewards">💰 Krediler</button>
+                <button class="tab" data-view="stats">📊 İstatistik</button>
+            </nav>
+            <div class="user-box">
+                <span class="credit-pill" id="credit-pill" title="Kredi bakiyeniz">💰 <b id="balance">0</b></span>
+                <span class="username">👤 {{ username }}</span>
+                <button class="logout-btn" id="logout-btn" title="Çıkış">Çıkış</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- QUIZ VIEW -->
+        <section id="view-quiz" class="view active">
+            <div class="card quiz-card" id="quiz-card">
+                <div class="quiz-loading" id="quiz-loading">Yükleniyor…</div>
+
+                <div class="quiz-body hidden" id="quiz-body">
+                    <div class="quiz-meta">
+                        <span class="chip" id="word-type"></span>
+                        <span class="rate-badge" id="rate-badge"></span>
+                    </div>
+
+                    <p class="direction" id="direction"></p>
+                    <h2 class="prompt" id="prompt"></h2>
+                    <p class="example" id="example"></p>
+
+                    <form id="answer-form" autocomplete="off">
+                        <input id="answer-input" type="text" placeholder="Cevabınız…" autocomplete="off" autofocus>
+                        <button type="submit" id="submit-btn">Kontrol Et</button>
+                    </form>
+
+                    <div class="feedback hidden" id="feedback">
+                        <p class="feedback-line" id="feedback-line"></p>
+                        <p class="feedback-sentence" id="feedback-sentence"></p>
+                        <div class="feedback-actions">
+                            <button class="ghost-btn" id="replay-word" title="Kelimeyi dinle">🔊 Kelime</button>
+                            <button class="ghost-btn" id="replay-sentence" title="Cümleyi dinle">🔊 Cümle</button>
+                            <button class="primary-btn" id="continue-btn">Devam Et →</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quiz-done hidden" id="quiz-done">
+                    <h2>🎉 Şimdilik bu kadar!</h2>
+                    <p>Gözden geçirilecek başka kelime kalmadı. Daha sonra tekrar gelin.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- REWARDS VIEW -->
+        <section id="view-rewards" class="view">
+            <div class="card">
+                <h2 class="view-title">💰 Kredilerini Kullan</h2>
+                <p class="muted">Kazandığın kredileri ekran süresine dönüştür.</p>
+                <div class="reward-balance">Mevcut bakiye: <b id="reward-balance">0</b> kredi</div>
+
+                <form id="redeem-form" class="redeem-form">
+                    <div class="field">
+                        <label for="redeem-minutes">Dakika</label>
+                        <input id="redeem-minutes" type="number" min="1" max="1440" value="30">
+                    </div>
+                    <div class="field">
+                        <label for="redeem-date">Tarih</label>
+                        <input id="redeem-date" type="date">
+                    </div>
+                    <div class="quote" id="quote"></div>
+                    <button type="submit" class="primary-btn">Ekran Süresi Al</button>
+                    <p class="redeem-result" id="redeem-result"></p>
+                </form>
+            </div>
+        </section>
+
+        <!-- STATS VIEW -->
+        <section id="view-stats" class="view">
+            <div class="card">
+                <h2 class="view-title">📊 İstatistiklerin</h2>
+                <div class="stats-grid" id="stats-grid">
+                    <div class="stat"><span class="stat-num" id="s-seen">–</span><span class="stat-label">Görülen kelime</span></div>
+                    <div class="stat"><span class="stat-num" id="s-total">–</span><span class="stat-label">Toplam kelime</span></div>
+                    <div class="stat"><span class="stat-num" id="s-due">–</span><span class="stat-label">Şimdi tekrar</span></div>
+                    <div class="stat"><span class="stat-num" id="s-mastered">–</span><span class="stat-label">İyi bilinen</span></div>
+                    <div class="stat"><span class="stat-num" id="s-rate">–</span><span class="stat-label">Başarı oranı</span></div>
+                    <div class="stat"><span class="stat-num" id="s-balance">–</span><span class="stat-label">Kredi</span></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        window.COALIDE = {
+            sourceLanguage: {{ source_language|tojson }},
+            targetLanguage: {{ target_language|tojson }}
+        };
+    </script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

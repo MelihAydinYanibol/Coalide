@@ -29,6 +29,37 @@ browser, with **per-user progress** kept separately for each learner.
   required. (The terminal app's ElevenLabs/gTTS pipeline is not needed here.)
 - **Stats dashboard** — words seen, due now, well-known count and overall
   success rate.
+- **Admin dashboard** — a password-protected parent panel at `/admin`,
+  connected to the web app's own data: see every learner's progress and
+  balance, adjust credits, and edit the shared `config.json` from the browser.
+
+## Admin dashboard
+
+Open <http://localhost:6656/admin> (there's also a link on the login page). It's
+gated by the same `ADMIN_PASSWORD` the terminal admin uses — read from the
+`ADMIN_PASSWORD` environment variable, else the `ADMIN_PASSWORD=` line in the
+project's `../.env`, else the placeholder default `0000`. **Set a real password
+before exposing the app beyond localhost.**
+
+![Admin dashboard](docs/admin.png)
+
+From the panel a parent can:
+
+- **Users** — list every web-app learner with balance, words seen, words due,
+  well-known count, overall success rate and minutes already redeemed today;
+  adjust any learner's credits with one click (−10 / +10 / +100).
+- **Ayarlar (Settings)** — edit a whitelisted set of config keys (new-word cap,
+  no-repeat window, credit pricing/window, spam protection, language labels, …)
+  with type-aware inputs and toggles. The *Kapsam* (scope) selector chooses
+  whether you're editing the **global** `config.json` (shared with the terminal
+  app) or a **specific user's** overlay; overridden keys are flagged *özel*, and
+  *Sıfırla* resets a user back to the global config. Changes take effect on the
+  learner's next question.
+
+The admin panel is deliberately connected to the web app's **own** per-user data
+under `webapp/data/`, so no separate server process is required. (This is
+distinct from the terminal project's separate `serverside/` parental server,
+which stores pushed snapshots from the terminal client.)
 
 ## Running it
 
@@ -38,22 +69,48 @@ pip install -r requirements.txt
 python app.py
 ```
 
-Then open <http://localhost:5000> and enter a username to start.
+Then open <http://localhost:6656> and enter a username to start.
 
 ### Configuration
 
-The app reads the project's existing `../config.json` (creating nothing new), so
-keys like `Daily_New_Word_Cap`, `No_Repeat_Window`, `Source_Language`,
-`Target_Language`, `Credit_Window_Start/End`, `BASE_RATE_PER_MINUTE`,
-`ESCALATION_PER_HOUR` and `Credit_Reset_Weekly` all apply here too. An optional
+Config is read in layers, later winning:
+
+```
+built-in defaults  →  ../config.json (shared root)  →  webapp/data/<user>_config.json (per-user)
+```
+
+The shared `../config.json` supplies keys like `Daily_New_Word_Cap`,
+`No_Repeat_Window`, `Source_Language`, `Target_Language`,
+`Credit_Window_Start/End`, `BASE_RATE_PER_MINUTE`, `ESCALATION_PER_HOUR` and
+`Credit_Reset_Weekly` (shared with the terminal app). An optional
 `CREDITS_PER_CORRECT` key (default `7`) controls the reward per correct answer.
+
+**Per-user config:** any learner can have their own overlay file at
+`webapp/data/<user>_config.json` that overrides only the keys it lists; every
+other key falls back to `../config.json`. If a user has no such file, they use
+`../config.json` unchanged. Manage these from the admin dashboard's **Ayarlar**
+tab (pick a user in the *Kapsam* selector) or drop a JSON file in by hand — e.g.
+`webapp/data/mert_config.json`:
+
+```json
+{ "Daily_New_Word_Cap": 5, "CREDITS_PER_CORRECT": 10 }
+```
+
+### `.env`
+
+On startup the app loads the **project-root `../.env`** (the same file the
+terminal app uses) into the environment — via `python-dotenv` if installed, else
+a minimal built-in parser. So `ADMIN_PASSWORD`, `COALIDE_SECRET_KEY`, `PORT`,
+etc. can be set there. Real environment variables always take precedence over
+`.env`.
 
 Environment variables:
 
 | Variable | Purpose | Default |
 |---|---|---|
 | `COALIDE_SECRET_KEY` | Flask session secret — **set this in production** | dev placeholder |
-| `PORT` | Port to listen on | `5000` |
+| `PORT` | Port to listen on | `6656` |
+| `ADMIN_PASSWORD` | Admin dashboard password (also read from `../.env`) | `0000` |
 | `COALIDE_DEBUG` | Set to enable Flask debug mode | off |
 
 ## How it maps to the terminal app
@@ -81,16 +138,18 @@ would restore the real grant.
 
 ```
 webapp/
-├── app.py            # Flask app: pages + JSON API
+├── app.py            # Flask app: pages + JSON API (quiz + admin)
 ├── engine.py         # per-user SM-2 learning engine (reuses words.json + Word)
 ├── credits.py        # per-user credit earning / pricing / redemption
 ├── requirements.txt
 ├── templates/
 │   ├── login.html
-│   └── index.html    # single-page quiz / rewards / stats UI
+│   ├── index.html    # single-page quiz / rewards / stats UI
+│   └── admin.html    # parent admin dashboard (users + settings)
 ├── static/
 │   ├── style.css
-│   └── app.js
+│   ├── app.js        # quiz front-end logic
+│   └── admin.js      # admin dashboard logic
 └── data/             # per-user progress + balances (gitignored)
 ```
 
@@ -101,5 +160,5 @@ use. For a real deployment, run it behind a WSGI server, e.g.:
 
 ```bash
 pip install gunicorn
-gunicorn -w 2 -b 0.0.0.0:5000 app:app
+gunicorn -w 2 -b 0.0.0.0:6656 app:app
 ```

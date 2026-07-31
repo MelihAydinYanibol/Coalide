@@ -10,18 +10,39 @@ Run:
     cd webapp
     pip install -r requirements.txt
     python app.py
-Then open http://localhost:5000
+Then open http://localhost:6656
 """
 
 from __future__ import annotations
 
 import os
-import secrets
 
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 
 import engine
 import credits
+
+DEFAULT_PORT = 6656
+
+# Load the project-root .env (the same file the terminal app uses) so
+# ADMIN_PASSWORD, COALIDE_SECRET_KEY, PORT, etc. are available via os.environ.
+# Uses python-dotenv when installed, else a minimal manual parse so the root
+# .env is honoured either way. Existing environment variables always win.
+_ENV_PATH = os.path.join(engine.PROJECT_ROOT, ".env")
+try:
+    from dotenv import load_dotenv
+    load_dotenv(_ENV_PATH)
+except Exception:
+    try:
+        with open(_ENV_PATH, "r", encoding="utf-8") as _f:
+            for _line in _f:
+                _line = _line.strip()
+                if not _line or _line.startswith("#") or "=" not in _line:
+                    continue
+                _k, _v = _line.split("=", 1)
+                os.environ.setdefault(_k.strip(), _v.strip())
+    except OSError:
+        pass
 
 app = Flask(__name__)
 # A stable secret keeps sessions valid across restarts in dev; override in prod.
@@ -34,6 +55,38 @@ app.secret_key = os.environ.get("COALIDE_SECRET_KEY", "coalide-dev-secret-change
 
 def current_user() -> str | None:
     return session.get("username")
+
+
+def admin_password() -> str:
+    """
+    The admin password, matching the terminal app: the ADMIN_PASSWORD env var,
+    else the value in the project's ../.env, else the placeholder default 0000.
+    """
+    env = os.environ.get("ADMIN_PASSWORD")
+    if env:
+        return env
+    env_path = os.path.join(engine.PROJECT_ROOT, ".env")
+    try:
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("ADMIN_PASSWORD="):
+                    return line.split("=", 1)[1].strip()
+    except OSError:
+        pass
+    return "0000"
+
+
+def admin_required(fn):
+    from functools import wraps
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if not session.get("is_admin"):
+            return jsonify({"error": "admin_required"}), 401
+        return fn(*args, **kwargs)
+
+    return wrapper
 
 
 def login_required(fn):
@@ -56,7 +109,7 @@ def login_required(fn):
 def index():
     if not current_user():
         return redirect(url_for("login_page"))
-    cfg = engine.get_config()
+    cfg = engine.get_config(current_user())
     return render_template(
         "index.html",
         username=current_user(),
@@ -70,6 +123,11 @@ def login_page():
     if current_user():
         return redirect(url_for("index"))
     return render_template("login.html")
+
+
+@app.route("/admin", methods=["GET"])
+def admin_page():
+    return render_template("admin.html", is_admin=bool(session.get("is_admin")))
 
 
 # --------------------------------------------------------------------------- #
@@ -198,6 +256,125 @@ def api_quote():
     return jsonify({"cost": credits.cost_for_minutes(udata, minutes, target_date), "balance": udata["balance"]})
 
 
+# --------------------------------------------------------------------------- #
+# Admin API (parent-facing dashboard)                                          #
+# --------------------------------------------------------------------------- #
+
+@app.route("/api/admin/login", methods=["POST"])
+def api_admin_login():
+    data = request.get_json(silent=True) or {}
+    password = str(data.get("password", ""))
+    if password and password == admin_password():
+        session["is_admin"] = True
+        return jsonify({"ok": True})
+    return jsonify({"ok": False, "error": "Hatalı şifre."}), 401
+
+
+@app.route("/api/admin/logout", methods=["POST"])
+def api_admin_logout():
+    session.pop("is_admin", None)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/admin/users", methods=["GET"])
+@admin_required
+def api_admin_users():
+    users = []
+    total_words = 0
+    for name in engine.list_usernames():
+        stats = engine.user_stats(name)
+        total_words = stats["total_words"]
+        data = credits.load_user(name)
+        credits.check_weekly_reset(data)
+        redeemed_today = data["redeemed_minutes_by_date"].get(_today_iso(), 0)
+        users.append({
+            "username": name,
+            "balance": data["balance"],
+            "words_seen": stats["words_seen"],
+            "due_now": stats["due_now"],
+            "mastered": stats["mastered"],
+            "overall_rate": stats["overall_rate"],
+            "redeemed_today": redeemed_today,
+        })
+    return jsonify({"users": users, "total_words": total_words})
+
+
+@app.route("/api/admin/credits", methods=["POST"])
+@admin_required
+def api_admin_credits():
+    data = request.get_json(silent=True) or {}
+    username = engine._safe_username(str(data.get("username", "")))
+    try:
+        delta = int(data.get("delta", 0))
+    except (TypeError, ValueError):
+        return jsonify({"ok": False, "error": "Geçersiz miktar."}), 400
+    if username not in engine.list_usernames():
+        return jsonify({"ok": False, "error": "Kullanıcı bulunamadı."}), 404
+    new_balance = credits.adjust_balance(username, delta)
+    return jsonify({"ok": True, "username": username, "balance": new_balance})
+
+
+def _scope_user(raw) -> str:
+    """Sanitised target user for a config request, or '' for the global scope."""
+    return engine._safe_username(str(raw)) if raw else ""
+
+
+@app.route("/api/admin/config", methods=["GET"])
+@admin_required
+def api_admin_get_config():
+    user = _scope_user(request.args.get("user"))
+    root_cfg = engine.get_config()                 # global (root config.json)
+    eff_cfg = engine.get_config(user) if user else root_cfg
+    overrides = engine._read_json_dict(engine._user_config_path(user)) if user else {}
+
+    fields = []
+    for key, spec in engine.EDITABLE_CONFIG_KEYS.items():
+        fields.append({
+            "key": key,
+            "type": spec["type"],
+            "desc": spec["desc"],
+            "value": eff_cfg.get(key),
+            "root_value": root_cfg.get(key),
+            "overridden": key in overrides,
+        })
+    return jsonify({
+        "scope": user or "global",
+        "has_user_config": bool(user) and engine.has_user_config(user),
+        "users": engine.list_usernames(),
+        "fields": fields,
+    })
+
+
+@app.route("/api/admin/config", methods=["POST"])
+@admin_required
+def api_admin_save_config():
+    data = request.get_json(silent=True) or {}
+    updates = data.get("updates") or {}
+    user = _scope_user(data.get("user"))
+    try:
+        engine.save_config(updates, username=user or None)
+    except ValueError as e:
+        return jsonify({"ok": False, "error": str(e)}), 400
+    return jsonify({"ok": True, "scope": user or "global"})
+
+
+@app.route("/api/admin/config/reset", methods=["POST"])
+@admin_required
+def api_admin_reset_config():
+    """Delete a user's config overlay so they fall back to the root config."""
+    data = request.get_json(silent=True) or {}
+    user = _scope_user(data.get("user"))
+    if not user:
+        return jsonify({"ok": False, "error": "Kullanıcı belirtilmedi."}), 400
+    removed = engine.delete_user_config(user)
+    return jsonify({"ok": True, "removed": removed})
+
+
+def _today_iso() -> str:
+    from datetime import date
+    return date.today().isoformat()
+
+
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", DEFAULT_PORT))
     app.run(host="0.0.0.0", port=port, debug=bool(os.environ.get("COALIDE_DEBUG")))

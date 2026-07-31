@@ -1,5 +1,6 @@
-# Per-user runtime data (progress + credit balances)
+# Per-user runtime data (progress, credit balances, config overlays, answer logs)
 data/*.json
+data/*.csv
 !data/.gitkeep
 
 __pycache__/

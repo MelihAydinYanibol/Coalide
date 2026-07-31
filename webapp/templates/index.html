@@ -90,17 +90,15 @@
 
         <!-- STATS VIEW -->
         <section id="view-stats" class="view">
-            <div class="card">
-                <h2 class="view-title">📊 İstatistiklerin</h2>
-                <div class="stats-grid" id="stats-grid">
-                    <div class="stat"><span class="stat-num" id="s-seen">–</span><span class="stat-label">Görülen kelime</span></div>
-                    <div class="stat"><span class="stat-num" id="s-total">–</span><span class="stat-label">Toplam kelime</span></div>
-                    <div class="stat"><span class="stat-num" id="s-due">–</span><span class="stat-label">Şimdi tekrar</span></div>
-                    <div class="stat"><span class="stat-num" id="s-mastered">–</span><span class="stat-label">İyi bilinen</span></div>
-                    <div class="stat"><span class="stat-num" id="s-rate">–</span><span class="stat-label">Başarı oranı</span></div>
-                    <div class="stat"><span class="stat-num" id="s-balance">–</span><span class="stat-label">Kredi</span></div>
-                </div>
+            <h2 class="view-title stats-heading">📊 İstatistiklerin</h2>
+            <div class="stats-subtabs" id="stats-subtabs">
+                <button class="subtab active" data-sub="genel">📊 Genel Bakış</button>
+                <button class="subtab" data-sub="krediler">💰 Krediler</button>
+                <button class="subtab" data-sub="haftalik">📅 Haftalık &amp; Günlük</button>
+                <button class="subtab" data-sub="kelimeler">🔤 Kelimeler</button>
+                <button class="subtab" data-sub="gelecek">🔮 Gelecek &amp; SM-2</button>
             </div>
+            <div id="stats-root"><p class="muted">Yükleniyor…</p></div>
         </section>
     </main>
 
@@ -110,6 +108,7 @@
             targetLanguage: {{ target_language|tojson }}
         };
     </script>
+    <script src="{{ url_for('static', filename='stats.js') }}"></script>
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

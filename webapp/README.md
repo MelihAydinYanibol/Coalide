@@ -27,8 +27,12 @@ browser, with **per-user progress** kept separately for each learner.
 - **Pronunciation** — the target word and example sentence are read aloud using
   the browser's built-in Web Speech API, so no TTS keys or server-side audio are
   required. (The terminal app's ElevenLabs/gTTS pipeline is not needed here.)
-- **Stats dashboard** — words seen, due now, well-known count and overall
-  success rate.
+- **Full statistics dashboard** — a browser port of the terminal
+  İstatistikler screen, with the same five tabs (Genel Bakış, Krediler,
+  Haftalık & Günlük, Kelimeler, Gelecek & SM-2): overview tiles, SM-2 maturity
+  buckets, hardest words, daily/weekly new-word and answer charts, activity
+  sparklines, credit earn/spend/redeem history, a per-word table and SM-2
+  health. Every answer is logged per-user to `webapp/data/<user>_stats.csv`.
 - **Admin dashboard** — a password-protected parent panel at `/admin`,
   connected to the web app's own data: see every learner's progress and
   balance, adjust credits, and edit the shared `config.json` from the browser.
@@ -113,6 +117,24 @@ Environment variables:
 | `ADMIN_PASSWORD` | Admin dashboard password (also read from `../.env`) | `0000` |
 | `COALIDE_DEBUG` | Set to enable Flask debug mode | off |
 
+### Importing a terminal user
+
+To bring a learner's existing terminal-app data into the web app, use the
+bundled importer instead of renaming by hand (it also fixes the `"username"`
+field inside the credits file, which a plain rename would leave stale):
+
+```bash
+cd webapp
+python import_user.py <username> <folder-with-their-files> [--config] [--force]
+# e.g.  python import_user.py mert D:\pack
+```
+
+It reads `progress.json` → `data/<user>_progress.json`, `*_data.json` →
+`data/<user>_data.json`, and (with `--config`) imports `config.json` as a
+per-user overlay pruned to just the keys that differ from the shared root.
+`statistics.csv`, `version.json` and `words.json` are ignored — the web app
+doesn't use them. Then log in as that user.
+
 ## How it maps to the terminal app
 
 | Terminal app | Web app |
@@ -121,6 +143,8 @@ Environment variables:
 | `objects/word_obj.py` (`Word`, progress) | reuses `Word`; progress persisted per-user in `engine.py` |
 | `new_master.normalize_answer` | `engine.normalize_answer` |
 | `objects/balance_obj.py` (credits/pricing) | `credits.py` |
+| `stats_menu.build_stats` / `record_answer` | `stats.build_stats` / `stats.record_answer` |
+| `statistics.csv` (global answer log) | `webapp/data/<user>_stats.csv` (per-user) |
 | `current_user.json` | Flask session cookie |
 | ElevenLabs / gTTS audio | browser Web Speech API |
 
@@ -138,9 +162,11 @@ would restore the real grant.
 
 ```
 webapp/
-├── app.py            # Flask app: pages + JSON API (quiz + admin)
+├── app.py            # Flask app: pages + JSON API (quiz + admin + stats)
 ├── engine.py         # per-user SM-2 learning engine (reuses words.json + Word)
 ├── credits.py        # per-user credit earning / pricing / redemption
+├── stats.py          # per-user answer log + build_stats (İstatistikler port)
+├── import_user.py    # bring a terminal user's files into webapp/data/
 ├── requirements.txt
 ├── templates/
 │   ├── login.html
@@ -149,8 +175,9 @@ webapp/
 ├── static/
 │   ├── style.css
 │   ├── app.js        # quiz front-end logic
+│   ├── stats.js      # statistics dashboard renderer
 │   └── admin.js      # admin dashboard logic
-└── data/             # per-user progress + balances (gitignored)
+└── data/             # per-user progress + balances + stats logs (gitignored)
 ```
 
 ## Production note

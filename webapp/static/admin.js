@@ -129,8 +129,37 @@
     }
 
     // --- config ---
+    const scopeSel = el("config-scope");
+    const scopeNote = el("config-scope-note");
+    const resetBtn = el("config-reset");
+    let scopeInitialised = false;
+
+    function currentScope() {
+        return scopeSel.value || "";  // "" = global
+    }
+
     async function loadConfig() {
-        const data = await api("/api/admin/config");
+        const user = currentScope();
+        const q = user ? "?user=" + encodeURIComponent(user) : "";
+        const data = await api("/api/admin/config" + q);
+
+        // Populate the scope dropdown once (and refresh its user list).
+        const prev = scopeSel.value;
+        scopeSel.innerHTML = '<option value="">🌍 Genel (config.json)</option>' +
+            data.users.map((u) => `<option value="${escapeHtml(u)}">👤 ${escapeHtml(u)}</option>`).join("");
+        scopeSel.value = prev && (prev === "" || data.users.includes(prev)) ? prev : (user || "");
+        scopeInitialised = true;
+
+        const isUser = data.scope !== "global";
+        resetBtn.classList.toggle("hidden", !isUser);
+        if (!isUser) {
+            scopeNote.textContent = "Genel ayarlar — web ve terminal uygulamaları arasında paylaşılır (config.json). Bir kullanıcının kendi ayarı yoksa buraya döner.";
+        } else if (data.has_user_config) {
+            scopeNote.textContent = `“${data.scope}” için özel ayarlar. Değiştirilmeyen anahtarlar genel ayarı izler.`;
+        } else {
+            scopeNote.textContent = `“${data.scope}” şu an genel ayarları kullanıyor. Bir değeri değiştirip kaydederseniz yalnızca bu kullanıcı için geçersiz kılınır.`;
+        }
+
         const form = el("config-form");
         form.innerHTML = "";
         data.fields.forEach((f) => {
@@ -144,15 +173,19 @@
                 const step = f.type === "float" ? ' step="0.1"' : "";
                 input = `<input class="config-input" type="${t}"${step} data-key="${f.key}" value="${escapeHtml(f.value == null ? "" : f.value)}">`;
             }
+            const badge = (isUser && f.overridden)
+                ? `<span class="override-badge" title="Genel: ${escapeHtml(f.root_value)}">özel</span>` : "";
             row.innerHTML = `
                 <div class="config-label">
-                    <span class="config-key">${escapeHtml(f.key)}</span>
+                    <span class="config-key">${escapeHtml(f.key)} ${badge}</span>
                     <span class="config-desc">${escapeHtml(f.desc)}</span>
                 </div>
                 <div class="config-control">${input}</div>`;
             form.appendChild(row);
         });
     }
+
+    scopeSel.addEventListener("change", loadConfig);
 
     el("config-save").addEventListener("click", async () => {
         const updates = {};
@@ -164,15 +197,31 @@
         const res = await api("/api/admin/config", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ updates })
+            body: JSON.stringify({ updates, user: currentScope() })
         });
         if (res.ok) {
             resEl.classList.add("ok");
             resEl.textContent = "✅ Kaydedildi";
+            loadConfig();
         } else {
             resEl.classList.add("err");
             resEl.textContent = "⚠ " + (res.error || "Kaydedilemedi");
         }
+        setTimeout(() => { resEl.textContent = ""; resEl.className = "config-result"; }, 2500);
+    });
+
+    resetBtn.addEventListener("click", async () => {
+        const user = currentScope();
+        if (!user) return;
+        const res = await api("/api/admin/config/reset", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ user })
+        });
+        const resEl = el("config-result");
+        resEl.className = "config-result ok";
+        resEl.textContent = res.removed ? "✅ Genel ayarlara döndürüldü" : "Zaten genel ayarları kullanıyordu";
+        loadConfig();
         setTimeout(() => { resEl.textContent = ""; resEl.className = "config-result"; }, 2500);
     });
 

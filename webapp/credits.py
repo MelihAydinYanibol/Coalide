@@ -32,8 +32,8 @@ def _parse_time(value: str, fallback: str) -> time:
         return datetime.strptime(fallback, "%H:%M").time()
 
 
-def is_within_credit_window(now: time | None = None) -> bool:
-    cfg = get_config()
+def is_within_credit_window(now: time | None = None, username: str | None = None) -> bool:
+    cfg = get_config(username)
     start = _parse_time(cfg.get("Credit_Window_Start", "07:00"), "07:00")
     end = _parse_time(cfg.get("Credit_Window_End", "22:00"), "22:00")
     current = now if now is not None else datetime.now().time()
@@ -77,7 +77,7 @@ def save_user(data: dict) -> None:
 
 def check_weekly_reset(data: dict) -> bool:
     """Reset balance to 0 if a new week (Monday 00:00) has started since last reset."""
-    if not get_config().get("Credit_Reset_Weekly", True):
+    if not get_config(data.get("username")).get("Credit_Reset_Weekly", True):
         return False
     today = date.today()
     week_start = today - timedelta(days=today.weekday())
@@ -99,11 +99,11 @@ def award_credits(username: str) -> dict:
     Award credits for a correct answer if we're inside the earning window.
     Returns ``{"awarded": int, "balance": int, "in_window": bool}``.
     """
-    cfg = get_config()
+    cfg = get_config(username)
     amount = cfg.get("CREDITS_PER_CORRECT", 7)
     data = load_user(username)
     check_weekly_reset(data)
-    in_window = is_within_credit_window()
+    in_window = is_within_credit_window(username=username)
     if in_window:
         data["balance"] += amount
         save_user(data)
@@ -120,7 +120,7 @@ def adjust_balance(username: str, delta: int) -> int:
 
 def cost_for_minutes(data: dict, requested_minutes: int, target_date: str) -> int:
     """Escalating cost: each hour already redeemed for ``target_date`` makes the next hour pricier."""
-    cfg = get_config()
+    cfg = get_config(data.get("username"))
     base = cfg.get("BASE_RATE_PER_MINUTE", 5)
     escalation = cfg.get("ESCALATION_PER_HOUR", 0.5)
     already = data["redeemed_minutes_by_date"].get(target_date, 0)
@@ -151,7 +151,7 @@ def redeem(username: str, requested_minutes: int, target_date: str) -> dict:
     if requested_minutes <= 0:
         return {"ok": False, "error": "Lütfen pozitif bir dakika sayısı girin."}
 
-    if get_config().get("Credit_Reset_Weekly", True):
+    if get_config(username).get("Credit_Reset_Weekly", True):
         week_end = date.today() + timedelta(days=6 - date.today().weekday())
         if tgt > week_end:
             return {"ok": False, "error": f"Krediler her pazartesi sıfırlanır; en geç {week_end.isoformat()} için süre alabilirsiniz."}

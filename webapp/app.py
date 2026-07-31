@@ -10,18 +10,39 @@ Run:
     cd webapp
     pip install -r requirements.txt
     python app.py
-Then open http://localhost:5000
+Then open http://localhost:6656
 """
 
 from __future__ import annotations
 
 import os
-import secrets
 
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 
 import engine
 import credits
+
+DEFAULT_PORT = 6656
+
+# Load the project-root .env (the same file the terminal app uses) so
+# ADMIN_PASSWORD, COALIDE_SECRET_KEY, PORT, etc. are available via os.environ.
+# Uses python-dotenv when installed, else a minimal manual parse so the root
+# .env is honoured either way. Existing environment variables always win.
+_ENV_PATH = os.path.join(engine.PROJECT_ROOT, ".env")
+try:
+    from dotenv import load_dotenv
+    load_dotenv(_ENV_PATH)
+except Exception:
+    try:
+        with open(_ENV_PATH, "r", encoding="utf-8") as _f:
+            for _line in _f:
+                _line = _line.strip()
+                if not _line or _line.startswith("#") or "=" not in _line:
+                    continue
+                _k, _v = _line.split("=", 1)
+                os.environ.setdefault(_k.strip(), _v.strip())
+    except OSError:
+        pass
 
 app = Flask(__name__)
 # A stable secret keeps sessions valid across restarts in dev; override in prod.
@@ -88,7 +109,7 @@ def login_required(fn):
 def index():
     if not current_user():
         return redirect(url_for("login_page"))
-    cfg = engine.get_config()
+    cfg = engine.get_config(current_user())
     return render_template(
         "index.html",
         username=current_user(),
@@ -293,19 +314,35 @@ def api_admin_credits():
     return jsonify({"ok": True, "username": username, "balance": new_balance})
 
 
+def _scope_user(raw) -> str:
+    """Sanitised target user for a config request, or '' for the global scope."""
+    return engine._safe_username(str(raw)) if raw else ""
+
+
 @app.route("/api/admin/config", methods=["GET"])
 @admin_required
 def api_admin_get_config():
-    cfg = engine.get_config()
+    user = _scope_user(request.args.get("user"))
+    root_cfg = engine.get_config()                 # global (root config.json)
+    eff_cfg = engine.get_config(user) if user else root_cfg
+    overrides = engine._read_json_dict(engine._user_config_path(user)) if user else {}
+
     fields = []
     for key, spec in engine.EDITABLE_CONFIG_KEYS.items():
         fields.append({
             "key": key,
             "type": spec["type"],
             "desc": spec["desc"],
-            "value": cfg.get(key),
+            "value": eff_cfg.get(key),
+            "root_value": root_cfg.get(key),
+            "overridden": key in overrides,
         })
-    return jsonify({"fields": fields})
+    return jsonify({
+        "scope": user or "global",
+        "has_user_config": bool(user) and engine.has_user_config(user),
+        "users": engine.list_usernames(),
+        "fields": fields,
+    })
 
 
 @app.route("/api/admin/config", methods=["POST"])
@@ -313,11 +350,24 @@ def api_admin_get_config():
 def api_admin_save_config():
     data = request.get_json(silent=True) or {}
     updates = data.get("updates") or {}
+    user = _scope_user(data.get("user"))
     try:
-        engine.save_config(updates)
+        engine.save_config(updates, username=user or None)
     except ValueError as e:
         return jsonify({"ok": False, "error": str(e)}), 400
-    return jsonify({"ok": True})
+    return jsonify({"ok": True, "scope": user or "global"})
+
+
+@app.route("/api/admin/config/reset", methods=["POST"])
+@admin_required
+def api_admin_reset_config():
+    """Delete a user's config overlay so they fall back to the root config."""
+    data = request.get_json(silent=True) or {}
+    user = _scope_user(data.get("user"))
+    if not user:
+        return jsonify({"ok": False, "error": "Kullanıcı belirtilmedi."}), 400
+    removed = engine.delete_user_config(user)
+    return jsonify({"ok": True, "removed": removed})
 
 
 def _today_iso() -> str:
@@ -326,5 +376,5 @@ def _today_iso() -> str:
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", DEFAULT_PORT))
     app.run(host="0.0.0.0", port=port, debug=bool(os.environ.get("COALIDE_DEBUG")))

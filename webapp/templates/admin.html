@@ -72,7 +72,12 @@
             <section id="view-config" class="view">
                 <div class="card">
                     <h2 class="view-title">⚙️ Ayarlar</h2>
-                    <p class="muted">Bu ayarlar hem web uygulaması hem de terminal uygulaması tarafından paylaşılır (<code>config.json</code>).</p>
+                    <div class="scope-bar">
+                        <label for="config-scope">Kapsam</label>
+                        <select id="config-scope"></select>
+                        <button class="ghost-btn tiny" id="config-reset" title="Bu kullanıcıyı genel ayarlara döndür">Sıfırla</button>
+                    </div>
+                    <p class="muted" id="config-scope-note"></p>
                     <form id="config-form" class="config-form"></form>
                     <div class="config-actions">
                         <button class="primary-btn" id="config-save">Kaydet</button>

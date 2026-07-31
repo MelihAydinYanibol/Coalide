@@ -42,36 +42,61 @@ os.makedirs(DATA_DIR, exist_ok=True)
 # Config                                                                       #
 # --------------------------------------------------------------------------- #
 
-def get_config() -> dict:
-    """
-    Load the shared ``config.json`` from the project root, falling back to the
-    terminal app's defaults. We read the file directly (rather than importing
-    ``utils``) to avoid the terminal module's import-time side effects, but we
-    honour the same keys so the web and terminal apps behave consistently.
-    """
-    defaults = {
-        "Daily_New_Word_Cap": 15,
-        "No_Repeat_Window": 8,
-        "SHUFFLE_NEW_WORDS": False,
-        "Source_Language": "Türkçe",
-        "Target_Language": "İngilizce",
-        "SPAM_PROTECTION": True,
-        "Credit_Reset_Weekly": True,
-        "Credit_Window_Start": "07:00",
-        "Credit_Window_End": "22:00",
-        "CREDITS_PER_CORRECT": 7,
-        "BASE_RATE_PER_MINUTE": 5,
-        "ESCALATION_PER_HOUR": 0.5,
-    }
-    config_path = os.path.join(PROJECT_ROOT, "config.json")
+CONFIG_DEFAULTS = {
+    "Daily_New_Word_Cap": 15,
+    "No_Repeat_Window": 8,
+    "SHUFFLE_NEW_WORDS": False,
+    "Source_Language": "Türkçe",
+    "Target_Language": "İngilizce",
+    "SPAM_PROTECTION": True,
+    "Credit_Reset_Weekly": True,
+    "Credit_Window_Start": "07:00",
+    "Credit_Window_End": "22:00",
+    "CREDITS_PER_CORRECT": 7,
+    "BASE_RATE_PER_MINUTE": 5,
+    "ESCALATION_PER_HOUR": 0.5,
+}
+
+
+def _read_json_dict(path: str) -> dict:
     try:
-        with open(config_path, "r", encoding="utf-8") as f:
+        with open(path, "r", encoding="utf-8") as f:
             loaded = json.load(f)
-        if isinstance(loaded, dict):
-            defaults.update(loaded)
+        return loaded if isinstance(loaded, dict) else {}
     except (OSError, json.JSONDecodeError):
-        pass
-    return defaults
+        return {}
+
+
+def _root_config_path() -> str:
+    return os.path.join(PROJECT_ROOT, "config.json")
+
+
+def _user_config_path(username: str) -> str:
+    return os.path.join(DATA_DIR, f"{_safe_username(username)}_config.json")
+
+
+def has_user_config(username: str) -> bool:
+    """True if this user has their own config overlay file on disk."""
+    return bool(username) and os.path.exists(_user_config_path(username))
+
+
+def get_config(username: str | None = None) -> dict:
+    """
+    Return the effective config as layers, later layers winning:
+
+        hard-coded defaults  ->  project-root config.json  ->  <user>_config.json
+
+    Passing a username overlays that learner's own config file (if any) on top
+    of the shared root config. When the user has no config file, the result is
+    exactly the root ``config.json`` (its intended default). Reading the files
+    directly avoids the terminal ``utils`` module's import-time side effects,
+    while honouring the same keys so the web and terminal apps stay consistent.
+    """
+    config = dict(CONFIG_DEFAULTS)
+    config.update(_read_json_dict(_root_config_path()))  # shared root config
+    if username:
+        config.update(_read_json_dict(_user_config_path(username)))  # per-user overlay
+    return config
 
 
 # --------------------------------------------------------------------------- #
@@ -216,7 +241,7 @@ def get_next_word(username: str, feed: list[str] | None = None) -> tuple[Word | 
     if feed is None:
         feed = []
 
-    config = get_config()
+    config = get_config(username)
     daily_cap = config.get("Daily_New_Word_Cap", 15)
     no_repeat = config.get("No_Repeat_Window", 8)
 
@@ -373,7 +398,7 @@ def list_usernames() -> list[str]:
     names: set[str] = set()
     try:
         for fname in os.listdir(DATA_DIR):
-            for suffix in ("_progress.json", "_data.json"):
+            for suffix in ("_progress.json", "_data.json", "_config.json"):
                 if fname.endswith(suffix):
                     names.add(fname[: -len(suffix)])
     except OSError:
@@ -412,28 +437,61 @@ def _coerce_config_value(key: str, raw):
     return str(raw)
 
 
-def save_config(updates: dict) -> dict:
+def save_config(updates: dict, username: str | None = None) -> dict:
     """
-    Apply a partial config update to the project's shared ``config.json`` and
-    return the full config. Only whitelisted keys are accepted; values are
-    coerced to the declared type. Raises ValueError on a bad value.
-    """
-    config_path = os.path.join(PROJECT_ROOT, "config.json")
-    # Start from the full merged config so existing keys (including terminal-only
-    # ones) are preserved and nothing is dropped when only a few keys change.
-    config = get_config()
+    Apply a whitelisted config update and return the resulting effective config.
 
+    With no username, edits the shared project-root ``config.json`` (preserving
+    every existing key, including terminal-only ones). With a username, writes a
+    per-user overlay file (``webapp/data/<user>_config.json``) that overrides the
+    root config for that learner only; any key whose value equals the root
+    config is pruned from the overlay so unchanged keys keep tracking the root,
+    and an emptied overlay is deleted (full fall-back to root).
+
+    Only whitelisted keys are accepted; values are coerced to the declared type.
+    Raises ValueError on a bad value.
+    """
+    coerced = {}
     for key, raw in (updates or {}).items():
         if key not in EDITABLE_CONFIG_KEYS:
             continue
         try:
-            config[key] = _coerce_config_value(key, raw)
+            coerced[key] = _coerce_config_value(key, raw)
         except (TypeError, ValueError):
             raise ValueError(f"'{key}' için geçersiz değer.")
 
-    with open(config_path, "w", encoding="utf-8") as f:
+    if username:
+        root = dict(CONFIG_DEFAULTS)
+        root.update(_read_json_dict(_root_config_path()))
+        overlay = _read_json_dict(_user_config_path(username))
+        for key, value in coerced.items():
+            if root.get(key) == value:
+                overlay.pop(key, None)   # same as root -> no override needed
+            else:
+                overlay[key] = value
+        path = _user_config_path(username)
+        if overlay:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(overlay, f, ensure_ascii=False, indent=4)
+        elif os.path.exists(path):
+            os.remove(path)  # overlay emptied -> learner falls back to root
+        return get_config(username)
+
+    # Global scope: edit the shared root config, keeping all existing keys.
+    config = get_config()
+    config.update(coerced)
+    with open(_root_config_path(), "w", encoding="utf-8") as f:
         json.dump(config, f, ensure_ascii=False, indent=4)
     return config
+
+
+def delete_user_config(username: str) -> bool:
+    """Remove a learner's config overlay so they fall back to the root config."""
+    path = _user_config_path(username)
+    if os.path.exists(path):
+        os.remove(path)
+        return True
+    return False
 
 
 def user_stats(username: str) -> dict:

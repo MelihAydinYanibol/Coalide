@@ -18,11 +18,12 @@ What it does, looking inside <source_folder>:
 
     progress.json           ->  webapp/data/<username>_progress.json
     <any>_data.json / data.json ->  webapp/data/<username>_data.json  (username field fixed)
+    statistics.csv          ->  webapp/data/<username>_stats.csv  (per-answer log)
     config.json  (only with --config) -> webapp/data/<username>_config.json
                                           pruned to just the keys that differ
                                           from the shared root config.json
 
-    statistics.csv, version.json, words.json  ->  skipped (the web app doesn't use them)
+    version.json, words.json  ->  skipped (the web app doesn't use them)
 
 Existing destination files are left alone unless you pass --force.
 """
@@ -113,7 +114,25 @@ def import_user(username: str, src: str, with_config: bool = False, force: bool 
     else:
         skipped.append("no *_data.json found")
 
-    # 3) config.json -> <username>_config.json  (opt-in, pruned to real overrides)
+    # 3) statistics.csv -> <username>_stats.csv  (per-answer log; also accept a prefixed name)
+    import shutil
+    stats_src = next((os.path.join(src, n) for n in
+                      (f"{username}_stats.csv", "statistics.csv")
+                      if os.path.exists(os.path.join(src, n))), None)
+    if stats_src:
+        dst = os.path.join(engine.DATA_DIR, f"{username}_stats.csv")
+        if guard(dst):
+            try:
+                with open(stats_src, "r", encoding="utf-8") as f:
+                    rows = sum(1 for _ in f)
+                shutil.copyfile(stats_src, dst)
+                did.append(f"answer log ({max(0, rows - 1)} answers) -> {os.path.basename(dst)}")
+            except OSError as e:
+                skipped.append(f"stats log: {e}")
+    else:
+        skipped.append("no statistics.csv found")
+
+    # 4) config.json -> <username>_config.json  (opt-in, pruned to real overrides)
     config_src = os.path.join(src, "config.json")
     if with_config and os.path.exists(config_src):
         try:

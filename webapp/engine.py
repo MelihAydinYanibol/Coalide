@@ -67,6 +67,15 @@ def _read_json_dict(path: str) -> dict:
         return {}
 
 
+def _read_json_list(path: str) -> list:
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            loaded = json.load(f)
+        return loaded if isinstance(loaded, list) else []
+    except (OSError, json.JSONDecodeError):
+        return []
+
+
 def _root_config_path() -> str:
     return os.path.join(PROJECT_ROOT, "config.json")
 

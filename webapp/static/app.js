@@ -194,16 +194,12 @@
     // Stats
     // --------------------------------------------------------------------- //
     async function loadStats() {
-        const res = await fetch("/api/stats");
-        if (!res.ok) return;
-        const s = await res.json();
-        el("s-seen").textContent = s.words_seen;
-        el("s-total").textContent = s.total_words;
-        el("s-due").textContent = s.due_now;
-        el("s-mastered").textContent = s.mastered;
-        el("s-rate").textContent = "%" + s.overall_rate;
-        el("s-balance").textContent = s.balance;
-        setBalance(s.balance);
+        // Keep the header balance fresh, then render the full dashboard.
+        try {
+            const res = await fetch("/api/stats");
+            if (res.ok) setBalance((await res.json()).balance);
+        } catch (e) { /* ignore */ }
+        if (window.CoalideStats) window.CoalideStats.load();
     }
 
     // --------------------------------------------------------------------- //

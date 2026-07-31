@@ -21,6 +21,7 @@ from flask import Flask, jsonify, redirect, render_template, request, session, u
 
 import engine
 import credits
+import stats
 
 DEFAULT_PORT = 6656
 
@@ -193,6 +194,7 @@ def api_answer():
     is_target_wanted = pending["is_target_wanted"]
     result = engine.grade_answer(word, is_target_wanted, answer, time_taken)
     engine.save_word_progress(user, word)
+    stats.record_answer(user, word.target, result["is_correct"])  # per-user answer log
 
     # Credits for a correct answer (respects the earning window).
     credit_info = {"awarded": 0, "balance": credits.load_user(user)["balance"], "in_window": True}
@@ -216,12 +218,23 @@ def api_answer():
 @app.route("/api/stats", methods=["GET"])
 @login_required
 def api_stats():
+    """Lightweight summary used by the header pill and rewards screen."""
     user = current_user()
     data = credits.load_user(user)
     credits.check_weekly_reset(data)
-    stats = engine.user_stats(user)
-    stats["balance"] = data["balance"]
-    return jsonify(stats)
+    summary = engine.user_stats(user)
+    summary["balance"] = data["balance"]
+    return jsonify(summary)
+
+
+@app.route("/api/stats/full", methods=["GET"])
+@login_required
+def api_stats_full():
+    """Full statistics dashboard payload (ports the terminal İstatistikler screen)."""
+    user = current_user()
+    data = credits.load_user(user)
+    credits.check_weekly_reset(data)
+    return jsonify(stats.build_stats(user))
 
 
 @app.route("/api/redeem", methods=["POST"])

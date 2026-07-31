@@ -113,6 +113,24 @@ Environment variables:
 | `ADMIN_PASSWORD` | Admin dashboard password (also read from `../.env`) | `0000` |
 | `COALIDE_DEBUG` | Set to enable Flask debug mode | off |
 
+### Importing a terminal user
+
+To bring a learner's existing terminal-app data into the web app, use the
+bundled importer instead of renaming by hand (it also fixes the `"username"`
+field inside the credits file, which a plain rename would leave stale):
+
+```bash
+cd webapp
+python import_user.py <username> <folder-with-their-files> [--config] [--force]
+# e.g.  python import_user.py mert D:\pack
+```
+
+It reads `progress.json` → `data/<user>_progress.json`, `*_data.json` →
+`data/<user>_data.json`, and (with `--config`) imports `config.json` as a
+per-user overlay pruned to just the keys that differ from the shared root.
+`statistics.csv`, `version.json` and `words.json` are ignored — the web app
+doesn't use them. Then log in as that user.
+
 ## How it maps to the terminal app
 
 | Terminal app | Web app |

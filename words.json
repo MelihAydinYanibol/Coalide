@@ -10529,5 +10529,2873 @@
             "pembe"
         ],
         "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "There is a",
+            "of books on my desk"
+        ],
+        "target": "pile",
+        "past": "",
+        "v3": "",
+        "source": [
+            "yığın",
+            "küme"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "is flying the plane to Rome"
+        ],
+        "target": "pilot",
+        "past": "",
+        "v3": "",
+        "source": [
+            "pilot"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "She fixed the papers together with a",
+            ""
+        ],
+        "target": "pin",
+        "past": "",
+        "v3": "",
+        "source": [
+            "iğne",
+            "toplu iğne"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "Water is leaking from the",
+            "under the sink"
+        ],
+        "target": "pipe",
+        "past": "",
+        "v3": "",
+        "source": [
+            "boru"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The players are running on the football",
+            ""
+        ],
+        "target": "pitch",
+        "past": "",
+        "v3": "",
+        "source": [
+            "saha"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "This is a quiet",
+            "to read a book"
+        ],
+        "target": "place",
+        "past": "",
+        "v3": "",
+        "source": [
+            "yer",
+            "mekan"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "She was wearing a",
+            "white dress"
+        ],
+        "target": "plain",
+        "past": "",
+        "v3": "",
+        "source": [
+            "sade",
+            "düz"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "We have a good",
+            "for the weekend"
+        ],
+        "target": "plan",
+        "past": "",
+        "v3": "",
+        "source": [
+            "plan"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "landed at the airport on time"
+        ],
+        "target": "plane",
+        "past": "",
+        "v3": "",
+        "source": [
+            "uçak"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "Earth is the",
+            "we live on"
+        ],
+        "target": "planet",
+        "past": "",
+        "v3": "",
+        "source": [
+            "gezegen"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The project needs careful",
+            ""
+        ],
+        "target": "planning",
+        "past": "",
+        "v3": "",
+        "source": [
+            "planlama"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "I water this",
+            "every morning"
+        ],
+        "target": "plant",
+        "past": "",
+        "v3": "",
+        "source": [
+            "bitki"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "This bottle is made of",
+            ""
+        ],
+        "target": "plastic",
+        "past": "",
+        "v3": "",
+        "source": [
+            "plastik"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "There is a piece of cake on the",
+            ""
+        ],
+        "target": "plate",
+        "past": "",
+        "v3": "",
+        "source": [
+            "tabak"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "We waited for the train on the",
+            ""
+        ],
+        "target": "platform",
+        "past": "",
+        "v3": "",
+        "source": [
+            "peron",
+            "platform"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "He is the best",
+            "on the team"
+        ],
+        "target": "player",
+        "past": "",
+        "v3": "",
+        "source": [
+            "oyuncu"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "We had a",
+            "evening together"
+        ],
+        "target": "pleasant",
+        "past": "",
+        "v3": "",
+        "source": [
+            "hoş",
+            "keyifli"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "exclamation",
+        "sentence": [
+            "Can you help me,",
+            "?"
+        ],
+        "target": "please",
+        "past": "",
+        "v3": "",
+        "source": [
+            "lütfen"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "I am",
+            "to meet you"
+        ],
+        "target": "pleased",
+        "past": "",
+        "v3": "",
+        "source": [
+            "memnun"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "It is a",
+            "to work with you"
+        ],
+        "target": "pleasure",
+        "past": "",
+        "v3": "",
+        "source": [
+            "zevk",
+            "memnuniyet"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "pronoun",
+        "sentence": [
+            "We still have",
+            "of time"
+        ],
+        "target": "plenty",
+        "past": "",
+        "v3": "",
+        "source": [
+            "bol",
+            "epeyce"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "of the film was very exciting"
+        ],
+        "target": "plot",
+        "past": "",
+        "v3": "",
+        "source": [
+            "olay örgüsü",
+            "konu"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "preposition",
+        "sentence": [
+            "Two",
+            "three is five"
+        ],
+        "target": "plus",
+        "past": "",
+        "v3": "",
+        "source": [
+            "artı"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "My keys are in my",
+            ""
+        ],
+        "target": "pocket",
+        "past": "",
+        "v3": "",
+        "source": [
+            "cep"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "She wrote a beautiful",
+            "about the sea"
+        ],
+        "target": "poem",
+        "past": "",
+        "v3": "",
+        "source": [
+            "şiir"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "read his work to the audience"
+        ],
+        "target": "poet",
+        "past": "",
+        "v3": "",
+        "source": [
+            "şair"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "I love reading",
+            "before I sleep"
+        ],
+        "target": "poetry",
+        "past": "",
+        "v3": "",
+        "source": [
+            "şiir"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "That is a very good",
+            ""
+        ],
+        "target": "point",
+        "past": "",
+        "v3": "",
+        "source": [
+            "nokta",
+            "puan"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "The knife has a",
+            "end"
+        ],
+        "target": "pointed",
+        "past": "",
+        "v3": "",
+        "source": [
+            "sivri"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "There is",
+            "in this bottle"
+        ],
+        "target": "poison",
+        "past": "",
+        "v3": "",
+        "source": [
+            "zehir"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "Do not eat that mushroom because it is",
+            ""
+        ],
+        "target": "poisonous",
+        "past": "",
+        "v3": "",
+        "source": [
+            "zehirli"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "arrived very quickly"
+        ],
+        "target": "police",
+        "past": "",
+        "v3": "",
+        "source": [
+            "polis"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "A",
+            "stopped our car this morning"
+        ],
+        "target": "policeman",
+        "past": "",
+        "v3": "",
+        "source": [
+            "polis memuru"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The company changed its",
+            "last year"
+        ],
+        "target": "policy",
+        "past": "",
+        "v3": "",
+        "source": [
+            "politika",
+            "ilke"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "He is always",
+            "to everyone"
+        ],
+        "target": "polite",
+        "past": "",
+        "v3": "",
+        "source": [
+            "kibar",
+            "nazik"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "They had a long",
+            "discussion"
+        ],
+        "target": "political",
+        "past": "",
+        "v3": "",
+        "source": [
+            "siyasi",
+            "politik"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "gave a long speech"
+        ],
+        "target": "politician",
+        "past": "",
+        "v3": "",
+        "source": [
+            "politikacı",
+            "siyasetçi"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "My father is very interested in",
+            ""
+        ],
+        "target": "politics",
+        "past": "",
+        "v3": "",
+        "source": [
+            "siyaset",
+            "politika"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "Air",
+            "is a big problem in this city"
+        ],
+        "target": "pollution",
+        "past": "",
+        "v3": "",
+        "source": [
+            "kirlilik"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The children are swimming in the",
+            ""
+        ],
+        "target": "pool",
+        "past": "",
+        "v3": "",
+        "source": [
+            "havuz"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "The family was very",
+            "but happy"
+        ],
+        "target": "poor",
+        "past": "",
+        "v3": "",
+        "source": [
+            "fakir",
+            "yoksul"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "She listens to",
+            "music every day"
+        ],
+        "target": "pop",
+        "past": "",
+        "v3": "",
+        "source": [
+            "pop"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "This song is very",
+            "among young people"
+        ],
+        "target": "popular",
+        "past": "",
+        "v3": "",
+        "source": [
+            "popüler"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The band's",
+            "is growing fast"
+        ],
+        "target": "popularity",
+        "past": "",
+        "v3": "",
+        "source": [
+            "popülerlik"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "of the city is growing"
+        ],
+        "target": "population",
+        "past": "",
+        "v3": "",
+        "source": [
+            "nüfus"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The ship arrived at the",
+            "this morning"
+        ],
+        "target": "port",
+        "past": "",
+        "v3": "",
+        "source": [
+            "liman"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The artist painted a",
+            "of the queen"
+        ],
+        "target": "portrait",
+        "past": "",
+        "v3": "",
+        "source": [
+            "portre"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "The models will",
+            "for the camera"
+        ],
+        "target": "pose",
+        "past": "posed",
+        "v3": "posed",
+        "source": [
+            "poz vermek"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "She has an important",
+            "in the company"
+        ],
+        "target": "position",
+        "past": "",
+        "v3": "",
+        "source": [
+            "konum",
+            "pozisyon"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "Try to keep a",
+            "attitude"
+        ],
+        "target": "positive",
+        "past": "",
+        "v3": "",
+        "source": [
+            "olumlu",
+            "pozitif"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "They",
+            "a large house in the countryside"
+        ],
+        "target": "possess",
+        "past": "possessed",
+        "v3": "possessed",
+        "source": [
+            "sahip olmak"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The old watch is his most valuable",
+            ""
+        ],
+        "target": "possession",
+        "past": "",
+        "v3": "",
+        "source": [
+            "mülk",
+            "sahiplik"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "There is a",
+            "of rain tomorrow"
+        ],
+        "target": "possibility",
+        "past": "",
+        "v3": "",
+        "source": [
+            "olasılık",
+            "ihtimal"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "It is",
+            "to finish the work today"
+        ],
+        "target": "possible",
+        "past": "",
+        "v3": "",
+        "source": [
+            "mümkün"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adverb",
+        "sentence": [
+            "She could",
+            "arrive late tonight"
+        ],
+        "target": "possibly",
+        "past": "",
+        "v3": "",
+        "source": [
+            "muhtemelen",
+            "belki"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "I sent the letter by",
+            "yesterday"
+        ],
+        "target": "post",
+        "past": "",
+        "v3": "",
+        "source": [
+            "posta"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "There is a film",
+            "on my bedroom wall"
+        ],
+        "target": "poster",
+        "past": "",
+        "v3": "",
+        "source": [
+            "afiş",
+            "poster"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The soup is boiling in the",
+            ""
+        ],
+        "target": "pot",
+        "past": "",
+        "v3": "",
+        "source": [
+            "tencere"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "I would like a baked",
+            "with my meal"
+        ],
+        "target": "potato",
+        "past": "",
+        "v3": "",
+        "source": [
+            "patates"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "She is a",
+            "winner of the race"
+        ],
+        "target": "potential",
+        "past": "",
+        "v3": "",
+        "source": [
+            "potansiyel",
+            "olası"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "This book costs one",
+            ""
+        ],
+        "target": "pound",
+        "past": "",
+        "v3": "",
+        "source": [
+            "sterlin",
+            "pound"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "Please",
+            "some water into my glass"
+        ],
+        "target": "pour",
+        "past": "poured",
+        "v3": "poured",
+        "source": [
+            "dökmek"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "Many families in the village live in",
+            ""
+        ],
+        "target": "poverty",
+        "past": "",
+        "v3": "",
+        "source": [
+            "yoksulluk",
+            "fakirlik"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "Add some milk",
+            "to the mixture"
+        ],
+        "target": "powder",
+        "past": "",
+        "v3": "",
+        "source": [
+            "toz"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The president has a lot of",
+            ""
+        ],
+        "target": "power",
+        "past": "",
+        "v3": "",
+        "source": [
+            "güç",
+            "iktidar"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "This car has a very",
+            "engine"
+        ],
+        "target": "powerful",
+        "past": "",
+        "v3": "",
+        "source": [
+            "güçlü"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "Your idea is simple and",
+            ""
+        ],
+        "target": "practical",
+        "past": "",
+        "v3": "",
+        "source": [
+            "pratik",
+            "kullanışlı"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "You need more",
+            "to play the piano well"
+        ],
+        "target": "practice",
+        "past": "",
+        "v3": "",
+        "source": [
+            "pratik",
+            "alıştırma"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The teacher gave her a lot of",
+            ""
+        ],
+        "target": "praise",
+        "past": "",
+        "v3": "",
+        "source": [
+            "övgü"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "They",
+            "together every morning"
+        ],
+        "target": "pray",
+        "past": "prayed",
+        "v3": "prayed",
+        "source": [
+            "dua etmek"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "She said a short",
+            "before dinner"
+        ],
+        "target": "prayer",
+        "past": "",
+        "v3": "",
+        "source": [
+            "dua"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "Nobody can",
+            "the future"
+        ],
+        "target": "predict",
+        "past": "predicted",
+        "v3": "predicted",
+        "source": [
+            "tahmin etmek",
+            "öngörmek"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "His",
+            "about the weather was correct"
+        ],
+        "target": "prediction",
+        "past": "",
+        "v3": "",
+        "source": [
+            "tahmin",
+            "öngörü"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "I",
+            "tea to coffee"
+        ],
+        "target": "prefer",
+        "past": "preferred",
+        "v3": "preferred",
+        "source": [
+            "tercih etmek"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "My sister is six months",
+            ""
+        ],
+        "target": "pregnant",
+        "past": "",
+        "v3": "",
+        "source": [
+            "hamile"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "for the party took two days"
+        ],
+        "target": "preparation",
+        "past": "",
+        "v3": "",
+        "source": [
+            "hazırlık"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "I will",
+            "dinner for the family tonight"
+        ],
+        "target": "prepare",
+        "past": "prepared",
+        "v3": "prepared",
+        "source": [
+            "hazırlamak"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "We are well",
+            "for the exam"
+        ],
+        "target": "prepared",
+        "past": "",
+        "v3": "",
+        "source": [
+            "hazır",
+            "hazırlıklı"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "Her",
+            "made everyone feel calm"
+        ],
+        "target": "presence",
+        "past": "",
+        "v3": "",
+        "source": [
+            "varlık",
+            "mevcudiyet"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "I bought a birthday",
+            "for my friend"
+        ],
+        "target": "present",
+        "past": "",
+        "v3": "",
+        "source": [
+            "hediye"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "She gave a short",
+            "in class today"
+        ],
+        "target": "presentation",
+        "past": "",
+        "v3": "",
+        "source": [
+            "sunum"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "We must",
+            "these old buildings"
+        ],
+        "target": "preserve",
+        "past": "preserved",
+        "v3": "preserved",
+        "source": [
+            "korumak",
+            "muhafaza etmek"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "spoke on television last night"
+        ],
+        "target": "president",
+        "past": "",
+        "v3": "",
+        "source": [
+            "başkan",
+            "cumhurbaşkanı"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "You must",
+            "the red button twice"
+        ],
+        "target": "press",
+        "past": "pressed",
+        "v3": "pressed",
+        "source": [
+            "basmak",
+            "bastırmak"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "He works under a lot of",
+            "at the office"
+        ],
+        "target": "pressure",
+        "past": "",
+        "v3": "",
+        "source": [
+            "baskı",
+            "basınç"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "Children love to",
+            "to be adults"
+        ],
+        "target": "pretend",
+        "past": "pretended",
+        "v3": "pretended",
+        "source": [
+            "-mış gibi yapmak",
+            "numara yapmak"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "She has a very",
+            "smile"
+        ],
+        "target": "pretty",
+        "past": "",
+        "v3": "",
+        "source": [
+            "güzel",
+            "hoş"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "Exercise can",
+            "many illnesses"
+        ],
+        "target": "prevent",
+        "past": "prevented",
+        "v3": "prevented",
+        "source": [
+            "önlemek",
+            "engellemek"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "I liked her",
+            "book more than this one"
+        ],
+        "target": "previous",
+        "past": "",
+        "v3": "",
+        "source": [
+            "önceki"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adverb",
+        "sentence": [
+            "He",
+            "worked in a bank"
+        ],
+        "target": "previously",
+        "past": "",
+        "v3": "",
+        "source": [
+            "daha önce",
+            "önceden"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "of the ticket is very high"
+        ],
+        "target": "price",
+        "past": "",
+        "v3": "",
+        "source": [
+            "fiyat"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "spoke to the people in the church"
+        ],
+        "target": "priest",
+        "past": "",
+        "v3": "",
+        "source": [
+            "rahip",
+            "papaz"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "Our",
+            "goal is to finish on time"
+        ],
+        "target": "primary",
+        "past": "",
+        "v3": "",
+        "source": [
+            "birincil",
+            "temel"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "The hotel is in a",
+            "location near the beach"
+        ],
+        "target": "prime",
+        "past": "",
+        "v3": "",
+        "source": [
+            "başlıca",
+            "birinci sınıf"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "lives in a castle with the king"
+        ],
+        "target": "prince",
+        "past": "",
+        "v3": "",
+        "source": [
+            "prens"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "wore a beautiful blue dress"
+        ],
+        "target": "princess",
+        "past": "",
+        "v3": "",
+        "source": [
+            "prenses"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "of the school met the parents"
+        ],
+        "target": "principal",
+        "past": "",
+        "v3": "",
+        "source": [
+            "müdür"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "Honesty is an important",
+            "for him"
+        ],
+        "target": "principle",
+        "past": "",
+        "v3": "",
+        "source": [
+            "ilke",
+            "prensip"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "Can you",
+            "this document for me?"
+        ],
+        "target": "print",
+        "past": "printed",
+        "v3": "printed",
+        "source": [
+            "yazdırmak",
+            "basmak"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "is out of paper again"
+        ],
+        "target": "printer",
+        "past": "",
+        "v3": "",
+        "source": [
+            "yazıcı"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "of the book took a whole week"
+        ],
+        "target": "printing",
+        "past": "",
+        "v3": "",
+        "source": [
+            "baskı",
+            "basım"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "Safety is our first",
+            ""
+        ],
+        "target": "priority",
+        "past": "",
+        "v3": "",
+        "source": [
+            "öncelik"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The thief spent five years in",
+            ""
+        ],
+        "target": "prison",
+        "past": "",
+        "v3": "",
+        "source": [
+            "hapishane",
+            "cezaevi"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "escaped during the night"
+        ],
+        "target": "prisoner",
+        "past": "",
+        "v3": "",
+        "source": [
+            "mahkûm",
+            "tutuklu"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "Everyone has a right to",
+            ""
+        ],
+        "target": "privacy",
+        "past": "",
+        "v3": "",
+        "source": [
+            "mahremiyet",
+            "gizlilik"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "This is a",
+            "conversation between us"
+        ],
+        "target": "private",
+        "past": "",
+        "v3": "",
+        "source": [
+            "özel"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "She won the first",
+            "in the competition"
+        ],
+        "target": "prize",
+        "past": "",
+        "v3": "",
+        "source": [
+            "ödül"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adverb",
+        "sentence": [
+            "It will",
+            "rain tomorrow afternoon"
+        ],
+        "target": "probably",
+        "past": "",
+        "v3": "",
+        "source": [
+            "muhtemelen"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "We have a serious",
+            "with the car"
+        ],
+        "target": "problem",
+        "past": "",
+        "v3": "",
+        "source": [
+            "sorun",
+            "problem"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "Please follow the correct",
+            "for this test"
+        ],
+        "target": "procedure",
+        "past": "",
+        "v3": "",
+        "source": [
+            "prosedür",
+            "işlem"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "Learning a language is a slow",
+            ""
+        ],
+        "target": "process",
+        "past": "",
+        "v3": "",
+        "source": [
+            "süreç"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "This factory can",
+            "a thousand cars a day"
+        ],
+        "target": "produce",
+        "past": "produced",
+        "v3": "produced",
+        "source": [
+            "üretmek"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The film",
+            "came to the party"
+        ],
+        "target": "producer",
+        "past": "",
+        "v3": "",
+        "source": [
+            "yapımcı",
+            "üretici"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "This new",
+            "is very popular"
+        ],
+        "target": "product",
+        "past": "",
+        "v3": "",
+        "source": [
+            "ürün"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "of steel has increased this year"
+        ],
+        "target": "production",
+        "past": "",
+        "v3": "",
+        "source": [
+            "üretim"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "Teaching is a difficult but noble",
+            ""
+        ],
+        "target": "profession",
+        "past": "",
+        "v3": "",
+        "source": [
+            "meslek"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "He is a",
+            "football player"
+        ],
+        "target": "professional",
+        "past": "",
+        "v3": "",
+        "source": [
+            "profesyonel"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "teaches history at the university"
+        ],
+        "target": "professor",
+        "past": "",
+        "v3": "",
+        "source": [
+            "profesör"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "I updated my",
+            "photo yesterday"
+        ],
+        "target": "profile",
+        "past": "",
+        "v3": "",
+        "source": [
+            "profil"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The company made a big",
+            "last year"
+        ],
+        "target": "profit",
+        "past": "",
+        "v3": "",
+        "source": [
+            "kâr"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "My favourite television",
+            "starts at eight"
+        ],
+        "target": "program",
+        "past": "",
+        "v3": "",
+        "source": [
+            "program"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "You have made good",
+            "this year"
+        ],
+        "target": "progress",
+        "past": "",
+        "v3": "",
+        "source": [
+            "ilerleme"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "We are working on a school",
+            "together"
+        ],
+        "target": "project",
+        "past": "",
+        "v3": "",
+        "source": [
+            "proje"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "I",
+            "to help you tomorrow"
+        ],
+        "target": "promise",
+        "past": "promised",
+        "v3": "promised",
+        "source": [
+            "söz vermek"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "The company will",
+            "him to manager"
+        ],
+        "target": "promote",
+        "past": "promoted",
+        "v3": "promoted",
+        "source": [
+            "terfi ettirmek",
+            "tanıtmak"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "Can you",
+            "this word for me?"
+        ],
+        "target": "pronounce",
+        "past": "pronounced",
+        "v3": "pronounced",
+        "source": [
+            "telaffuz etmek"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "We have no",
+            "of his story"
+        ],
+        "target": "proof",
+        "past": "",
+        "v3": "",
+        "source": [
+            "kanıt"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "Wear the",
+            "shoes for running"
+        ],
+        "target": "proper",
+        "past": "",
+        "v3": "",
+        "source": [
+            "uygun",
+            "doğru"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adverb",
+        "sentence": [
+            "Please close the door",
+            ""
+        ],
+        "target": "properly",
+        "past": "",
+        "v3": "",
+        "source": [
+            "düzgünce",
+            "gereğince"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The old house is his private",
+            ""
+        ],
+        "target": "property",
+        "past": "",
+        "v3": "",
+        "source": [
+            "mülk",
+            "mal"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The manager accepted our",
+            "for the new office"
+        ],
+        "target": "proposal",
+        "past": "",
+        "v3": "",
+        "source": [
+            "teklif",
+            "öneri"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "I would like to",
+            "a new plan"
+        ],
+        "target": "propose",
+        "past": "proposed",
+        "v3": "proposed",
+        "source": [
+            "önermek",
+            "teklif etmek"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "There is little",
+            "of success this year"
+        ],
+        "target": "prospect",
+        "past": "",
+        "v3": "",
+        "source": [
+            "olasılık",
+            "beklenti"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "A hat can",
+            "you from the sun"
+        ],
+        "target": "protect",
+        "past": "protected",
+        "v3": "protected",
+        "source": [
+            "korumak"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "Young animals need",
+            "from the cold"
+        ],
+        "target": "protection",
+        "past": "",
+        "v3": "",
+        "source": [
+            "koruma"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "There was a big",
+            "in the city centre"
+        ],
+        "target": "protest",
+        "past": "",
+        "v3": "",
+        "source": [
+            "protesto"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "I am very",
+            "of my daughter"
+        ],
+        "target": "proud",
+        "past": "",
+        "v3": "",
+        "source": [
+            "gururlu"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "You must",
+            "that you are right"
+        ],
+        "target": "prove",
+        "past": "proved",
+        "v3": "proven",
+        "source": [
+            "kanıtlamak"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "listened to the patient carefully"
+        ],
+        "target": "psychologist",
+        "past": "",
+        "v3": "",
+        "source": [
+            "psikolog"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "She studies",
+            "at university"
+        ],
+        "target": "psychology",
+        "past": "",
+        "v3": "",
+        "source": [
+            "psikoloji"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "The library is a",
+            "building"
+        ],
+        "target": "public",
+        "past": "",
+        "v3": "",
+        "source": [
+            "halka açık",
+            "kamusal"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "of the book was delayed"
+        ],
+        "target": "publication",
+        "past": "",
+        "v3": "",
+        "source": [
+            "yayın",
+            "yayımlama"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "They will",
+            "her novel next year"
+        ],
+        "target": "publish",
+        "past": "published",
+        "v3": "published",
+        "source": [
+            "yayımlamak"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "The teacher can",
+            "the noisy students"
+        ],
+        "target": "punish",
+        "past": "punished",
+        "v3": "punished",
+        "source": [
+            "cezalandırmak"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "was too hard for such a small mistake"
+        ],
+        "target": "punishment",
+        "past": "",
+        "v3": "",
+        "source": [
+            "ceza"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "Please keep the receipt for your",
+            ""
+        ],
+        "target": "purchase",
+        "past": "",
+        "v3": "",
+        "source": [
+            "satın alma",
+            "alım"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "This is",
+            "orange juice with no sugar"
+        ],
+        "target": "pure",
+        "past": "",
+        "v3": "",
+        "source": [
+            "saf",
+            "katıksız"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "She is wearing a",
+            "dress today"
+        ],
+        "target": "purple",
+        "past": "",
+        "v3": "",
+        "source": [
+            "mor"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "What is the",
+            "of this meeting?"
+        ],
+        "target": "purpose",
+        "past": "",
+        "v3": "",
+        "source": [
+            "amaç"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "She wants to",
+            "a career in medicine"
+        ],
+        "target": "pursue",
+        "past": "pursued",
+        "v3": "pursued",
+        "source": [
+            "peşinden gitmek",
+            "sürdürmek"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "You need a",
+            "in nursing for this job"
+        ],
+        "target": "qualification",
+        "past": "",
+        "v3": "",
+        "source": [
+            "nitelik",
+            "yeterlilik"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "She is",
+            "to teach English"
+        ],
+        "target": "qualified",
+        "past": "",
+        "v3": "",
+        "source": [
+            "nitelikli",
+            "yetkin"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "Our team can",
+            "for the final"
+        ],
+        "target": "qualify",
+        "past": "qualified",
+        "v3": "qualified",
+        "source": [
+            "hak kazanmak"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "of the food was excellent"
+        ],
+        "target": "quality",
+        "past": "",
+        "v3": "",
+        "source": [
+            "kalite"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "We need a large",
+            "of water for the trip"
+        ],
+        "target": "quantity",
+        "past": "",
+        "v3": "",
+        "source": [
+            "miktar"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "It is a",
+            "past three"
+        ],
+        "target": "quarter",
+        "past": "",
+        "v3": "",
+        "source": [
+            "çeyrek"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "lives in a big palace"
+        ],
+        "target": "queen",
+        "past": "",
+        "v3": "",
+        "source": [
+            "kraliçe"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "May I ask you a",
+            "?"
+        ],
+        "target": "question",
+        "past": "",
+        "v3": "",
+        "source": [
+            "soru"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "We had a",
+            "lunch before the meeting"
+        ],
+        "target": "quick",
+        "past": "",
+        "v3": "",
+        "source": [
+            "hızlı",
+            "çabuk"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adverb",
+        "sentence": [
+            "He finished his homework very",
+            ""
+        ],
+        "target": "quickly",
+        "past": "",
+        "v3": "",
+        "source": [
+            "hızlıca",
+            "çabucak"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "The classroom is very",
+            "today"
+        ],
+        "target": "quiet",
+        "past": "",
+        "v3": "",
+        "source": [
+            "sessiz"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adverb",
+        "sentence": [
+            "She closed the door",
+            "and left"
+        ],
+        "target": "quietly",
+        "past": "",
+        "v3": "",
+        "source": [
+            "sessizce"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "He decided to",
+            "his job last month"
+        ],
+        "target": "quit",
+        "past": "quit",
+        "v3": "quit",
+        "source": [
+            "bırakmak",
+            "istifa etmek"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adverb",
+        "sentence": [
+            "The film was",
+            "good"
+        ],
+        "target": "quite",
+        "past": "",
+        "v3": "",
+        "source": [
+            "oldukça"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "He began his speech with a",
+            "from Shakespeare"
+        ],
+        "target": "quotation",
+        "past": "",
+        "v3": "",
+        "source": [
+            "alıntı"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "She likes to",
+            "her favourite writer"
+        ],
+        "target": "quote",
+        "past": "quoted",
+        "v3": "quoted",
+        "source": [
+            "alıntı yapmak"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "He won the",
+            "very easily"
+        ],
+        "target": "race",
+        "past": "",
+        "v3": "",
+        "source": [
+            "yarış",
+            "ırk"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "Horse",
+            "is popular in this country"
+        ],
+        "target": "racing",
+        "past": "",
+        "v3": "",
+        "source": [
+            "yarışçılık",
+            "yarış"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "I listen to the",
+            "in the car every morning"
+        ],
+        "target": "radio",
+        "past": "",
+        "v3": "",
+        "source": [
+            "radyo"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The new",
+            "connects the two cities"
+        ],
+        "target": "railroad",
+        "past": "",
+        "v3": "",
+        "source": [
+            "demiryolu"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "stopped in the afternoon"
+        ],
+        "target": "rain",
+        "past": "",
+        "v3": "",
+        "source": [
+            "yağmur"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The shop sells a wide",
+            "of shoes"
+        ],
+        "target": "range",
+        "past": "",
+        "v3": "",
+        "source": [
+            "yelpaze",
+            "aralık"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "He holds a high",
+            "in the army"
+        ],
+        "target": "rank",
+        "past": "",
+        "v3": "",
+        "source": [
+            "rütbe",
+            "sıralama"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "The country has seen",
+            "growth"
+        ],
+        "target": "rapid",
+        "past": "",
+        "v3": "",
+        "source": [
+            "hızlı"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adverb",
+        "sentence": [
+            "The city is growing",
+            ""
+        ],
+        "target": "rapidly",
+        "past": "",
+        "v3": "",
+        "source": [
+            "hızla"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "This is a very",
+            "bird"
+        ],
+        "target": "rare",
+        "past": "",
+        "v3": "",
+        "source": [
+            "nadir",
+            "ender"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adverb",
+        "sentence": [
+            "I",
+            "watch television"
+        ],
+        "target": "rarely",
+        "past": "",
+        "v3": "",
+        "source": [
+            "nadiren"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The",
+            "of unemployment is falling"
+        ],
+        "target": "rate",
+        "past": "",
+        "v3": "",
+        "source": [
+            "oran",
+            "hız"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adverb",
+        "sentence": [
+            "It is",
+            "cold outside today"
+        ],
+        "target": "rather",
+        "past": "",
+        "v3": "",
+        "source": [
+            "oldukça",
+            "epeyce"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "You should not eat",
+            "meat"
+        ],
+        "target": "raw",
+        "past": "",
+        "v3": "",
+        "source": [
+            "çiğ",
+            "işlenmemiş"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "verb",
+        "sentence": [
+            "How did she",
+            "to the news?"
+        ],
+        "target": "react",
+        "past": "reacted",
+        "v3": "reacted",
+        "source": [
+            "tepki vermek"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "His",
+            "to my question surprised everyone"
+        ],
+        "target": "reaction",
+        "past": "",
+        "v3": "",
+        "source": [
+            "tepki"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "The writer thanked every",
+            "of her book"
+        ],
+        "target": "reader",
+        "past": "",
+        "v3": "",
+        "source": [
+            "okur",
+            "okuyucu"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "noun",
+        "sentence": [
+            "My favourite hobby is",
+            ""
+        ],
+        "target": "reading",
+        "past": "",
+        "v3": "",
+        "source": [
+            "okuma"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "Dinner is",
+            "on the table"
+        ],
+        "target": "ready",
+        "past": "",
+        "v3": "",
+        "source": [
+            "hazır"
+        ],
+        "next_review_date": null
+    },
+    {
+        "language": "en",
+        "word_type": "adjective",
+        "sentence": [
+            "Is this a",
+            "diamond?"
+        ],
+        "target": "real",
+        "past": "",
+        "v3": "",
+        "source": [
+            "gerçek"
+        ],
+        "next_review_date": null
     }
 ]

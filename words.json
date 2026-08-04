@@ -3585,7 +3585,7 @@
             "She has",
             "hair"
         ],
-        "target": "blonde",
+        "target": "blond",
         "past": "",
         "v3": "",
         "source": [
@@ -4157,7 +4157,7 @@
             "We walked to the city",
             ""
         ],
-        "target": "centre",
+        "target": "center",
         "past": "",
         "v3": "",
         "source": [
@@ -4508,7 +4508,7 @@
             "Blue is my favorite",
             ""
         ],
-        "target": "colour",
+        "target": "color",
         "past": "",
         "v3": "",
         "source": [
@@ -6218,7 +6218,7 @@
             "What is your",
             "color"
         ],
-        "target": "favourite",
+        "target": "favorite",
         "past": "",
         "v3": "",
         "source": [
@@ -7052,7 +7052,7 @@
             "The sky is",
             "today"
         ],
-        "target": "grey",
+        "target": "gray",
         "past": "",
         "v3": "",
         "source": [
@@ -8109,7 +8109,7 @@
             "The shop is one",
             "away"
         ],
-        "target": "kilometre",
+        "target": "kilometer",
         "past": "",
         "v3": "",
         "source": [
@@ -8837,7 +8837,7 @@
             "The rope is one",
             "long"
         ],
-        "target": "metre",
+        "target": "meter",
         "past": "",
         "v3": "",
         "source": [
@@ -9183,7 +9183,7 @@
             "My",
             "works at the hospital"
         ],
-        "target": "mum",
+        "target": "mom",
         "past": "",
         "v3": "",
         "source": [
@@ -9319,7 +9319,7 @@
             "My",
             "is very friendly"
         ],
-        "target": "neighbour",
+        "target": "neighbor",
         "past": "",
         "v3": "",
         "source": [
@@ -12386,7 +12386,7 @@
         "language": "en",
         "word_type": "noun",
         "sentence": [
-            "My favourite television",
+            "My favorite television",
             "starts at eight"
         ],
         "target": "program",
@@ -12619,7 +12619,7 @@
         "word_type": "noun",
         "sentence": [
             "There was a big",
-            "in the city centre"
+            "in the city center"
         ],
         "target": "protest",
         "past": "",
@@ -13079,7 +13079,7 @@
         "word_type": "verb",
         "sentence": [
             "She likes to",
-            "her favourite writer"
+            "her favorite writer"
         ],
         "target": "quote",
         "past": "quoted",
@@ -13357,7 +13357,7 @@
         "language": "en",
         "word_type": "noun",
         "sentence": [
-            "My favourite hobby is",
+            "My favorite hobby is",
             ""
         ],
         "target": "reading",
@@ -14034,7 +14034,7 @@
         "word_type": "noun",
         "sentence": [
             "They have a very good",
-            "with their neighbours"
+            "with their neighbors"
         ],
         "target": "relationship",
         "past": "",
@@ -14487,7 +14487,7 @@
         "language": "en",
         "word_type": "noun",
         "sentence": [
-            "A driving licence is a",
+            "A driving license is a",
             "for this job"
         ],
         "target": "requirement",
@@ -15066,7 +15066,7 @@
         "word_type": "noun",
         "sentence": [
             "This",
-            "goes to the city centre"
+            "goes to the city center"
         ],
         "target": "road",
         "past": "",
@@ -15875,7 +15875,7 @@
         "language": "en",
         "word_type": "noun",
         "sentence": [
-            "My favourite subject at school is",
+            "My favorite subject at school is",
             ""
         ],
         "target": "science",
@@ -16030,7 +16030,7 @@
         "language": "en",
         "word_type": "noun",
         "sentence": [
-            "Spring is my favourite",
+            "Spring is my favorite",
             "of the year"
         ],
         "target": "season",
@@ -18397,7 +18397,7 @@
         "word_type": "noun",
         "sentence": [
             "This",
-            "is my favourite"
+            "is my favorite"
         ],
         "target": "song",
         "past": "",
@@ -18659,7 +18659,7 @@
         "language": "en",
         "word_type": "noun",
         "sentence": [
-            "The car was travelling at high",
+            "The car was traveling at high",
             ""
         ],
         "target": "speed",
@@ -19751,7 +19751,7 @@
         "language": "en",
         "word_type": "noun",
         "sentence": [
-            "History is my favourite",
+            "History is my favorite",
             "at school"
         ],
         "target": "subject",
@@ -19938,7 +19938,7 @@
         "word_type": "verb",
         "sentence": [
             "Can you",
-            "a good hotel in the centre?"
+            "a good hotel in the center?"
         ],
         "target": "suggest",
         "past": "suggested",
@@ -20597,7 +20597,7 @@
         "language": "en",
         "word_type": "adjective",
         "sentence": [
-            "The building is forty metres",
+            "The building is forty meters",
             ""
         ],
         "target": "tall",
@@ -21044,7 +21044,7 @@
         "language": "en",
         "word_type": "noun",
         "sentence": [
-            "We have a maths",
+            "We have a math",
             "tomorrow morning"
         ],
         "target": "test",
@@ -21951,7 +21951,7 @@
         "language": "en",
         "word_type": "noun",
         "sentence": [
-            "I burnt my",
+            "I burned my",
             "on the hot soup"
         ],
         "target": "tongue",
@@ -22566,7 +22566,7 @@
         "word_type": "noun",
         "sentence": [
             "There is a clear",
-            "towards healthy food"
+            "toward healthy food"
         ],
         "target": "trend",
         "past": "",
@@ -23061,7 +23061,7 @@
         "word_type": "adjective",
         "sentence": [
             "We took the",
-            "train to the centre"
+            "train to the center"
         ],
         "target": "underground",
         "past": "",
@@ -23245,7 +23245,7 @@
         "language": "en",
         "word_type": "noun",
         "sentence": [
-            "The metre is a",
+            "The meter is a",
             "of length"
         ],
         "target": "unit",
@@ -23816,7 +23816,7 @@
         "language": "en",
         "word_type": "noun",
         "sentence": [
-            "Carrot is my favourite",
+            "Carrot is my favorite",
             ""
         ],
         "target": "vegetable",
@@ -24695,7 +24695,7 @@
         "language": "en",
         "word_type": "adjective",
         "sentence": [
-            "They travelled to the",
+            "They traveled to the",
             "part of the country"
         ],
         "target": "western",
@@ -27204,7 +27204,7 @@
         "language": "en",
         "word_type": "noun",
         "sentence": [
-            "My favourite subject is",
+            "My favorite subject is",
             ""
         ],
         "target": "biology",
@@ -27854,7 +27854,7 @@
         "language": "en",
         "word_type": "noun",
         "sentence": [
-            "My favourite",
+            "My favorite",
             "in the book is the old sailor"
         ],
         "target": "character",
@@ -28432,7 +28432,7 @@
         "word_type": "verb",
         "sentence": [
             "This bottle can",
-            "two litres of water"
+            "two liters of water"
         ],
         "target": "contain",
         "past": "contained",
@@ -31708,7 +31708,7 @@
         "word_type": "verb",
         "sentence": [
             "This job will",
-            "a lot of travelling"
+            "a lot of traveling"
         ],
         "target": "involve",
         "past": "involved",
@@ -34082,7 +34082,7 @@
         "word_type": "verb",
         "sentence": [
             "Loud music can",
-            "the neighbours"
+            "the neighbors"
         ],
         "target": "annoy",
         "past": "annoyed",
@@ -34473,7 +34473,7 @@
         "word_type": "verb",
         "sentence": [
             "The city may",
-            "cars from the old centre"
+            "cars from the old center"
         ],
         "target": "ban",
         "past": "banned",
@@ -37746,7 +37746,7 @@
         "language": "en",
         "word_type": "noun",
         "sentence": [
-            "The cat has soft grey",
+            "The cat has soft gray",
             ""
         ],
         "target": "fur",
@@ -40869,7 +40869,7 @@
         "word_type": "adjective",
         "sentence": [
             "He was",
-            "of his behaviour"
+            "of his behavior"
         ],
         "target": "ashamed",
         "past": "",
@@ -41371,8 +41371,8 @@
             "the meeting"
         ],
         "target": "cancel",
-        "past": "cancelled",
-        "v3": "cancelled",
+        "past": "canceled",
+        "v3": "canceled",
         "source": [
             "iptal etmek"
         ],
@@ -41618,7 +41618,7 @@
         "word_type": "noun",
         "sentence": [
             "This is a strange",
-            "of colours"
+            "of colors"
         ],
         "target": "combination",
         "past": "",
@@ -42785,7 +42785,7 @@
         "word_type": "noun",
         "sentence": [
             "The",
-            "of the lake is thirty metres"
+            "of the lake is thirty meters"
         ],
         "target": "depth",
         "past": "",
@@ -43327,7 +43327,7 @@
         "word_type": "verb",
         "sentence": [
             "A little salt will",
-            "the flavour"
+            "the flavor"
         ],
         "target": "enhance",
         "past": "enhanced",
@@ -43485,7 +43485,7 @@
         "word_type": "verb",
         "sentence": [
             "The teachers will",
-            "the new programme"
+            "the new program"
         ],
         "target": "evaluate",
         "past": "evaluated",
@@ -44189,7 +44189,7 @@
         "language": "en",
         "word_type": "noun",
         "sentence": [
-            "Science fiction is my favourite",
+            "Science fiction is my favorite",
             ""
         ],
         "target": "genre",
@@ -45190,7 +45190,7 @@
         "word_type": "verb",
         "sentence": [
             "Nothing can",
-            "such rude behaviour"
+            "such rude behavior"
         ],
         "target": "justify",
         "past": "justified",
@@ -46099,7 +46099,7 @@
         "language": "en",
         "word_type": "noun",
         "sentence": [
-            "Driving without a licence is a serious",
+            "Driving without a license is a serious",
             ""
         ],
         "target": "offense",

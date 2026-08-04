@@ -51,6 +51,13 @@ MAX_BODY_BYTES = 12 * 1024 * 1024  # 12 MB — words.json sync can be a few hund
 # chars + hyphen), matching utils._sanitize_username in the main project.
 _UNSAFE_RE = re.compile(r"[^\w\-]", re.UNICODE)
 
+# admin_api keeps its own authoritative state in DATA_DIR alongside the
+# per-user stats snapshots. Those files are not students: they must never show
+# up in the dashboard's user picker, and a child whose username happens to
+# match one must not overwrite them (a stats push landing on admin.json would
+# wipe the admin password hash and lock the parent out of /admin).
+RESERVED_STEMS = {"admin", "coalide_config", "coalide_words"}
+
 _lock = threading.Lock()  # serialize reads/writes of the JSON store
 
 
@@ -63,7 +70,15 @@ def _safe_user(name: str) -> str:
 
 
 def _user_path(user: str) -> str:
-    return os.path.join(DATA_DIR, f"{_safe_user(user)}.json")
+    stem = _safe_user(user)
+    if stem in RESERVED_STEMS:
+        stem = "user_" + stem
+    return os.path.join(DATA_DIR, f"{stem}.json")
+
+
+def _is_stats_record(rec) -> bool:
+    """True for a per-user stats snapshot (as written by _post_stats)."""
+    return isinstance(rec, dict) and isinstance(rec.get("stats"), dict)
 
 
 def _now_iso() -> str:
@@ -97,10 +112,10 @@ def _list_users() -> list:
         return []
     users = []
     for fname in os.listdir(DATA_DIR):
-        if not fname.endswith(".json"):
+        if not fname.endswith(".json") or fname[:-5] in RESERVED_STEMS:
             continue
         rec = _load_record(fname[:-5])
-        if not isinstance(rec, dict):
+        if not _is_stats_record(rec):
             continue
         users.append({
             "username": rec.get("username", fname[:-5]),
@@ -117,10 +132,10 @@ def all_records() -> list:
         return []
     out = []
     for fname in sorted(os.listdir(DATA_DIR)):
-        if not fname.endswith(".json"):
+        if not fname.endswith(".json") or fname[:-5] in RESERVED_STEMS:
             continue
         rec = _load_record(fname[:-5])
-        if isinstance(rec, dict):
+        if _is_stats_record(rec):
             out.append(rec)
     return out
 

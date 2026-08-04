@@ -56,7 +56,12 @@ _UNSAFE_RE = re.compile(r"[^\w\-]", re.UNICODE)
 # up in the dashboard's user picker, and a child whose username happens to
 # match one must not overwrite them (a stats push landing on admin.json would
 # wipe the admin password hash and lock the parent out of /admin).
-RESERVED_STEMS = {"admin", "coalide_config", "coalide_words"}
+# Derived from admin_api's own paths so the two cannot drift apart if it ever
+# adds another state file.
+RESERVED_STEMS = {
+    os.path.splitext(os.path.basename(p))[0]
+    for p in (admin_api.ADMIN_FILE, admin_api.CONFIG_FILE, admin_api.WORDS_FILE)
+}
 
 _lock = threading.Lock()  # serialize reads/writes of the JSON store
 

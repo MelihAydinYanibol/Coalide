@@ -16,17 +16,18 @@ import random
 from datetime import date, datetime, timedelta
 from typing import Iterable
 
+from textual import on
 from textual.app import App, ComposeResult, SystemCommand
 from textual.binding import Binding
 from textual.containers import Vertical, Horizontal, VerticalScroll
-from textual.screen import Screen
+from textual.screen import ModalScreen, Screen
 from textual.widgets import Header, Footer, Static, Button
 try:
     from objects.balance_obj import load_data
-    from utils import get_current_user
+    from utils import get_current_user, ensure_current_user
 except:
     from objects.balance_obj import load_data
-    from utils import get_current_user
+    from utils import get_current_user, ensure_current_user
 
 # Parental stats reporting: pushes the current stats to the parent-side web
 # dashboard/API (serverside/) when the menu opens. Guarded so a missing/broken
@@ -439,10 +440,28 @@ class MainMenu(Screen):
         if button_id in ["coalide", "practice", "credit", "settings","stats"]:
             self.run_python_script(id=button_id)
         elif button_id == "quit":
-            self.action_quit_and_shutdown()
+            self.action_exit_menu()
 
-    def action_quit_and_shutdown(self) -> None:
+    def action_exit_menu(self) -> None:
+        """Çıkış: ask whether to log out or shut the computer down."""
+        def handle(choice: str | None) -> None:
+            if choice == "logout":
+                self.action_log_out()
+            elif choice == "shutdown":
+                self.action_shut_down()
+            # None -> cancelled (X or ESC), stay on the menu
+
+        self.app.push_screen(ExitDialog(), handle)
+
+    def action_log_out(self) -> None:
+        """Sign the current Windows user out -- what the Çıkış button always did."""
         os.system('shutdown /l')
+        self.app.exit()
+
+    def action_shut_down(self) -> None:
+        """Power the machine off. /f forces open apps to close, so a stray
+        unsaved-changes dialog can't leave the machine sitting on."""
+        os.system('shutdown /s /f /t 0')
         self.app.exit()
 
     def give_arg(self, arg):
@@ -457,7 +476,9 @@ class MainMenu(Screen):
             print("\033c", end="")
             ret=False
             if id == "coalide": subprocess.run([sys.executable, APP_PATH])
-            elif id == "credit": from new_master import redeem_flow; redeem_flow(load_data(get_current_user()))
+            # Redeem is its own Textual app, so it runs as a subprocess (a
+            # nested App inside suspend() would fight over the terminal).
+            elif id == "credit": subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "redeem_menu.py")])
             elif id == "settings" or id == "admin_mode":
                 if not id == "admin_mode":
                     print("\nAyarlar menüsü henüz tamamlanmadı, Sadece admin modu mevcut.")
@@ -479,6 +500,111 @@ class MainMenu(Screen):
         # redeemed minutes, so re-read them into the stats panel now that the
         # TUI has resumed.
         self.refresh_stats()
+
+class ExitDialog(ModalScreen[str | None]):
+    """Popup behind the Çıkış button.
+
+    Dismisses "logout" to sign the Windows user out, "shutdown" to power the
+    machine off, or None if the user backs out (X button or ESC)."""
+
+    BINDINGS = [Binding("escape", "cancel", "Vazgeç")]
+
+    CSS = """
+    ExitDialog {
+        align: center middle;
+        background: #0f0f1a 70%;
+    }
+
+    #exit-box {
+        width: 48;
+        height: auto;
+        border: round #ff6b81;
+        background: #16162a;
+        padding: 1 2;
+    }
+
+    #exit-header {
+        height: 1;
+        margin-bottom: 1;
+    }
+
+    #exit-title {
+        width: 1fr;
+        height: 1;
+        color: #ff6b81;
+        text-style: bold;
+    }
+
+    #exit-close {
+        width: 5;
+        min-width: 5;
+        height: 1;
+        padding: 0;
+        border: none;
+        background: #2a1420;
+        color: #ff6b81;
+        text-align: center;
+    }
+
+    #exit-close:hover {
+        background: #ff6b81;
+        color: #0f0f1a;
+        text-style: bold;
+    }
+
+    #exit-question {
+        color: #cfcfe8;
+        margin-bottom: 1;
+    }
+
+    .exit-option {
+        width: 100%;
+        margin-bottom: 1;
+        background: #1e1e38;
+        color: #e0e0f0;
+        border: none;
+        text-align: left;
+    }
+
+    .exit-option:hover {
+        background: #7c5cff;
+        color: #0f0f1a;
+        text-style: bold;
+    }
+
+    #exit-shutdown:hover {
+        background: #ff6b81;
+    }
+    """
+
+    def compose(self) -> ComposeResult:
+        with Vertical(id="exit-box"):
+            with Horizontal(id="exit-header"):
+                yield Static("🚪  Çıkış", id="exit-title")
+                # Plain ASCII "X": the console font is not guaranteed to have
+                # the nicer ✕ (U+2715), and a missing glyph shows as "?".
+                yield Button("X", id="exit-close")
+            yield Static("Ne yapmak istiyorsun?", id="exit-question")
+            yield Button("👋  Çıkış Yap", id="exit-logout", classes="exit-option")
+            # 🔌 rather than the power symbol ⏻ (U+23FB) -- that one lives in
+            # Miscellaneous Technical, which conhost's font has no glyph for.
+            yield Button("🔌  Bilgisayarı Kapat", id="exit-shutdown", classes="exit-option")
+
+    @on(Button.Pressed, "#exit-logout")
+    def _logout(self) -> None:
+        self.dismiss("logout")
+
+    @on(Button.Pressed, "#exit-shutdown")
+    def _shutdown(self) -> None:
+        self.dismiss("shutdown")
+
+    @on(Button.Pressed, "#exit-close")
+    def _close(self) -> None:
+        self.dismiss(None)
+
+    def action_cancel(self) -> None:
+        self.dismiss(None)
+
 
 class PlaceholderScreen(Screen):
     """Generic placeholder screen for menu items not built out yet."""
@@ -570,8 +696,8 @@ class LanguageApp(App):
                 lambda: screen.run_python_script("admin_mode"),
             )
             yield SystemCommand(
-                "Quit & Shutdown", "Shut down the computer and exit (Çıkış)",
-                screen.action_quit_and_shutdown,
+                "Exit", "Log out or shut the computer down (Çıkış)",
+                screen.action_exit_menu,
             )
 
     def on_mount(self) -> None:
@@ -619,6 +745,10 @@ def set_console_font_size(height: int = 22) -> None:
 
 def main():
     set_console_font_size()
+    # Ask who's playing while the terminal is still a plain console. The menu
+    # needs a user to show credits, but prompting from inside the running TUI
+    # only produces a blank screen (see utils._can_prompt).
+    ensure_current_user()
     app = LanguageApp()
     app.run()
 

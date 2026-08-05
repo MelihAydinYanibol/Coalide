@@ -99,35 +99,79 @@ CURRENT_USER_FILE = os.path.join(os.path.dirname(__file__), "current_user.json")
 # produces control characters that Windows refuses to use in a path.
 _USERNAME_UNSAFE_RE = re.compile(r"[^\w\-]", re.UNICODE)
 
-def _sanitize_username(raw: str) -> str:
-    return _USERNAME_UNSAFE_RE.sub("", raw).strip()
+# Escape sequences have to go first, as whole sequences. A mouse event arrives
+# as "\x1b[<35;49;16M", and dropping only its unsafe characters would leave the
+# digits behind -- saving a perfectly "valid"-looking username like "354916M"
+# (which is exactly how current_user.json gets filled with junk). Removing the
+# entire sequence instead leaves nothing, so the prompt just asks again.
+_ANSI_ESCAPE_RE = re.compile(
+    r"\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07\x1b]*(?:\x07|\x1b\\)?|[@-Z\\-_])"
+)
 
-def get_current_user() -> str:
+def _sanitize_username(raw: str) -> str:
+    return _USERNAME_UNSAFE_RE.sub("", _ANSI_ESCAPE_RE.sub("", raw)).strip()
+
+def _saved_username() -> str:
+    """
+    The username stored in current_user.json, or "" if nobody is logged in
+    yet (fresh install / file removed) or the saved value was corrupted
+    (e.g. control/escape characters, which sanitize away to nothing).
+    """
+    if not os.path.exists(CURRENT_USER_FILE):
+        return ""
+    with open(CURRENT_USER_FILE, "r", encoding="UTF-8") as f:
+        try:
+            data = json.load(f)
+        except json.JSONDecodeError:
+            return ""
+    raw_username = data.get("username") if isinstance(data, dict) else None
+    return _sanitize_username(raw_username) if raw_username else ""
+
+def _can_prompt() -> bool:
+    """
+    Whether it is safe to ask for a username on the terminal right now.
+
+    False while a Textual app owns the screen: input() would draw its prompt
+    into a display Textual immediately repaints (so the user sees a blank
+    screen with no idea anything is being asked) and would then swallow the
+    terminal's mouse-tracking escape sequences as if they were typed -- which
+    is exactly how a username like "354916M354914M..." gets saved.
+    Callers that hit this must ask before starting the TUI instead; see
+    ensure_current_user().
+    """
+    textual_app = sys.modules.get("textual.app")
+    if textual_app is not None and textual_app.active_app.get(None) is not None:
+        return False
+    return bool(sys.stdin) and sys.stdin.isatty()
+
+def get_current_user(prompt: bool = True) -> str:
     """
     Returns the username of the currently logged-in user, read from
-    current_user.json. If no one is logged in yet (fresh install, or the
-    file was removed), asks for a username once and remembers it for
-    every future run.
-    """
-    if os.path.exists(CURRENT_USER_FILE):
-        with open(CURRENT_USER_FILE, "r", encoding="UTF-8") as f:
-            try:
-                data = json.load(f)
-            except json.JSONDecodeError:
-                data = {}
-        raw_username = data.get("username") if isinstance(data, dict) else None
-        if raw_username:
-            username = _sanitize_username(raw_username)
-            if username:
-                return username
-            # Saved username was corrupted (e.g. control/escape characters) --
-            # fall through and ask again instead of crashing on every run.
+    current_user.json. If no one is logged in yet, asks for a username once
+    and remembers it for every future run.
 
-    username = ""
+    Returns "" instead of asking when prompt=False, or when prompting is not
+    safe (no terminal, or a TUI is on screen -- see _can_prompt).
+    """
+    username = _saved_username()
+    if username:
+        return username
+    if not prompt or not _can_prompt():
+        return ""
+
     while not username:
         username = _sanitize_username(input("Giriş yapmak için kullanıcı adınızı giriniz: "))
     set_current_user(username)
     return username
+
+def ensure_current_user() -> str:
+    """
+    Make sure a user is logged in before a TUI takes over the terminal.
+    Call this from plain-console startup code; once it returns, every later
+    get_current_user() call (including ones inside a Textual screen) finds a
+    saved username and never needs to prompt.
+    """
+    return get_current_user()
 
 def set_current_user(username: str):
     with open(CURRENT_USER_FILE, "w", encoding="UTF-8") as f:

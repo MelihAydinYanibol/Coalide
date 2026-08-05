@@ -61,7 +61,13 @@
     padding: 10px max(14px, env(safe-area-inset-left)) 10px max(14px, env(safe-area-inset-right));
     display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap;
   }
-  .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+  .brand {
+    display: flex; align-items: center; gap: 11px; min-width: 0;
+    color: inherit; text-decoration: none; border-radius: 10px;
+    padding: 2px 4px; margin: -2px -4px; transition: background .15s;
+  }
+  .brand:hover { background: rgba(124,92,255,.12); }
+  .brand:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
   .logo {
     width: 34px; height: 34px; border-radius: 9px; flex: none;
     background: linear-gradient(135deg, var(--purple), #b79bff);
@@ -224,6 +230,36 @@
   td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
   .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-weight: 700; font-size: 12px; }
 
+  /* answer-log day picker */
+  .daybar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .daybar input[type="date"] {
+    background: var(--surface); color: var(--ink); border: 1px solid var(--border);
+    border-radius: 9px; padding: 8px 12px; font: inherit; font-size: 13px;
+    min-height: var(--tap); color-scheme: dark; cursor: pointer;
+  }
+  .daybar input[type="date"]:hover { border-color: var(--purple); }
+  .daybar .nav { padding: 8px 13px; font-size: 15px; line-height: 1; }
+  .daybar .hint { font-size: 11.5px; color: var(--muted); margin-left: auto; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    padding: 5px 11px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--ink2); font-size: 12px; font-weight: 600;
+    cursor: pointer; min-height: 30px;
+  }
+  .chip:hover { border-color: var(--purple); color: var(--ink); }
+  .chip[aria-pressed="true"] { background: rgba(124,92,255,.20); border-color: var(--purple); color: var(--ink); }
+  td.wrap, th.wrap { white-space: normal; min-width: 110px; overflow-wrap: anywhere; }
+  /* On a phone the time gets its own line under the question, so the columns
+     that matter — what was asked and what the child answered — fit on screen. */
+  .t-sm { display: none; }
+  @media (max-width: 640px) {
+    .c-time { display: none; }
+    .t-sm { display: block; font-size: 11px; font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; }
+  }
+  .badge { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; background: rgba(255,255,255,.05); white-space: nowrap; }
+  .given-wrong { color: var(--red); }
+  .given-empty { color: var(--muted); font-style: italic; }
+
   /* meter (price tariff) */
   .meter { margin: 10px 0; padding-left: 10px; border-left: 2px solid transparent; }
   .meter.now { border-left-color: var(--yellow); }
@@ -267,10 +303,10 @@
 </head>
 <body data-palette="#41dca5,#f9667a,#f5c542" data-mode="dark">
 <header>
-  <div class="brand">
+  <a class="brand" href="/" title="Ana sayfaya dön">
     <div class="logo">🌍</div>
     <div><div class="t">COALIDE</div><div class="s">Veli Paneli</div></div>
-  </div>
+  </a>
   <div class="spacer"></div>
   <div class="ctl">
     <label for="user">Öğrenci</label>
@@ -861,8 +897,142 @@ function pageKredi(st) {
   return root;
 }
 
+// Per-day answer log: pick a date, see every question asked that day, what the
+// child typed and how it was graded. Defaults to today.
+const RESULT_META = {
+  correct: { mark: "✓", name: "Doğru", color: C.green },
+  wrong: { mark: "✗", name: "Yanlış", color: C.red },
+  blank: { mark: "∅", name: "Boş", color: C.yellow },
+};
+let _logFilter = "all";
+function answerLogCard(st) {
+  const c = card("Cevap Günlüğü", "seçilen günde sorulan sorular ve verilen cevaplar");
+  const log = st.answer_log;
+  if (!Array.isArray(log)) {
+    c._body.appendChild(el("div", "empty",
+      "Cevap detayları bu kayıtta yok. Çocuğun Coalide uygulaması güncellendikten sonra, " +
+      "sonraki sorulardan itibaren burada görünecek."));
+    return c;
+  }
+
+  const byDate = new Map();
+  for (const r of log) {
+    if (!byDate.has(r.date)) byDate.set(r.date, []);
+    byDate.get(r.date).push(r);
+  }
+  const dates = [...byDate.keys()].sort();
+  const today = st.today;
+  let day = byDate.has(today) ? today : (dates[dates.length - 1] || today);
+
+  // --- controls -------------------------------------------------------
+  const bar = el("div", "daybar");
+  const prev = txt("button", "nav", "‹"); prev.title = "Önceki gün";
+  const input = document.createElement("input");
+  input.type = "date"; input.value = day;
+  if (dates.length) { input.min = dates[0]; input.max = today > dates[dates.length - 1] ? today : dates[dates.length - 1]; }
+  const next = txt("button", "nav", "›"); next.title = "Sonraki gün";
+  const todayBtn = txt("button", "tgl", "Bugün");
+  bar.append(prev, input, next, todayBtn);
+  bar.appendChild(txt("div", "hint", `son ${num(st.answer_log_days) || 30} günün kaydı · ${dates.length} günde veri var`));
+  c._body.appendChild(bar);
+
+  const chips = el("div", "chips");
+  const filters = [["all", "Tümü"], ["correct", "✓ Doğru"], ["wrong", "✗ Yanlış"], ["blank", "∅ Boş"]];
+  const chipEls = filters.map(([key, label]) => {
+    const b = txt("button", "chip", label);
+    b.setAttribute("aria-pressed", String(key === _logFilter));
+    b.onclick = () => { _logFilter = key; chipEls.forEach((e, i) => e.setAttribute("aria-pressed", String(filters[i][0] === key))); render(); };
+    chips.appendChild(b);
+    return b;
+  });
+  c._body.appendChild(chips);
+
+  const summary = el("div");
+  const body = el("div");
+  c._body.appendChild(summary);
+  c._body.appendChild(body);
+
+  // --- render ---------------------------------------------------------
+  function render() {
+    const all = byDate.get(day) || [];
+    const counts = { correct: 0, wrong: 0, blank: 0 };
+    all.forEach(r => { if (counts[r.result] != null) counts[r.result]++; });
+    const total = all.length;
+    const rate = total ? counts.correct / total * 100 : 0;
+
+    summary.replaceChildren(kpiRow([
+      { label: "Toplam soru", value: total, color: C.purple },
+      { label: "Doğru ✓", value: counts.correct, color: C.green },
+      { label: "Yanlış ✗", value: counts.wrong, color: C.red },
+      { label: "Boş ∅", value: counts.blank, color: C.yellow },
+      { label: "Başarı", value: Math.round(rate), unit: "%", color: rateColor(rate) },
+    ]));
+
+    const rows = _logFilter === "all" ? all : all.filter(r => r.result === _logFilter);
+    body.replaceChildren();
+    if (!total) {
+      body.appendChild(el("div", "empty", "Bu tarihte kayıtlı cevap yok."));
+      return;
+    }
+    if (!rows.length) {
+      body.appendChild(el("div", "empty", "Bu filtreye uyan cevap yok."));
+      return;
+    }
+
+    const wrap = el("div", "table-wrap");
+    const table = el("table"), thead = el("thead"), htr = el("tr");
+    [["Saat", "c-time"], ["Soru", "wrap"], ["Beklenen cevap", "wrap"], ["Çocuğun cevabı", "wrap"], ["Sonuç", ""]]
+      .forEach(([label, cls]) => htr.appendChild(txt("th", cls, label)));
+    thead.appendChild(htr); table.appendChild(thead);
+    const tbody = el("tbody");
+    for (const r of rows) {
+      const meta = RESULT_META[r.result] || { mark: "?", name: r.result, color: C.muted };
+      const tr = el("tr");
+      tr.appendChild(txt("td", "c-time", r.time || "—")).style.color = C.muted;
+      // Older log rows predate the detail columns — all we have is the word.
+      const q = el("td", "wrap");
+      q.appendChild(txt("span", null, r.prompt || r.word)).style.fontWeight = 700;
+      if (r.time) q.appendChild(txt("span", "t-sm", r.time));
+      tr.appendChild(q);
+      tr.appendChild(txt("td", "wrap", r.expected || "—"));
+      const given = el("td", "wrap");
+      if (r.result === "blank" || !r.given) {
+        given.appendChild(txt("span", "given-empty", r.result === "blank" ? "(boş bırakıldı)" : "—"));
+      } else {
+        const g = txt("span", r.result === "wrong" ? "given-wrong" : null, r.given);
+        given.appendChild(g);
+      }
+      tr.appendChild(given);
+      const res = el("td");
+      const badge = txt("span", "badge", `${meta.mark} ${meta.name}`);
+      badge.style.color = meta.color;
+      res.appendChild(badge);
+      tr.appendChild(res);
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody); wrap.appendChild(table);
+    body.appendChild(wrap);
+    if (rows.some(r => !r.prompt && !r.expected)) {
+      body.appendChild(txt("p", "note",
+        "Bazı satırlarda soru ve cevap detayı yok: bunlar uygulama güncellenmeden önce kaydedilmiş, " +
+        "o zaman yalnızca kelime ve sonuç tutuluyordu."));
+    }
+  }
+
+  function goto(d) { day = d; input.value = d; render(); }
+  const shift = n => { const t = new Date(day + "T00:00:00"); t.setDate(t.getDate() + n); goto(t.toISOString().slice(0, 10)); };
+  prev.onclick = () => shift(-1);
+  next.onclick = () => shift(1);
+  todayBtn.onclick = () => goto(today);
+  input.onchange = () => { if (input.value) goto(input.value); };
+
+  render();
+  return c;
+}
+
 function pageHafta(st) {
   const root = el("div", "grid");
+  root.appendChild(gcol(12, answerLogCard(st)));
 
   const da = st.daily_answers || [], daLabels = da.map(r => r[0]);
   const daSeries = [
@@ -1052,6 +1222,15 @@ async function refresh() {
     content.classList.remove("stale");
   }
 }
+// Logo = home. A plain click returns to the default tab without a full reload;
+// ctrl/cmd/middle-click still opens "/" the way any link would.
+document.querySelector(".brand").addEventListener("click", ev => {
+  if (ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.button !== 0) return;
+  ev.preventDefault();
+  _active = Object.keys(PAGES)[0];
+  showPage();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
 document.getElementById("refresh").onclick = refresh;
 document.getElementById("user").onchange = refresh;
 refresh();

@@ -231,13 +231,16 @@
   .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-weight: 700; font-size: 12px; }
 
   /* answer-log day picker */
-  .daybar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .daybar input[type="date"] {
+  .daybar, .rangebar { display: flex; align-items: center; gap: 8px 10px; flex-wrap: wrap; }
+  /* label + input stay together when the row wraps */
+  .rangebar .fld { display: flex; align-items: center; gap: 8px; }
+  .rangebar .lbl { font-size: 11.5px; color: var(--muted); }
+  .daybar input[type="date"], .rangebar input[type="date"] {
     background: var(--surface); color: var(--ink); border: 1px solid var(--border);
     border-radius: 9px; padding: 8px 12px; font: inherit; font-size: 13px;
     min-height: var(--tap); color-scheme: dark; cursor: pointer;
   }
-  .daybar input[type="date"]:hover { border-color: var(--purple); }
+  .daybar input[type="date"]:hover, .rangebar input[type="date"]:hover { border-color: var(--purple); }
   .daybar .nav { padding: 8px 13px; font-size: 15px; line-height: 1; }
   .daybar .hint { font-size: 11.5px; color: var(--muted); margin-left: auto; }
   .chips { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -372,6 +375,12 @@ function niceScale(m, maxTicks = 6) {
   return { ymax: m, ticks: 4 };
 }
 function dayLabel(d) { return `${d.getDate()} ${TR_MONTHS[d.getMonth()]}`; }
+// Format a Date as YYYY-MM-DD in local time. toISOString() would convert to
+// UTC first and land on the wrong day for anyone east or west of it.
+function isoOf(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; }
+function parseISO(s) { return new Date(s + "T00:00:00"); }
+function shiftISO(s, days) { const d = parseISO(s); d.setDate(d.getDate() + days); return isoOf(d); }
+function longDate(s) { const d = parseISO(s); return `${d.getDate()} ${TR_MONTHS[d.getMonth()]} ${d.getFullYear()}`; }
 function backLabels(todayStr, n) { const out = []; const t = new Date(todayStr + "T00:00:00"); for (let i = n - 1; i >= 0; i--) { const d = new Date(t); d.setDate(t.getDate() - i); out.push(dayLabel(d)); } return out; }
 
 // ---------- tooltip ----------
@@ -414,7 +423,7 @@ function card(title, sub, cls) {
   const act = el("div", "hact"); h.appendChild(act);
   c.appendChild(h);
   const b = el("div", "body"); c.appendChild(b);
-  c._body = b; c._act = act; return c;
+  c._body = b; c._act = act; c._ht = ht; return c;
 }
 // items: [color, name, isLine?, mark?] — `mark` is the non-colour cue that
 // keeps a series identifiable without relying on hue alone.
@@ -742,25 +751,116 @@ function plot(c, build, table) {
 }
 const seriesRows = (labels, series) => labels.map((l, i) => [l, ...series.map(se => fmtNum(num(se.values[i])))]);
 
+// Genel Başarı — all time by default, with preset and custom windows summed
+// from the per-day breakdown the client ships.
+const RANGE_PRESETS = [["all", "Tüm zamanlar"], ["today", "Bugün"], ["yesterday", "Dün"],
+                       ["week", "Bu hafta"], ["month", "Bu ay"], ["custom", "Özel"]];
+let _range = { key: "all", from: null, to: null };
+function rangeBounds(key, today) {
+  const t = parseISO(today);
+  switch (key) {
+    case "today": return [today, today];
+    case "yesterday": { const y = shiftISO(today, -1); return [y, y]; }
+    // weeks start Monday, matching the client's own week bucketing
+    case "week": return [shiftISO(today, -((t.getDay() + 6) % 7)), today];
+    case "month": return [`${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-01`, today];
+    default: return [null, null];
+  }
+}
+function successCard(st) {
+  const lt = st.log_totals || {};
+  const byDate = st.answers_by_date;
+  const c = card("Genel Başarı", "");
+  const today = st.today;
+
+  // Older clients don't send the per-day breakdown — show all-time only.
+  if (!byDate || typeof byDate !== "object") {
+    c._ht.appendChild(txt("div", "sub", "tüm kayıtlı cevaplara göre"));
+    c._body.appendChild(successBody(st, {
+      correct: num(lt.correct), wrong: num(lt.wrong), blank: num(lt.blank),
+    }, num(st.overall_rate)));
+    return c;
+  }
+
+  const sub = txt("div", "sub", "");
+  c._ht.appendChild(sub);
+
+  const chips = el("div", "chips");
+  const custom = el("div", "rangebar");
+  custom.style.display = "none";
+  const from = document.createElement("input"), to = document.createElement("input");
+  from.type = to.type = "date";
+  const dates = Object.keys(byDate).sort();
+  if (dates.length) { from.min = to.min = dates[0]; from.max = to.max = today; }
+  _range.from = _range.from || dates[0] || today;
+  _range.to = _range.to || today;
+  from.value = _range.from; to.value = _range.to;
+  const field = (label, input) => { const f = el("div", "fld"); f.append(txt("span", "lbl", label), input); return f; };
+  custom.append(field("Başlangıç", from), field("Bitiş", to));
+
+  const body = el("div");
+  c._body.append(chips, custom, body);
+
+  const chipEls = RANGE_PRESETS.map(([key, label]) => {
+    const b = txt("button", "chip", label);
+    b.setAttribute("aria-pressed", String(key === _range.key));
+    b.onclick = () => {
+      _range.key = key;
+      chipEls.forEach((e, i) => e.setAttribute("aria-pressed", String(RANGE_PRESETS[i][0] === key)));
+      render();
+    };
+    chips.appendChild(b);
+    return b;
+  });
+  from.onchange = to.onchange = () => {
+    if (from.value && to.value && from.value > to.value) { const v = from.value; from.value = to.value; to.value = v; }
+    _range.from = from.value; _range.to = to.value;
+    render();
+  };
+
+  function render() {
+    custom.style.display = _range.key === "custom" ? "" : "none";
+    const [lo, hi] = _range.key === "custom" ? [_range.from, _range.to] : rangeBounds(_range.key, today);
+    let correct = 0, wrong = 0, blank = 0;
+    for (const d in byDate) {
+      if ((lo && d < lo) || (hi && d > hi)) continue;
+      const v = byDate[d] || [];
+      correct += num(v[0]); wrong += num(v[1]); blank += num(v[2]);
+    }
+    const total = correct + wrong + blank;
+    // All time falls back to the client's own figure, which also covers the
+    // pre-log answers folded into overall_rate.
+    const rate = _range.key === "all" && !total ? num(st.overall_rate)
+               : total ? correct / total * 100 : 0;
+    sub.textContent = _range.key === "all" ? "tüm kayıtlı cevaplara göre"
+      : (lo === hi ? longDate(lo) : `${longDate(lo)} – ${longDate(hi)}`);
+    body.replaceChildren(successBody(st, { correct, wrong, blank }, rate, total === 0));
+  }
+  render();
+  return c;
+}
+function successBody(st, counts, rate, empty) {
+  const ring = el("div", "ringwrap");
+  const rw = el("div", "ring");
+  rw.appendChild(progressRing({ value: rate, color: empty ? C.muted : rateColor(rate), label: "başarı oranı" }));
+  ring.appendChild(rw);
+  const meta = el("div", "meta");
+  meta.appendChild(kpiRow([
+    { label: "Doğru ✓", value: counts.correct, color: C.green },
+    { label: "Yanlış ✗", value: counts.wrong, color: C.red },
+    { label: "Boş ∅", value: counts.blank, color: C.yellow },
+    { label: "Toplam", value: counts.correct + counts.wrong + counts.blank, color: C.purple },
+  ], "pair"));
+  if (empty) meta.appendChild(txt("p", "note", "Bu aralıkta kayıtlı cevap yok."));
+  ring.appendChild(meta);
+  return ring;
+}
+
 function pageGenel(st) {
   const root = el("div", "grid");
   const lt = st.log_totals || {};
 
-  const heroCard = card("Genel Başarı", "tüm kayıtlı cevaplara göre");
-  const ring = el("div", "ringwrap");
-  const rw = el("div", "ring");
-  rw.appendChild(progressRing({ value: num(st.overall_rate), color: rateColor(num(st.overall_rate)), label: "başarı oranı" }));
-  ring.appendChild(rw);
-  const meta = el("div", "meta");
-  meta.appendChild(kpiRow([
-    { label: "Doğru ✓", value: num(lt.correct), color: C.green },
-    { label: "Yanlış ✗", value: num(lt.wrong), color: C.red },
-    { label: "Boş ∅", value: num(lt.blank), color: C.yellow },
-    { label: "Seri", value: num(st.streak), unit: "gün", color: C.purple },
-  ], "pair"));
-  ring.appendChild(meta);
-  heroCard._body.appendChild(ring);
-  root.appendChild(gcol(5, heroCard));
+  root.appendChild(gcol(6, successCard(st)));
 
   const kpiCard = card("Özet", "");
   kpiCard._body.appendChild(kpiRow([
@@ -769,9 +869,10 @@ function pageGenel(st) {
     { label: `Öğrenilen (${MATURE}g+)`, value: st.mastered, color: C.yellow },
     { label: "Bugün yeni", value: st.new_today, color: C.green },
     { label: "Tekrar bekleyen", value: st.due_now, color: C.red },
+    { label: "Seri", value: st.streak, unit: "gün", color: C.purple },
     { label: "Kredi", value: st.balance, color: C.yellow },
   ]));
-  root.appendChild(gcol(7, kpiCard));
+  root.appendChild(gcol(6, kpiCard));
 
   // Maturity distribution — ordered buckets, so a single-hue ordinal ramp.
   const bucketList = st.buckets || [];
@@ -1020,7 +1121,7 @@ function answerLogCard(st) {
   }
 
   function goto(d) { day = d; input.value = d; render(); }
-  const shift = n => { const t = new Date(day + "T00:00:00"); t.setDate(t.getDate() + n); goto(t.toISOString().slice(0, 10)); };
+  const shift = n => goto(shiftISO(day, n));
   prev.onclick = () => shift(-1);
   next.onclick = () => shift(1);
   todayBtn.onclick = () => goto(today);

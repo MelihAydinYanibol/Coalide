@@ -341,6 +341,13 @@ def build_stats() -> dict:
     hardest = sorted(attempted, key=lambda e: (e["rate"], -e["wrong"]))[:5]
     table_rows = sorted(started, key=lambda e: (e["rate"], -e["wrong"]))
 
+    # ---- answers per day, whole history (the parent dashboard's "Genel
+    #      Başarı" widget sums these for any chosen window) ----
+    answers_by_date = {
+        d.isoformat(): [c.get("correct", 0), c.get("wrong", 0), c.get("blank", 0)]
+        for d, c in sorted(answers_by_day.items())
+    }
+
     # ---- per-answer detail (recent days only; the parent dashboard's
     #      "Cevap Günlüğü" widget reads this) ----
     log_cutoff = today - timedelta(days=ANSWER_LOG_DAYS - 1)
@@ -441,6 +448,7 @@ def build_stats() -> dict:
         "longest": longest,
         "hardest": hardest,
         "table_rows": table_rows,
+        "answers_by_date": answers_by_date,
         "answer_log": answer_log,
         "answer_log_days": ANSWER_LOG_DAYS,
         "word_types": word_types,

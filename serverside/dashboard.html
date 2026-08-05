@@ -773,12 +773,17 @@ function successCard(st) {
   const c = card("Genel Başarı", "");
   const today = st.today;
 
-  // Older clients don't send the per-day breakdown — show all-time only.
+  // Older clients don't send the per-day breakdown — show all-time only, and
+  // say why the window picker is missing rather than hiding it silently.
   if (!byDate || typeof byDate !== "object") {
     c._ht.appendChild(txt("div", "sub", "tüm kayıtlı cevaplara göre"));
     c._body.appendChild(successBody(st, {
       correct: num(lt.correct), wrong: num(lt.wrong), blank: num(lt.blank),
     }, num(st.overall_rate)));
+    c._body.appendChild(txt("p", "note",
+      "Zaman aralığı seçimi (bugün / dün / bu hafta / bu ay / özel) için çocuğun " +
+      "Coalide uygulamasının güncellenmesi gerekiyor — güncelleme sonrası geçmiş " +
+      "günler de dahil çalışacak."));
     return c;
   }
 

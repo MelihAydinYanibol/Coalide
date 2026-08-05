@@ -14,6 +14,7 @@ Run standalone:  python stats_menu.py
 From the menu:   the "İstatistikler" button launches it as a subprocess.
 """
 
+import csv
 import json
 import os
 from collections import Counter
@@ -46,20 +47,46 @@ MINUTES_PER_DAY = 24 * 60
 # Answer log (statistics.csv) — stdlib only, safe to import from new_master
 # --------------------------------------------------------------------------
 
-def record_answer(word: str, result) -> None:
+LOG_HEADER = ["datetime", "word", "result", "given", "expected", "prompt", "direction"]
+ANSWER_LOG_DAYS = 30  # how far back the per-answer detail is kept in build_stats()
+
+
+def _flat(v) -> str:
+    """A list of accepted meanings -> one displayable string."""
+    if v is None:
+        return ""
+    if isinstance(v, (list, tuple)):
+        return ", ".join(str(x) for x in v)
+    return str(v)
+
+
+def record_answer(word: str, result, given=None, expected=None,
+                  prompt=None, direction=None) -> None:
     """
     Append one answered question to statistics.csv.
+
     :param word: the target word that was asked.
     :param result: True (correct), False (wrong) or None (left blank).
-    Never raises — a stats logging failure must not break the quiz.
+    :param given: what the child actually typed.
+    :param expected: the accepted answer(s) for the question.
+    :param prompt: the text the child was shown.
+    :param direction: "target" if the target word was wanted, else "source".
+
+    The four detail columns were added after the first release, so rows written
+    by an older build only have the first three; readers must tolerate both.
+    Written through csv so a comma inside a word or an answer cannot shift the
+    columns. Never raises — a stats logging failure must not break the quiz.
     """
     try:
         res = "correct" if result is True else "wrong" if result is False else "blank"
         is_new = not os.path.exists(STATS_LOG)
-        with open(STATS_LOG, "a", encoding="utf-8") as f:
+        with open(STATS_LOG, "a", encoding="utf-8", newline="") as f:
+            w = csv.writer(f)
             if is_new:
-                f.write("datetime,word,result\n")
-            f.write(f"{datetime.now().isoformat(timespec='seconds')},{word},{res}\n")
+                w.writerow(LOG_HEADER)
+            w.writerow([datetime.now().isoformat(timespec="seconds"), word, res,
+                        _flat(given), _flat(expected), _flat(prompt),
+                        _flat(direction)])
     except Exception:
         pass
 
@@ -83,24 +110,43 @@ def _parse_date(s):
         return None
 
 
-def load_log() -> list:
-    """Read statistics.csv -> list of (date, word, result) tuples."""
+def read_log_rows() -> list:
+    """
+    Read statistics.csv -> list of dicts, one per answered question.
+
+    Rows written before the detail columns existed simply come back with empty
+    given/expected/prompt/direction.
+    """
     rows = []
     if not os.path.exists(STATS_LOG):
         return rows
     try:
-        with open(STATS_LOG, "r", encoding="utf-8") as f:
-            for line in f:
-                parts = line.strip().split(",")
+        with open(STATS_LOG, "r", encoding="utf-8", newline="") as f:
+            for parts in csv.reader(f):
                 if len(parts) < 3 or parts[0].startswith("datetime"):
                     continue
                 d = _parse_date(parts[0][:10])
                 if d is None:
                     continue
-                rows.append((d, parts[1], parts[2]))
+                col = lambda i: parts[i].strip() if len(parts) > i else ""
+                rows.append({
+                    "date": d,
+                    "time": parts[0][11:16],
+                    "word": parts[1],
+                    "result": parts[2],
+                    "given": col(3),
+                    "expected": col(4),
+                    "prompt": col(5),
+                    "direction": col(6),
+                })
     except Exception:
         pass
     return rows
+
+
+def load_log() -> list:
+    """Read statistics.csv -> list of (date, word, result) tuples."""
+    return [(r["date"], r["word"], r["result"]) for r in read_log_rows()]
 
 
 def load_user_data() -> dict:
@@ -164,7 +210,8 @@ def build_stats() -> dict:
     words = _load_json(WORDS_FILE, [])
     if not isinstance(words, list):
         words = []
-    log = load_log()
+    log_rows = read_log_rows()
+    log = [(r["date"], r["word"], r["result"]) for r in log_rows]
     user = load_user_data()
 
     # ---- per-word state ----
@@ -294,6 +341,23 @@ def build_stats() -> dict:
     hardest = sorted(attempted, key=lambda e: (e["rate"], -e["wrong"]))[:5]
     table_rows = sorted(started, key=lambda e: (e["rate"], -e["wrong"]))
 
+    # ---- answers per day, whole history (the parent dashboard's "Genel
+    #      Başarı" widget sums these for any chosen window) ----
+    answers_by_date = {
+        d.isoformat(): [c.get("correct", 0), c.get("wrong", 0), c.get("blank", 0)]
+        for d, c in sorted(answers_by_day.items())
+    }
+
+    # ---- per-answer detail (recent days only; the parent dashboard's
+    #      "Cevap Günlüğü" widget reads this) ----
+    log_cutoff = today - timedelta(days=ANSWER_LOG_DAYS - 1)
+    answer_log = [
+        {"date": r["date"], "time": r["time"], "word": r["word"],
+         "result": r["result"], "given": r["given"], "expected": r["expected"],
+         "prompt": r["prompt"], "direction": r["direction"]}
+        for r in log_rows if r["date"] >= log_cutoff
+    ]
+
     # ---- word types ----
     word_types = Counter((w.get("word_type") or "?").strip().lower() or "?"
                          for w in words if isinstance(w, dict))
@@ -384,6 +448,9 @@ def build_stats() -> dict:
         "longest": longest,
         "hardest": hardest,
         "table_rows": table_rows,
+        "answers_by_date": answers_by_date,
+        "answer_log": answer_log,
+        "answer_log_days": ANSWER_LOG_DAYS,
         "word_types": word_types,
         "balance": balance,
         "redeemed_14": redeemed_14,

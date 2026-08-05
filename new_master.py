@@ -16,7 +16,7 @@ from utils import lg,get_config,repair_config,get_current_user,cls
 try:
     from stats_menu import record_answer
 except Exception:
-    def record_answer(word, result): pass  # stats logging must never block the quiz
+    def record_answer(word, result, **kw): pass  # stats logging must never block the quiz
 
 
 # Public Modules
@@ -267,7 +267,11 @@ def quest(user, current_question: Question = None):
                 window_start = cfg.get("Credit_Window_Start", "07:00")
                 window_end = cfg.get("Credit_Window_End", "22:00")
                 print(Fore.YELLOW + f"Doğru cevap için kredi kazanılmadı: kredi kazanma saatleri {window_start}-{window_end} arası." + Style.RESET_ALL)
-        record_answer(current_question.word.target, stat)
+        record_answer(current_question.word.target, stat,
+                      given=answer,
+                      expected=current_question.expected_answer,
+                      prompt=current_question.prompt,
+                      direction="target" if current_question.is_target_wanted else "source")
         current_question.word.add_result((True if stat == True else False), is_blank=(stat is None))
         update_sm2(current_question.word, quality)
         feed.append(current_question.word.id)

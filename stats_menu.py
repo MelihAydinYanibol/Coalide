@@ -542,9 +542,11 @@ def rate_color(rate: float) -> str:
 
 from rich.markup import escape
 from rich.text import Text
+from textual import on
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Grid, Vertical, VerticalScroll
+from textual.css.query import NoMatches
 from textual.widgets import (DataTable, Digits, Footer, Header, Sparkline,
                              Static, TabbedContent, TabPane)
 
@@ -635,6 +637,7 @@ class StatsApp(App):
     Sparkline > .sparkline--max-color {{ color: {GREEN}; }}
     Sparkline > .sparkline--min-color {{ color: #2a2a4a; }}
 
+    #word-table-title {{ height: auto; margin-bottom: 1; }}
     #word-table {{ height: 1fr; background: {PANEL_BG}; }}
     """
 
@@ -821,12 +824,29 @@ class StatsApp(App):
             yield Static(f"[bold {PURPLE}]🌱 Yeni kelime — son 30 gün[/]")
             yield Sparkline(s["spark_new_30"], summary_function=max)
 
+    TOP_WORD_TYPES = 6  # rest are summarised, see _kelimeler
+
     def _kelimeler(self, s) -> ComposeResult:
-        types = [(t, c, PURPLE) for t, c in s["word_types"].most_common()]
-        yield self._panel("🏷️ Kelime Türleri", hbar_chart(types, label_w=12),
-                          "p-purple", PURPLE)
+        # The chart is one line per word type, and the table below only gets
+        # the height left over — with a big word list the chart used to grow
+        # until the table was squeezed down to a couple of rows. Show the top
+        # few types and count the rest instead.
+        types = s["word_types"].most_common()
+        body = hbar_chart([(t, c, PURPLE) for t, c in types[:self.TOP_WORD_TYPES]],
+                          label_w=12)
+        rest = types[self.TOP_WORD_TYPES:]
+        if rest:
+            body += (f"\n[{MUTED}]+ {len(rest)} tür daha "
+                     f"({sum(c for _t, c in rest)} kelime)[/]")
+        panel = self._panel("🏷️ Kelime Türleri", body, "p-purple", PURPLE)
+        panel.id = "word-types"
+        yield panel
+        # A plain title line rather than a bordered panel: on a short terminal
+        # every row it would cost comes straight out of the table.
         yield Static(f"[bold {GREEN}]🔤 Tüm Kelimeler — en zordan kolaya "
-                     f"({s['started_count']} başlanan)[/]", classes="panel p-green")
+                     f"({s['started_count']} başlanan)[/]"
+                     f"   [{MUTED}]↑↓ / PgUp / PgDn ile gezinin[/]",
+                     id="word-table-title")
         yield WordTable(s["table_rows"], s["today"])
 
     def _gelecek(self, s) -> ComposeResult:
@@ -850,6 +870,19 @@ class StatsApp(App):
         yield self._panel("🧠 SM-2 Sağlığı", "\n".join(lines), "p-green", GREEN)
 
     # ---- actions ---------------------------------------------------------
+
+    @on(TabbedContent.TabActivated)
+    def _focus_table(self, event: TabbedContent.TabActivated) -> None:
+        """Opening the Kelimeler tab hands focus to the table, so the arrow
+        keys and PageUp/PageDown scroll the word list straight away."""
+        if event.pane.id != "tab-kelime":
+            return
+        def focus_table() -> None:
+            try:
+                self.query_one("#word-table", DataTable).focus()
+            except NoMatches:
+                pass
+        self.call_after_refresh(focus_table)
 
     def action_refresh_stats(self) -> None:
         self.refresh(recompose=True)

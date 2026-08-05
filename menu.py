@@ -479,17 +479,11 @@ class MainMenu(Screen):
             # Redeem is its own Textual app, so it runs as a subprocess (a
             # nested App inside suspend() would fight over the terminal).
             elif id == "credit": subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "redeem_menu.py")])
-            elif id == "settings" or id == "admin_mode":
-                if not id == "admin_mode":
-                    print("\nAyarlar menüsü henüz tamamlanmadı, Sadece admin modu mevcut.")
-                    options = {1: "Admin Modu", 2: "Ana menüye dön"}
-                    for k, v in options.items():
-                        print(f"{k}. {v}")
-                    opt = input("\nSeçenek seçin: ").strip()
-                else:opt="1"
-                # Admin is its own Textual app now, so run it as a subprocess
-                # (a nested App inside suspend() would fight over the terminal).
-                if opt == "1": subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "admin.py")])
+            # Settings and admin are both their own Textual apps, so they run
+            # as subprocesses (a nested App inside suspend() would fight over
+            # the terminal). The settings menu itself can open admin.
+            elif id == "settings": subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "settings_menu.py")])
+            elif id == "admin_mode": subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "admin.py")])
             elif id == "practice": from practice import main; main()
             # Stats is its own Textual app, so run it as a subprocess (a
             # nested App inside suspend() would fight over the terminal).
@@ -692,6 +686,10 @@ class LanguageApp(App):
                 lambda: screen.run_python_script("stats"),
             )
             yield SystemCommand(
+                "Settings", "Open the settings menu (Ayarlar)",
+                lambda: screen.run_python_script("settings"),
+            )
+            yield SystemCommand(
                 "Admin Mode", "Open admin mode (Admin Modu)",
                 lambda: screen.run_python_script("admin_mode"),
             )
@@ -743,8 +741,20 @@ def set_console_font_size(height: int = 22) -> None:
         pass  # never let a cosmetic tweak break app startup
 
 
+def enforce_minimum_volume() -> None:
+    """Bring the system volume up to config.json -> Minimum_Volume at startup,
+    so turning Windows down (or muting it) before launching Coalide is not a
+    way around the floor. Silent no-op if anything is unavailable."""
+    try:
+        from settings_menu import enforce_minimum_volume as enforce
+        enforce()
+    except Exception:
+        pass
+
+
 def main():
     set_console_font_size()
+    enforce_minimum_volume()
     # Ask who's playing while the terminal is still a plain console. The menu
     # needs a user to show credits, but prompting from inside the running TUI
     # only produces a blank screen (see utils._can_prompt).

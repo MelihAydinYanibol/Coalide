@@ -59,6 +59,8 @@ def get_config(default=False):
         "PRONOUNCE_WORDS":True,
         "PRONOUNCE_SENTENCES":True,
         "BACKUP_PRONUNCIATIONS":True,
+        "Sound_Effects":True,
+        "Minimum_Volume":25,
         "KIOSK_MODE":False,
         "BYPASS_SHORTCUTS":True,
         "Credit_Window_Start":"07:00",

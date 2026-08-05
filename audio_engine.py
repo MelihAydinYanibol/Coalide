@@ -186,6 +186,14 @@ def generate_audio(
             
 def play_audio(filename):
     lg(f"play_audio({filename})")
+    # Sound can be switched off from the settings menu (Ayarlar -> Ses).
+    try:
+        from utils import get_config as get_app_config
+        if not get_app_config().get("Sound_Effects", True):
+            lg("Sound_Effects is off — skipping playback.")
+            return
+    except Exception:
+        pass  # a missing/broken config must never silence a working setup
     # Backwards-compatible wrapper that uses the resilient player below
     return play_audio_with_unplug_handling(filename)
 

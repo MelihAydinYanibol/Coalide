@@ -52,6 +52,8 @@ CONFIG_DESCRIPTIONS = {
     "PRONOUNCE_WORDS": "Kelimeler sesli olarak okunsun mu.",
     "PRONOUNCE_SENTENCES": "Örnek cümleler sesli olarak okunsun mu.",
     "BACKUP_PRONUNCIATIONS": "Telaffuz ses dosyalarını yedekle.",
+    "Sound_Effects": "Uygulama sesleri (telaffuz vb.) çalınsın mı.",
+    "Minimum_Volume": "Ayarlar menüsünde inilebilecek en düşük ses seviyesi, % (0 = sınır yok; sınır varken mute de kapalıdır).",
     "KIOSK_MODE": "Kiosk modu: uygulama kapanınca otomatik yeniden açılır.",
     "BYPASS_SHORTCUTS": "Alt+Tab / Windows tuşu gibi kaçış kısayollarını engelle.",
     "Credit_Window_Start": "Kredi kazanmanın başladığı saat (SS:DD, örn. 07:00).",

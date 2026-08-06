@@ -494,6 +494,11 @@ class MainMenu(Screen):
         # redeemed minutes, so re-read them into the stats panel now that the
         # TUI has resumed.
         self.refresh_stats()
+        # Pull parent-made changes again. on_mount only fires once (the quiz
+        # suspends the app instead of switching screens, so returning here
+        # never remounts), and without this a dashboard edit would not reach
+        # the child until the whole app was restarted.
+        sync_config_async()
 
 class ExitDialog(ModalScreen[str | None]):
     """Popup behind the Çıkış button.

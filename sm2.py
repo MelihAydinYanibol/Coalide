@@ -21,10 +21,12 @@ SHUFFLE_NEW_WORDS = config.get("SHUFFLE_NEW_WORDS", False) # introduce new words
 
 NEW_WORD_SENTINEL = "2020-10-10" # next_review_date assigned to brand-new (never-reviewed) words
 
-# Direction of the question currently on screen, remembered on disk. Without it
-# a kid could type "exit" and restart the quiz to re-roll the same word into the
-# other direction -- and the easy direction shows them the answer they were just
-# asked for. Only one question is ever pending, so a single slot is enough.
+# Everything randomized about the question currently on screen -- the direction
+# and, when the prompt side has aliases, which one is shown -- remembered on
+# disk. Without this a kid could type "exit" and restart the quiz to re-roll:
+# the other direction shows them the answer they were just asked for, and a
+# different alias is a second free hint at the same answer. Only one question is
+# ever pending, so a single slot is enough.
 #
 # Deliberately NOT stored in progress.json: every key there counts as a "started"
 # word in the stats screen (see stats_menu.build_stats), and merely being shown a
@@ -32,8 +34,12 @@ NEW_WORD_SENTINEL = "2020-10-10" # next_review_date assigned to brand-new (never
 PENDING_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".pending_question.json")
 
 
-def _load_pending_direction(word_id: str) -> bool | None:
-    """The saved direction for `word_id`, or None when nothing is pending for it."""
+def _load_pending_question(word_id: str) -> tuple[bool, int] | None:
+    """
+    The saved (direction, prompt_index) for `word_id`, or None when nothing is
+    pending for it. A slot written before prompt_index existed still loads, as
+    index 0.
+    """
     try:
         with open(PENDING_FILE, "r", encoding="UTF-8") as f:
             pending = json.load(f)
@@ -42,23 +48,39 @@ def _load_pending_direction(word_id: str) -> bool | None:
     if not isinstance(pending, dict) or pending.get("word_id") != word_id:
         return None
     direction = pending.get("is_target_wanted")
-    return direction if isinstance(direction, bool) else None
+    if not isinstance(direction, bool):
+        return None
+    index = pending.get("prompt_index", 0)
+    return direction, index if isinstance(index, int) and index >= 0 else 0
 
 
-def _save_pending_direction(word_id: str, is_target_wanted: bool) -> None:
+def _save_pending_question(word_id: str, is_target_wanted: bool, prompt_index: int) -> None:
     try:
         with open(PENDING_FILE, "w", encoding="UTF-8") as f:
-            json.dump({"word_id": word_id, "is_target_wanted": is_target_wanted}, f)
+            json.dump({"word_id": word_id, "is_target_wanted": is_target_wanted,
+                       "prompt_index": prompt_index}, f)
     except OSError:
-        lg("Could not save the pending question direction.")  # must never break the quiz
+        lg("Could not save the pending question.")  # must never break the quiz
 
 
-def _clear_pending_direction() -> None:
-    """Forget the pending direction once its question has been answered."""
+def _clear_pending_question() -> None:
+    """Forget the pending question once it has been answered."""
     try:
         os.remove(PENDING_FILE)
     except OSError:
         pass  # already gone (or unwritable) -- nothing to forget either way
+
+
+def _random_prompt_index(word: Word, is_target_wanted: bool) -> int:
+    """
+    Pick which alias to show when the prompt side has several ("almak" / "elde
+    etmek" for "get"); 0 when that side is a plain string. Goes through a
+    throwaway Question so the "which side is the prompt" rule stays in one place.
+    """
+    prompt = Question(word=word, is_target_wanted=is_target_wanted).prompt
+    if isinstance(prompt, list) and prompt:
+        return random.randrange(len(prompt))
+    return 0
 
 
 def _order_word_list(words: list[Word]):
@@ -146,13 +168,18 @@ def get_next_question(feed: list | None = None) -> Question:
         due_words = due_words_filtered
  
     next_word = due_words[0]
-    # Reuse the direction if this word was already put on screen and left
-    # unanswered, so quitting and restarting can't re-roll it (see PENDING_FILE).
-    is_target_wanted = _load_pending_direction(next_word.id)
-    if is_target_wanted is None:
+    # Reuse the presentation -- direction and which alias is shown -- if this
+    # word was already put on screen and left unanswered, so quitting and
+    # restarting can't re-roll either of them (see PENDING_FILE).
+    pending = _load_pending_question(next_word.id)
+    if pending is None:
         is_target_wanted = random.randint(0, 1) == 1
-        _save_pending_direction(next_word.id, is_target_wanted)
-    return Question(word=next_word, is_target_wanted=is_target_wanted)
+        prompt_index = _random_prompt_index(next_word, is_target_wanted)
+        _save_pending_question(next_word.id, is_target_wanted, prompt_index)
+    else:
+        is_target_wanted, prompt_index = pending
+    return Question(word=next_word, is_target_wanted=is_target_wanted,
+                    prompt_index=prompt_index)
 
 def calculate_quality(is_correct, word_length:int, time_taken: float) -> int:
     """
@@ -205,6 +232,6 @@ def update_sm2(word, quality: int):
         word.first_review_date = date.today().isoformat()  # first ever review = word introduced today
     word.last_review_date = date.today().isoformat()  # Update the last review date to today
     save_progress(word)  # Save the updated word progress to progress.json
-    _clear_pending_direction()  # answered -- the next outing re-rolls the direction
+    _clear_pending_question()  # answered -- the next outing re-rolls the presentation
     return word
 

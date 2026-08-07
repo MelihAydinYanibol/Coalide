@@ -158,10 +158,7 @@ def quest(user, current_question: Question = None):
         if current_question is None:
             print("No more questions due for review. Come back later!")
             sys.exit(0)
-        if type(current_question.prompt) == list: 
-            import random
-            prompt = random.choice(current_question.prompt)
-        else: prompt = current_question.prompt
+        prompt = current_question.prompt_text
 
         # Providing information
 

@@ -222,3 +222,4 @@ config.json
 current_user.json
 *_data.json
 progress.json
+.pending_question.json

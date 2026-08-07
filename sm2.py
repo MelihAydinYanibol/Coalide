@@ -9,6 +9,8 @@ from operator import attrgetter
 from objects.word_obj import Word,save_progress
 from objects.question_obj import Question
 from utils import lg,get_config
+import json
+import os
 import random
 
 config = get_config()
@@ -18,6 +20,45 @@ NO_REPEAT_WINDOW = config.get("No_Repeat_Window", 8) # a word can't repeat withi
 SHUFFLE_NEW_WORDS = config.get("SHUFFLE_NEW_WORDS", False) # introduce new words in random order instead of words.json order
 
 NEW_WORD_SENTINEL = "2020-10-10" # next_review_date assigned to brand-new (never-reviewed) words
+
+# Direction of the question currently on screen, remembered on disk. Without it
+# a kid could type "exit" and restart the quiz to re-roll the same word into the
+# other direction -- and the easy direction shows them the answer they were just
+# asked for. Only one question is ever pending, so a single slot is enough.
+#
+# Deliberately NOT stored in progress.json: every key there counts as a "started"
+# word in the stats screen (see stats_menu.build_stats), and merely being shown a
+# question shouldn't move those numbers.
+PENDING_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".pending_question.json")
+
+
+def _load_pending_direction(word_id: str) -> bool | None:
+    """The saved direction for `word_id`, or None when nothing is pending for it."""
+    try:
+        with open(PENDING_FILE, "r", encoding="UTF-8") as f:
+            pending = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(pending, dict) or pending.get("word_id") != word_id:
+        return None
+    direction = pending.get("is_target_wanted")
+    return direction if isinstance(direction, bool) else None
+
+
+def _save_pending_direction(word_id: str, is_target_wanted: bool) -> None:
+    try:
+        with open(PENDING_FILE, "w", encoding="UTF-8") as f:
+            json.dump({"word_id": word_id, "is_target_wanted": is_target_wanted}, f)
+    except OSError:
+        lg("Could not save the pending question direction.")  # must never break the quiz
+
+
+def _clear_pending_direction() -> None:
+    """Forget the pending direction once its question has been answered."""
+    try:
+        os.remove(PENDING_FILE)
+    except OSError:
+        pass  # already gone (or unwritable) -- nothing to forget either way
 
 
 def _order_word_list(words: list[Word]):
@@ -105,7 +146,12 @@ def get_next_question(feed: list | None = None) -> Question:
         due_words = due_words_filtered
  
     next_word = due_words[0]
-    is_target_wanted = random.randint(0, 1) == 1
+    # Reuse the direction if this word was already put on screen and left
+    # unanswered, so quitting and restarting can't re-roll it (see PENDING_FILE).
+    is_target_wanted = _load_pending_direction(next_word.id)
+    if is_target_wanted is None:
+        is_target_wanted = random.randint(0, 1) == 1
+        _save_pending_direction(next_word.id, is_target_wanted)
     return Question(word=next_word, is_target_wanted=is_target_wanted)
 
 def calculate_quality(is_correct, word_length:int, time_taken: float) -> int:
@@ -159,5 +205,6 @@ def update_sm2(word, quality: int):
         word.first_review_date = date.today().isoformat()  # first ever review = word introduced today
     word.last_review_date = date.today().isoformat()  # Update the last review date to today
     save_progress(word)  # Save the updated word progress to progress.json
+    _clear_pending_direction()  # answered -- the next outing re-rolls the direction
     return word
 

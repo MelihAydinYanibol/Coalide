@@ -50,6 +50,21 @@ except Exception:
 # Change this to wherever your quiz script actually lives.
 APP_PATH = "new_master.py"
 
+# Version string shown, dimmed, at the bottom-center of the menu. Read from
+# version.json if it exists (written by the updater in coalide.py), otherwise
+# fall back to this default.
+FALLBACK_VERSION = "v2.0.0-alpha"
+
+
+def _app_version() -> str:
+    """Return the installed version from version.json, or the fallback."""
+    try:
+        import json
+        with open("version.json", "r", encoding="utf-8") as f:
+            return json.load(f).get("version") or FALLBACK_VERSION
+    except Exception:
+        return FALLBACK_VERSION
+
 
 # Inspirational quotes shown at the bottom of the menu — one picked at random
 # each time the menu opens. A mix of Harry Potter, Star Wars, Star Trek and a
@@ -263,6 +278,14 @@ class MainMenu(Screen):
         color: #cfcfe8;
         margin-bottom: 1;
     }
+
+    #version {
+        height: 1;
+        content-align: center middle;
+        text-align: center;
+        color: #6b6b80;
+        text-style: dim;
+    }
     """
 
     def compose(self) -> ComposeResult:
@@ -285,6 +308,7 @@ class MainMenu(Screen):
                 yield Static(self._used_text(user), id="stat-used", classes="stat-row")
                 # Easter egg: click this quote to re-roll it (see on_click).
                 yield Static(self._random_quote_text(), id="quote")
+        yield Static(_app_version(), id="version")
         yield Footer(show_command_palette=False)
 
     @staticmethod

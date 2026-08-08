@@ -86,6 +86,53 @@ def _reconcile_progress(words: list) -> None:
         _save_json(PROGRESS_FILE, pruned)
 
 
+def _backup_progress():
+    """Copy progress.json to a timestamped .bak before a parent-queued bulk
+    reset, so it stays recoverable. Best-effort; never raises."""
+    if not os.path.exists(PROGRESS_FILE):
+        return None
+    try:
+        import shutil
+        stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        backup = f"{PROGRESS_FILE}.{stamp}.bak"
+        shutil.copy2(PROGRESS_FILE, backup)
+        return backup
+    except Exception:
+        return None
+
+
+def _apply_progress_resets(jobs: list) -> int:
+    """Apply parent-queued reset jobs: remove every progress entry whose SM-2
+    interval falls in a job's [lo, hi] range, sending those words back to 'not
+    started'. Backs progress.json up first. Returns the number of entries removed."""
+    prog = _load_json(PROGRESS_FILE, None)
+    if not isinstance(prog, dict) or not prog:
+        return 0
+    remove = set()
+    for job in jobs:
+        if not isinstance(job, dict):
+            continue
+        try:
+            lo = float(job.get("lo", 0))
+            hi = float(job.get("hi", 0))
+        except (TypeError, ValueError):
+            continue
+        for target, entry in prog.items():
+            if not isinstance(entry, dict):
+                continue
+            interval = entry.get("interval", 0)
+            if not isinstance(interval, (int, float)):
+                interval = 0
+            if lo <= interval <= hi:
+                remove.add(target)
+    if not remove:
+        return 0
+    _backup_progress()
+    pruned = {k: v for k, v in prog.items() if k not in remove}
+    _save_json(PROGRESS_FILE, pruned)
+    return len(remove)
+
+
 def _push():
     try:
         from utils import get_config, lg
@@ -107,6 +154,7 @@ def _push():
             "admin_hash": _admin_hash(),
             "applied_config_rev": state.get("config_rev", 0),
             "applied_words_rev": state.get("words_rev", 0),
+            "applied_reset_rev": state.get("reset_rev", 0),
             "client_time": datetime.now().isoformat(timespec="seconds"),
         }
 
@@ -147,6 +195,24 @@ def _push():
                 pass
         elif words_part.get("rev"):
             new_state["words_rev"] = words_part["rev"]
+
+        # Progress resets queued by the parent from the web admin. Apply any job
+        # newer than what we've applied, then remember the server's rev so each
+        # reset runs exactly once.
+        reset_part = data.get("reset") or {}
+        reset_jobs = reset_part.get("jobs") or []
+        if isinstance(reset_jobs, list) and reset_jobs:
+            removed = _apply_progress_resets(reset_jobs)
+            new_state["reset_rev"] = reset_part.get("rev", state.get("reset_rev", 0))
+            applied.append(f"reset({removed})")
+            if removed:
+                try:
+                    from sm2 import reload_words
+                    reload_words()
+                except Exception:
+                    pass
+        elif reset_part.get("rev"):
+            new_state["reset_rev"] = reset_part["rev"]
 
         if new_state != state:
             _save_json(SYNC_STATE_FILE, new_state)

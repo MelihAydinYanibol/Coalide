@@ -246,6 +246,11 @@ class Handler(BaseHTTPRequestHandler):
                 return
             return self._send_json(admin_api.get_server_env())
 
+        if path == "/api/admin/reset-progress":
+            if not self._require_admin():
+                return
+            return self._send_json(admin_api.get_reset_state())
+
         if path == "/api/report/preview":
             settings = report.load_settings(HOST, PORT)
             text = report.build_report_text(all_records(), settings["url"])
@@ -285,6 +290,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._post_words()
         if path == "/api/admin/server-env":
             return self._post_server_env()
+        if path == "/api/admin/reset-progress":
+            return self._post_reset_progress()
         if path == "/api/report/send":
             return self._post_send_report()
 
@@ -372,6 +379,18 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as e:
             return self._send_json({"error": str(e)}, status=400)
         return self._send_json({"status": "ok"})
+
+    def _post_reset_progress(self):
+        if not self._require_admin():
+            return
+        payload = self._read_json()
+        if payload is None:
+            return
+        try:
+            result = admin_api.queue_reset(payload.get("bucket", ""))
+        except Exception as e:
+            return self._send_json({"error": str(e)}, status=400)
+        return self._send_json({"status": "ok", **result})
 
     def _post_send_report(self):
         if not self._require_admin():

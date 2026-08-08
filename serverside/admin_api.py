@@ -38,8 +38,24 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 CONFIG_FILE = os.path.join(DATA_DIR, "coalide_config.json")
 WORDS_FILE = os.path.join(DATA_DIR, "coalide_words.json")
+RESET_FILE = os.path.join(DATA_DIR, "coalide_reset.json")
 ADMIN_FILE = os.path.join(DATA_DIR, "admin.json")
 SERVER_ENV = os.path.join(BASE_DIR, ".env")
+
+# SM-2 interval (days) ranges for the stats-screen maturity buckets, mirroring
+# admin.py / stats_menu.py (MATURE_INTERVAL=21). A parent can queue any bucket to
+# be reset to "not started"; the child applies it to progress.json on next sync.
+# The top bucket runs to a large finite bound (JSON has no infinity). Each row is
+# (id, label, lo_interval, hi_interval), lo/hi inclusive.
+RESET_MASTER_HI = 10 ** 9
+RESET_BUCKETS = [
+    ("new",      "Yeni (≤1 gün)",      0, 1),
+    ("learning", "Öğreniliyor (2-6g)", 2, 6),
+    ("young",    "Genç (1-3 hafta)",   7, 20),
+    ("mature",   "Olgun (3h-2 ay)",    21, 59),
+    ("master",   "Usta (2 ay +)",      60, RESET_MASTER_HI),
+]
+RESET_BUCKET_MAP = {b[0]: b for b in RESET_BUCKETS}
 
 SESSION_TTL = 2 * 3600  # seconds
 _sessions = {}          # token -> expiry timestamp
@@ -148,6 +164,17 @@ def sync(payload: dict) -> dict:
             applied = _int(payload.get("applied_words_rev"))
             resp["words"] = {"rev": w["rev"],
                             "data": w["data"] if w["rev"] > applied else None}
+
+        # Progress resets — parent-queued jobs the child applies to its local
+        # progress.json. Return only jobs newer than what the child has applied,
+        # so each reset runs exactly once even if several were queued between syncs.
+        r = _load(RESET_FILE, None)
+        if isinstance(r, dict) and isinstance(r.get("jobs"), list):
+            applied = _int(payload.get("applied_reset_rev"))
+            pending = [j for j in r["jobs"] if _int(j.get("rev")) > applied]
+            resp["reset"] = {"rev": _int(r.get("rev")), "jobs": pending}
+        else:
+            resp["reset"] = {"rev": 0, "jobs": []}
 
         return resp
 
@@ -323,6 +350,42 @@ def delete_word(index: int) -> dict:
         del words[index]
         rev = _bump_words(words)
         return {"rev": rev, "count": len(words), "target": target}
+
+
+# --------------------------------------------------------------------------
+# Progress resets (parent-queued, applied on the child's device)
+# --------------------------------------------------------------------------
+
+def get_reset_state() -> dict:
+    """Current reset revision, the available maturity buckets, and a little
+    recent history — for the web admin's reset panel."""
+    r = _load(RESET_FILE, None)
+    jobs = r.get("jobs", []) if isinstance(r, dict) else []
+    return {
+        "rev": _int(r.get("rev")) if isinstance(r, dict) else 0,
+        "buckets": [{"id": b[0], "label": b[1]} for b in RESET_BUCKETS],
+        "recent": list(reversed(jobs[-10:])),  # newest first
+    }
+
+
+def queue_reset(bucket_id: str) -> dict:
+    """Queue a 'reset this maturity bucket to not started' job for the child to
+    apply on next sync. Returns {rev, label}."""
+    bucket = RESET_BUCKET_MAP.get(str(bucket_id))
+    if not bucket:
+        raise ValueError("Geçersiz olgunluk grubu.")
+    _id, label, lo, hi = bucket
+    with _lock:
+        r = _load(RESET_FILE, None)
+        if not isinstance(r, dict):
+            r = {"rev": 0, "jobs": []}
+        rev = _int(r.get("rev")) + 1
+        jobs = r.get("jobs") if isinstance(r.get("jobs"), list) else []
+        jobs.append({"rev": rev, "bucket": _id, "label": label,
+                     "lo": lo, "hi": hi, "created_at": _now()})
+        # Cap history so the file can't grow without bound.
+        _save(RESET_FILE, {"rev": rev, "jobs": jobs[-200:]})
+        return {"rev": rev, "label": label}
 
 
 # --------------------------------------------------------------------------

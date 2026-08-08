@@ -97,6 +97,71 @@ def _rename_progress(old_target: str, new_target: str):
         _save_json(PROGRESS_FILE, prog)
 
 
+# SM-2 interval (days) ranges for the stats-screen maturity buckets, used by the
+# "reset to not started" actions — see stats_menu.build_stats (MATURE_INTERVAL=21).
+# Each bucket gets its own reset button, so any can be reset independently (or
+# several together). Each row is (button/dialog label, (lo, hi)) with lo/hi
+# inclusive; the last bucket runs to infinity.
+#   (id_suffix, label, (lo_interval, hi_interval))
+RESET_BUCKETS = [
+    ("new",      "Yeni (≤1 gün)",      (0, 1)),
+    ("learning", "Öğreniliyor (2-6g)", (2, 6)),
+    ("young",    "Genç (1-3 hafta)",   (7, 20)),
+    ("mature",   "Olgun (3h-2 ay)",    (21, 59)),
+    ("master",   "Usta (2 ay +)",      (60, float("inf"))),
+]
+
+
+def _targets_in_interval_range(lo: float, hi: float) -> list[str]:
+    """Targets of started words whose SM-2 interval falls in [lo, hi] (inclusive).
+    Missing/odd intervals count as 0, so they land in the lowest bucket."""
+    prog = _load_json(PROGRESS_FILE, {})
+    if not isinstance(prog, dict):
+        return []
+    out = []
+    for target, entry in prog.items():
+        if not isinstance(entry, dict):
+            continue
+        interval = entry.get("interval", 0)
+        if not isinstance(interval, (int, float)):
+            interval = 0
+        if lo <= interval <= hi:
+            out.append(target)
+    return out
+
+
+def _backup_progress() -> str | None:
+    """Copy progress.json to a timestamped .bak before a bulk change, so the
+    reset is always recoverable. Returns the backup path, or None if there was
+    nothing to back up (or the copy failed)."""
+    if not os.path.exists(PROGRESS_FILE):
+        return None
+    try:
+        import shutil
+        from datetime import datetime
+        stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        backup = f"{PROGRESS_FILE}.{stamp}.bak"
+        shutil.copy2(PROGRESS_FILE, backup)
+        return backup
+    except Exception:
+        return None
+
+
+def _reset_progress_in_range(lo: float, hi: float) -> tuple[int, str | None]:
+    """Remove the progress entry of every started word with interval in [lo, hi],
+    sending those words back to 'not started'. Backs progress.json up first.
+    Returns (count_removed, backup_path)."""
+    targets = _targets_in_interval_range(lo, hi)
+    if not targets:
+        return 0, None
+    backup = _backup_progress()
+    prog = _load_json(PROGRESS_FILE, {})
+    for target in targets:
+        prog.pop(target, None)
+    _save_json(PROGRESS_FILE, prog)
+    return len(targets), backup
+
+
 # --------------------------------------------------------------------------
 # Textual UI
 # --------------------------------------------------------------------------
@@ -317,6 +382,9 @@ class AdminApp(App):
     /* Words tab */
     .words-toolbar {{ height: auto; margin-bottom: 1; }}
     .words-toolbar Button {{ margin-right: 1; }}
+    .words-reset-toolbar {{ height: auto; margin-bottom: 1; }}
+    .words-reset-toolbar Button {{ margin-right: 1; }}
+    .reset-label {{ width: auto; padding: 1 1; color: {MUTED}; }}
     #word-count {{ width: 1fr; text-align: right; padding: 1 2; color: {MUTED}; }}
     #words-table {{ height: 1fr; background: {PANEL_BG}; }}
 
@@ -544,6 +612,11 @@ class AdminApp(App):
             yield Button("✏️ Düzenle", variant="primary", id="btn-word-edit")
             yield Button("🗑 Sil", variant="error", id="btn-word-delete")
             yield Static("", id="word-count")
+        with Horizontal(classes="words-reset-toolbar"):
+            yield Static("♻️ Başlanmadıya döndür:", classes="reset-label")
+            for suffix, label, _range in RESET_BUCKETS:
+                yield Button(label, variant="warning", classes="reset-btn",
+                             id=f"btn-word-reset-{suffix}")
         yield DataTable(id="words-table")
 
     def _refill_words_table(self) -> None:
@@ -649,6 +722,43 @@ class AdminApp(App):
             f"[bold {RED}]'{escape(target)}'[/] kelimesi silinsin mi?\n\n"
             f"[{MUTED}]Kelimeyle birlikte ilerleme (SM-2) kaydı da silinir. "
             f"Bu işlem geri alınamaz.[/]"), handle)
+
+    @on(Button.Pressed, ".reset-btn")
+    def _on_word_reset(self, event: Button.Pressed) -> None:
+        suffix = (event.button.id or "").removeprefix("btn-word-reset-")
+        for s, label, interval_range in RESET_BUCKETS:
+            if s == suffix:
+                self._reset_words_to_not_started(interval_range, label)
+                return
+
+    def _reset_words_to_not_started(self, interval_range: tuple[float, float],
+                                    label: str) -> None:
+        """Send every started word whose interval is in interval_range back to
+        'Başlanmadı'. Useful when a review backlog has piled up: these
+        barely-retained words drop out of the due queue and are re-introduced
+        gradually under the daily new-word cap. `label` names the affected
+        bucket in the dialog/notice."""
+        lo, hi = interval_range
+        targets = _targets_in_interval_range(lo, hi)
+        if not targets:
+            self.notify(f"Sıfırlanacak '{label}' kelime yok.",
+                        title="ℹ️ Bilgi", timeout=4)
+            return
+
+        def handle(confirmed: bool | None) -> None:
+            if not confirmed:
+                return
+            count, backup = _reset_progress_in_range(lo, hi)
+            msg = f"{count} kelime 'Başlanmadı' durumuna döndürüldü."
+            if backup:
+                msg += f"\nYedek: {os.path.basename(backup)}"
+            self.notify(msg, title="♻️ Sıfırlandı", timeout=6)
+        self.push_screen(ConfirmScreen(
+            f"[bold {YELLOW}]{len(targets)}[/] adet '{label}' kelime "
+            f"[bold]'Başlanmadı'[/] durumuna döndürülsün mü?\n\n"
+            f"[{MUTED}]Bu kelimelerin SM-2 ilerlemesi silinir; günlük yeni "
+            f"kelime sınırına tabi olarak kademeli yeniden tanıtılırlar. "
+            f"progress.json otomatik yedeklenir.[/]"), handle)
 
 
 # --------------------------------------------------------------------------

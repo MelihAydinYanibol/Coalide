@@ -97,15 +97,18 @@ def _rename_progress(old_target: str, new_target: str):
         _save_json(PROGRESS_FILE, prog)
 
 
-# Interval (days) at or below which a started word still counts as "Yeni
-# (≤1 gün)" in the stats screen — see stats_menu.build_stats. These are the
-# barely-retained words the "reset new words" action sends back to "not started".
+# SM-2 interval (days) upper bounds for the stats-screen maturity buckets, used
+# by the "reset to not started" actions — see stats_menu.build_stats.
+#   Yeni (≤1 gün):        interval ≤ 1
+#   Öğreniliyor (2-6g):   2 ≤ interval ≤ 6
+# So "Yeni + Öğreniliyor" together is interval ≤ 6.
 NEW_WORD_MAX_INTERVAL = 1
+LEARNING_MAX_INTERVAL = 6
 
 
-def _new_word_targets() -> list[str]:
-    """Targets of started words whose SM-2 interval is ≤ NEW_WORD_MAX_INTERVAL —
-    the 'Yeni (≤1 gün)' bucket. Missing/odd intervals count as new (0)."""
+def _targets_up_to_interval(max_interval: int) -> list[str]:
+    """Targets of started words whose SM-2 interval is ≤ max_interval.
+    Missing/odd intervals count as new (0), so they are always included."""
     prog = _load_json(PROGRESS_FILE, {})
     if not isinstance(prog, dict):
         return []
@@ -116,7 +119,7 @@ def _new_word_targets() -> list[str]:
         interval = entry.get("interval", 0)
         if not isinstance(interval, (int, float)):
             interval = 0
-        if interval <= NEW_WORD_MAX_INTERVAL:
+        if interval <= max_interval:
             out.append(target)
     return out
 
@@ -138,11 +141,11 @@ def _backup_progress() -> str | None:
         return None
 
 
-def _reset_new_progress() -> tuple[int, str | None]:
-    """Remove every 'Yeni (≤1 gün)' word's progress entry, sending those words
-    back to 'not started'. Backs progress.json up first. Returns
-    (count_removed, backup_path)."""
-    targets = _new_word_targets()
+def _reset_progress_up_to(max_interval: int) -> tuple[int, str | None]:
+    """Remove the progress entry of every started word with interval ≤
+    max_interval, sending those words back to 'not started'. Backs progress.json
+    up first. Returns (count_removed, backup_path)."""
+    targets = _targets_up_to_interval(max_interval)
     if not targets:
         return 0, None
     backup = _backup_progress()
@@ -600,6 +603,7 @@ class AdminApp(App):
             yield Button("✏️ Düzenle", variant="primary", id="btn-word-edit")
             yield Button("🗑 Sil", variant="error", id="btn-word-delete")
             yield Button("♻️ Yenileri Sıfırla", variant="warning", id="btn-word-reset-new")
+            yield Button("♻️ Yeni+Öğr. Sıfırla", variant="warning", id="btn-word-reset-learning")
             yield Static("", id="word-count")
         yield DataTable(id="words-table")
 
@@ -709,25 +713,34 @@ class AdminApp(App):
 
     @on(Button.Pressed, "#btn-word-reset-new")
     def _on_word_reset_new(self) -> None:
-        """Send every 'Yeni (≤1 gün)' word back to 'Başlanmadı'. Useful when a
-        review backlog has piled up: these barely-retained words drop out of the
-        due queue and are re-introduced gradually under the daily new-word cap."""
-        targets = _new_word_targets()
+        self._reset_words_to_not_started(NEW_WORD_MAX_INTERVAL, "Yeni (≤1 gün)")
+
+    @on(Button.Pressed, "#btn-word-reset-learning")
+    def _on_word_reset_learning(self) -> None:
+        self._reset_words_to_not_started(LEARNING_MAX_INTERVAL, "Yeni + Öğreniliyor (≤6g)")
+
+    def _reset_words_to_not_started(self, max_interval: int, label: str) -> None:
+        """Send every started word with interval ≤ max_interval back to
+        'Başlanmadı'. Useful when a review backlog has piled up: these
+        barely-retained words drop out of the due queue and are re-introduced
+        gradually under the daily new-word cap. `label` names the affected
+        bucket in the dialog/notice."""
+        targets = _targets_up_to_interval(max_interval)
         if not targets:
-            self.notify("Sıfırlanacak 'Yeni (≤1 gün)' kelime yok.",
+            self.notify(f"Sıfırlanacak '{label}' kelime yok.",
                         title="ℹ️ Bilgi", timeout=4)
             return
 
         def handle(confirmed: bool | None) -> None:
             if not confirmed:
                 return
-            count, backup = _reset_new_progress()
-            msg = f"{count} 'Yeni' kelime 'Başlanmadı' durumuna döndürüldü."
+            count, backup = _reset_progress_up_to(max_interval)
+            msg = f"{count} kelime 'Başlanmadı' durumuna döndürüldü."
             if backup:
                 msg += f"\nYedek: {os.path.basename(backup)}"
             self.notify(msg, title="♻️ Sıfırlandı", timeout=6)
         self.push_screen(ConfirmScreen(
-            f"[bold {YELLOW}]{len(targets)}[/] adet 'Yeni (≤1 gün)' kelime "
+            f"[bold {YELLOW}]{len(targets)}[/] adet '{label}' kelime "
             f"[bold]'Başlanmadı'[/] durumuna döndürülsün mü?\n\n"
             f"[{MUTED}]Bu kelimelerin SM-2 ilerlemesi silinir; günlük yeni "
             f"kelime sınırına tabi olarak kademeli yeniden tanıtılırlar. "

@@ -1403,6 +1403,16 @@ function pageHafta(st) {
 }
 
 let _tableSort = { col: "rate", dir: 1 };
+// Word-table maturity filter: [key, label, lo, hi] with lo/hi inclusive SM-2
+// interval bounds; "all" (lo=null) shows every started word. Mirrors the
+// maturity buckets (MATURE_INTERVAL=21). Not-started words have no per-word row,
+// so they never appear in this (started-word) table.
+const MATURITY_FILTERS = [
+  ["all", "Tümü", null, null], ["new", "Yeni", 0, 1], ["learning", "Öğreniliyor", 2, 6],
+  ["young", "Genç", 7, 20], ["mature", "Olgun", 21, 59], ["master", "Usta", 60, Infinity],
+];
+const inMaturity = (e, lo, hi) => lo === null || (num(e.interval) >= lo && num(e.interval) <= hi);
+let _wordMaturity = { key: "all" };
 function pageKelime(st) {
   const root = el("div", "grid");
 
@@ -1414,6 +1424,25 @@ function pageKelime(st) {
   root.appendChild(gcol(12, tCard));
 
   const wCard = card("Tüm Kelimeler", `${st.started_count} başlanan · sütun başlığına dokunarak sırala`);
+
+  // Maturity filter chips — narrow the word list to one SM-2 bucket.
+  const allRows = st.table_rows || [];
+  const matChips = el("div", "chips");
+  matChips.style.marginBottom = "12px";
+  const matChipEls = MATURITY_FILTERS.map(([key, label, lo, hi]) => {
+    const cnt = allRows.filter(e => inMaturity(e, lo, hi)).length;
+    const b = txt("button", "chip", `${label} (${fmtNum(cnt)})`);
+    b.setAttribute("aria-pressed", String(key === _wordMaturity.key));
+    b.onclick = () => {
+      _wordMaturity.key = key;
+      matChipEls.forEach((e, i) => e.setAttribute("aria-pressed", String(MATURITY_FILTERS[i][0] === key)));
+      render();
+    };
+    matChips.appendChild(b);
+    return b;
+  });
+  wCard._body.appendChild(matChips);
+
   const cols = [["word", "Kelime", 0], ["rate", "Başarı", 1], ["correct", "✓", 1], ["wrong", "✗", 1], ["blank", "∅", 1], ["repetitions", "Tekrar", 1], ["interval", "Aralık", 1], ["next", "Sonraki tekrar", 0]];
   const wrap = el("div", "table-wrap");
   const table = el("table"), thead = el("thead"), htr = el("tr");
@@ -1428,10 +1457,13 @@ function pageKelime(st) {
 
   const rows = (st.table_rows || []).slice(), today = st.today;
   function render() {
+    const mf = MATURITY_FILTERS.find(f => f[0] === _wordMaturity.key) || MATURITY_FILTERS[0];
+    const view = rows.filter(e => inMaturity(e, mf[2], mf[3]));
     const k = _tableSort.col, d = _tableSort.dir;
-    rows.sort((a, b) => { const x = a[k], y = b[k]; if (typeof x === "string" || typeof y === "string") return String(x || "").localeCompare(String(y || ""), "tr") * d; return (num(x) - num(y)) * d; });
+    view.sort((a, b) => { const x = a[k], y = b[k]; if (typeof x === "string" || typeof y === "string") return String(x || "").localeCompare(String(y || ""), "tr") * d; return (num(x) - num(y)) * d; });
     tbody.replaceChildren();
-    for (const e of rows) {
+    if (!view.length) { const tr = el("tr"), td = txt("td", "empty", "Bu grupta kelime yok."); td.colSpan = cols.length; tr.appendChild(td); tbody.appendChild(tr); return; }
+    for (const e of view) {
       const tr = el("tr"), rc = rateColor(num(e.rate));
       tr.appendChild(txt("td", null, e.word)).style.fontWeight = 700;
       const rateTd = el("td", "num");

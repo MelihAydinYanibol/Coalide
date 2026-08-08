@@ -420,6 +420,15 @@ def build_stats() -> dict:
     spark_minutes_30 = [redeemed.get(today - timedelta(days=i), 0)
                         for i in range(29, -1, -1)]
 
+    # Full per-day series (whole retained history), keyed by ISO date. The
+    # dashboard sums/slices these for its per-widget time-window pickers, the
+    # same way "answers_by_date" already backs the Genel Başarı window. Older
+    # dashboards simply ignore keys they don't know.
+    new_by_date = {d.isoformat(): c for d, c in new_by_day.items()}
+    earned_by_date = {d.isoformat(): c for d, c in earned_by_day.items()}
+    spent_by_date = {d.isoformat(): c for d, c in spent_by_day.items()}
+    minutes_by_date = {d.isoformat(): int(m) for d, m in redeemed.items()}
+
     return {
         "today": today,
         "total_words": total_words,
@@ -449,6 +458,10 @@ def build_stats() -> dict:
         "hardest": hardest,
         "table_rows": table_rows,
         "answers_by_date": answers_by_date,
+        "new_by_date": new_by_date,
+        "earned_by_date": earned_by_date,
+        "spent_by_date": spent_by_date,
+        "minutes_by_date": minutes_by_date,
         "answer_log": answer_log,
         "answer_log_days": ANSWER_LOG_DAYS,
         "word_types": word_types,

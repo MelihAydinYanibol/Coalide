@@ -770,6 +770,93 @@ function plot(c, build, table) {
 }
 const seriesRows = (labels, series) => labels.map((l, i) => [l, ...series.map(se => fmtNum(num(se.values[i])))]);
 
+// ---- per-widget time-window picker -------------------------------------
+// Each windowed widget carries its own picker and default window. Presets are
+// day counts; "Tümü" spans the data's own history; "Özel" uses the date inputs.
+const WIN_PRESETS = [["7", "7g"], ["14", "14g"], ["30", "30g"], ["90", "90g"], ["all", "Tümü"], ["custom", "Özel"]];
+function winBounds(key, today, from, to) {
+  if (key === "all") return [null, null];
+  if (key === "custom") return [from || null, to || null];
+  const n = parseInt(key, 10) || 30;
+  return [shiftISO(today, -(n - 1)), today];
+}
+function winLabel(lo, hi) {
+  if (!lo && !hi) return "tüm zamanlar";
+  if (lo && hi) return lo === hi ? longDate(lo) : `${longDate(lo)} – ${longDate(hi)}`;
+  return lo ? `${longDate(lo)} –` : `– ${longDate(hi)}`;
+}
+// ISO days in [lo,hi]; an open low end starts at the data's first day. Capped so
+// a bad custom range can never spin forever.
+function rangeDays(lo, hi, today, minDate) {
+  let start = lo || minDate || today, end = hi || today;
+  if (start > end) { const t = start; start = end; end = t; }
+  const out = []; let d = start, guard = 0;
+  while (d <= end && guard++ < 4000) { out.push(d); d = shiftISO(d, 1); }
+  return out;
+}
+const dLabel = iso => dayLabel(parseISO(iso));
+const sortedKeys = obj => Object.keys(obj || {}).sort();
+
+// Build a card with a time-window picker. compute(lo,hi) -> {build, table,
+// legend?, note?}; the chart+table are rebuilt in place when the window
+// changes. dataDates is the sorted ISO days present, used for the custom-range
+// bounds and the "Tümü" start.
+function windowedCard(title, cls, today, dataDates, defaultKey, compute) {
+  const c = card(title, "", cls);
+  const sub = txt("div", "sub", ""); c._ht.appendChild(sub);
+  const minDate = (dataDates && dataDates.length) ? dataDates[0] : today;
+  const state = { key: defaultKey, from: minDate, to: today };
+
+  const chips = el("div", "chips");
+  const custom = el("div", "rangebar"); custom.style.display = "none";
+  const fromI = document.createElement("input"), toI = document.createElement("input");
+  fromI.type = toI.type = "date";
+  fromI.min = toI.min = minDate; fromI.max = toI.max = today;
+  fromI.value = state.from; toI.value = state.to;
+  const field = (label, input) => { const f = el("div", "fld"); f.append(txt("span", "lbl", label), input); return f; };
+  custom.append(field("Başlangıç", fromI), field("Bitiş", toI));
+  const host = el("div");
+  c._body.append(chips, custom, host);
+
+  const chipEls = WIN_PRESETS.map(([key, label]) => {
+    const b = txt("button", "chip", label);
+    b.setAttribute("aria-pressed", String(key === state.key));
+    b.onclick = () => { state.key = key; chipEls.forEach((e, i) => e.setAttribute("aria-pressed", String(WIN_PRESETS[i][0] === key))); redraw(); };
+    chips.appendChild(b); return b;
+  });
+  fromI.onchange = toI.onchange = () => {
+    if (fromI.value && toI.value && fromI.value > toI.value) { const v = fromI.value; fromI.value = toI.value; toI.value = v; }
+    state.from = fromI.value; state.to = toI.value; if (state.key === "custom") redraw();
+  };
+
+  // Table toggle in the card header, retargeted at the freshly-built view.
+  let tableOn = false;
+  const tblBtn = txt("button", "tgl", "⊞ Tablo"); c._act.appendChild(tblBtn);
+  tblBtn.onclick = () => { tableOn = !tableOn; tblBtn.textContent = tableOn ? "◧ Grafik" : "⊞ Tablo"; applyView(); hideTip(); };
+  function applyView() {
+    host.querySelectorAll(".chart-host, .legend").forEach(n => n.style.display = tableOn ? "none" : "");
+    const tv = host.querySelector(".table-wrap"); if (tv) tv.style.display = tableOn ? "" : "none";
+  }
+
+  let curHost = null;
+  function redraw() {
+    custom.style.display = state.key === "custom" ? "" : "none";
+    const [lo, hi] = winBounds(state.key, today, state.from, state.to);
+    sub.textContent = winLabel(lo, hi);
+    const res = compute(lo, hi) || {};
+    if (curHost) { try { _ro.unobserve(curHost); } catch (_) {} }
+    host.replaceChildren();
+    if (res.legend) host.appendChild(res.legend);
+    curHost = chartHost(res.build);
+    host.appendChild(curHost);
+    if (res.table && res.table.rows && res.table.rows.length) host.appendChild(dataTable(res.table.columns, res.table.rows));
+    if (res.note) host.appendChild(txt("p", "note", res.note));
+    applyView();
+  }
+  redraw();
+  return c;
+}
+
 // Genel Başarı — all time by default, with preset and custom windows summed
 // from the per-day breakdown the client ships.
 const RANGE_PRESETS = [["all", "Tüm zamanlar"], ["today", "Bugün"], ["yesterday", "Dün"],
@@ -911,25 +998,62 @@ function pageGenel(st) {
   } else { matCard._body.appendChild(el("div", "empty", "Henüz veri yok.")); }
   root.appendChild(gcol(8, matCard));
 
-  const dCard = card("Cevap Dağılımı", "tüm zamanlar");
-  if (num(st.log_total) > 0) {
-    const dwrap = el("div"); dwrap.style.cssText = "display:flex; flex-direction:column; align-items:center; gap:12px;";
-    dwrap.appendChild(donut({ segments: [
-      { name: "Doğru", value: num(lt.correct), color: C.green, mark: "✓" },
-      { name: "Yanlış", value: num(lt.wrong), color: C.red, mark: "✗" },
-      { name: "Boş", value: num(lt.blank), color: C.yellow, mark: "∅" },
-    ], centerValue: fmtNum(st.log_total), centerLabel: "cevap" }));
-    dwrap.appendChild(legendBar([[C.green, "Doğru", false, "✓"], [C.red, "Yanlış", false, "✗"], [C.yellow, "Boş", false, "∅"]]));
-    dCard._body.appendChild(dwrap);
-    attachTable(dCard, ["Sonuç", "Adet"], [["✓ Doğru", fmtNum(lt.correct)], ["✗ Yanlış", fmtNum(lt.wrong)], ["∅ Boş", fmtNum(lt.blank)]]);
-  } else { dCard._body.appendChild(el("div", "empty", "Henüz cevap kaydı yok.")); }
+  // Cevap Dağılımı — donut summed over the selected window (default: all time).
+  const ab = st.answers_by_date;
+  let dCard;
+  if (ab && typeof ab === "object") {
+    dCard = windowedCard("Cevap Dağılımı", null, st.today, sortedKeys(ab), "all", (lo, hi) => {
+      let cor = 0, wr = 0, bl = 0;
+      for (const d in ab) { if ((lo && d < lo) || (hi && d > hi)) continue; const v = ab[d] || []; cor += num(v[0]); wr += num(v[1]); bl += num(v[2]); }
+      const tot = cor + wr + bl;
+      const build = () => {
+        if (!tot) return el("div", "empty", "Bu aralıkta cevap yok.");
+        const dwrap = el("div"); dwrap.style.cssText = "display:flex; flex-direction:column; align-items:center; gap:12px;";
+        dwrap.appendChild(donut({ segments: [
+          { name: "Doğru", value: cor, color: C.green, mark: "✓" },
+          { name: "Yanlış", value: wr, color: C.red, mark: "✗" },
+          { name: "Boş", value: bl, color: C.yellow, mark: "∅" },
+        ], centerValue: fmtNum(tot), centerLabel: "cevap" }));
+        dwrap.appendChild(legendBar([[C.green, "Doğru", false, "✓"], [C.red, "Yanlış", false, "✗"], [C.yellow, "Boş", false, "∅"]]));
+        return dwrap;
+      };
+      return { build, table: { columns: ["Sonuç", "Adet"], rows: [["✓ Doğru", fmtNum(cor)], ["✗ Yanlış", fmtNum(wr)], ["∅ Boş", fmtNum(bl)]] } };
+    });
+  } else {
+    // Older client without the per-day breakdown: all-time donut, no picker.
+    dCard = card("Cevap Dağılımı", "tüm zamanlar");
+    if (num(st.log_total) > 0) {
+      const dwrap = el("div"); dwrap.style.cssText = "display:flex; flex-direction:column; align-items:center; gap:12px;";
+      dwrap.appendChild(donut({ segments: [
+        { name: "Doğru", value: num(lt.correct), color: C.green, mark: "✓" },
+        { name: "Yanlış", value: num(lt.wrong), color: C.red, mark: "✗" },
+        { name: "Boş", value: num(lt.blank), color: C.yellow, mark: "∅" },
+      ], centerValue: fmtNum(st.log_total), centerLabel: "cevap" }));
+      dwrap.appendChild(legendBar([[C.green, "Doğru", false, "✓"], [C.red, "Yanlış", false, "✗"], [C.yellow, "Boş", false, "∅"]]));
+      dCard._body.appendChild(dwrap);
+      attachTable(dCard, ["Sonuç", "Adet"], [["✓ Doğru", fmtNum(lt.correct)], ["✗ Yanlış", fmtNum(lt.wrong)], ["∅ Boş", fmtNum(lt.blank)]]);
+    } else { dCard._body.appendChild(el("div", "empty", "Henüz cevap kaydı yok.")); }
+  }
   root.appendChild(gcol(4, dCard));
 
-  const spark = st.spark_30 || [];
-  const actLabels = backLabels(st.today, spark.length);
-  const actCard = card("Aktivite", "günlük cevap sayısı · son 30 gün");
-  plot(actCard, (w, h) => lineChart({ width: w, avail: h, labels: actLabels, series: [{ name: "Cevap", color: C.green, values: spark }], area: true }),
-       { columns: ["Gün", "Cevap"], rows: seriesRows(actLabels, [{ values: spark }]) });
+  // Aktivite — daily answer count over the selected window (default: 30 days).
+  let actCard;
+  if (ab && typeof ab === "object") {
+    actCard = windowedCard("Aktivite", null, st.today, sortedKeys(ab), "30", (lo, hi) => {
+      const days = rangeDays(lo, hi, st.today, sortedKeys(ab)[0]);
+      const labels = days.map(dLabel);
+      const vals = days.map(d => { const v = ab[d] || []; return num(v[0]) + num(v[1]) + num(v[2]); });
+      return {
+        build: (w, h) => lineChart({ width: w, avail: h, labels, series: [{ name: "Cevap", color: C.green, values: vals }], area: true }),
+        table: { columns: ["Gün", "Cevap"], rows: seriesRows(labels, [{ values: vals }]) },
+      };
+    });
+  } else {
+    const spark = st.spark_30 || [], actLabels = backLabels(st.today, spark.length);
+    actCard = card("Aktivite", "günlük cevap sayısı · son 30 gün");
+    plot(actCard, (w, h) => lineChart({ width: w, avail: h, labels: actLabels, series: [{ name: "Cevap", color: C.green, values: spark }], area: true }),
+         { columns: ["Gün", "Cevap"], rows: seriesRows(actLabels, [{ values: spark }]) });
+  }
   root.appendChild(gcol(8, actCard));
 
   const hCard = card("En Zor Kelimeler", "en düşük başarı");
@@ -964,23 +1088,60 @@ function pageKredi(st) {
   ]));
   root.appendChild(gcol(12, kCard));
 
-  const earned = st.earned_14 || [], spent = st.spent_14 || [];
-  const esLabels = earned.map(r => r[0]);
-  const esSeries = [
-    { name: "Kazanılan", color: C.green, values: earned.map(r => r[1]), mark: "▲" },
-    { name: "Harcanan", color: C.red, values: spent.map(r => r[1]), mark: "▼" },
-  ];
-  const esCard = card("Kazanılan vs Harcanan Kredi", "son 14 gün");
-  esCard._body.appendChild(legendBar([[C.green, "Kazanılan", false, "▲"], [C.red, "Harcanan", false, "▼"]]));
-  plot(esCard, (w, h) => columnChart({ width: w, avail: h, labels: esLabels, series: esSeries }),
-       { columns: ["Gün", "Kazanılan", "Harcanan"], rows: seriesRows(esLabels, esSeries) });
-  esCard._body.appendChild(txt("p", "note", `Toplam kazanç ${fmtNum(st.earned_total)} · toplam harcama ${fmtNum(st.spent_total)} kredi (son 60 gün). Her doğru cevap = ${CREDITS_PER_CORRECT} kredi.`));
+  // Kazanılan vs Harcanan Kredi — earned/spent per day over the window (14g).
+  const eb = st.earned_by_date, sb = st.spent_by_date;
+  const esNote = `Her doğru cevap = ${CREDITS_PER_CORRECT} kredi.`;
+  let esCard;
+  if (eb && sb) {
+    const esDates = sortedKeys({ ...eb, ...sb });
+    esCard = windowedCard("Kazanılan vs Harcanan Kredi", null, st.today, esDates, "14", (lo, hi) => {
+      const days = rangeDays(lo, hi, st.today, esDates[0]);
+      const labels = days.map(dLabel);
+      const series = [
+        { name: "Kazanılan", color: C.green, values: days.map(d => num(eb[d])), mark: "▲" },
+        { name: "Harcanan", color: C.red, values: days.map(d => num(sb[d])), mark: "▼" },
+      ];
+      const earnedSum = series[0].values.reduce((a, b) => a + b, 0), spentSum = series[1].values.reduce((a, b) => a + b, 0);
+      return {
+        legend: legendBar([[C.green, "Kazanılan", false, "▲"], [C.red, "Harcanan", false, "▼"]]),
+        build: (w, h) => columnChart({ width: w, avail: h, labels, series }),
+        table: { columns: ["Gün", "Kazanılan", "Harcanan"], rows: seriesRows(labels, series) },
+        note: `Bu aralıkta kazanç ${fmtNum(earnedSum)} · harcama ${fmtNum(spentSum)} kredi. ${esNote}`,
+      };
+    });
+  } else {
+    const earned = st.earned_14 || [], spent = st.spent_14 || [], esLabels = earned.map(r => r[0]);
+    const esSeries = [
+      { name: "Kazanılan", color: C.green, values: earned.map(r => r[1]), mark: "▲" },
+      { name: "Harcanan", color: C.red, values: spent.map(r => r[1]), mark: "▼" },
+    ];
+    esCard = card("Kazanılan vs Harcanan Kredi", "son 14 gün");
+    esCard._body.appendChild(legendBar([[C.green, "Kazanılan", false, "▲"], [C.red, "Harcanan", false, "▼"]]));
+    plot(esCard, (w, h) => columnChart({ width: w, avail: h, labels: esLabels, series: esSeries }),
+         { columns: ["Gün", "Kazanılan", "Harcanan"], rows: seriesRows(esLabels, esSeries) });
+    esCard._body.appendChild(txt("p", "note", `Toplam kazanç ${fmtNum(st.earned_total)} · toplam harcama ${fmtNum(st.spent_total)} kredi (son 60 gün). ${esNote}`));
+  }
   root.appendChild(gcol(7, esCard));
 
-  const mins = st.spark_minutes_30 || [], minLabels = backLabels(st.today, mins.length);
-  const stCard = card("Ekran Süresi", "dk/gün · son 30 gün");
-  plot(stCard, (w, h) => lineChart({ width: w, avail: h, labels: minLabels, series: [{ name: "Dakika", color: C.yellow, values: mins }], area: true, valueFmt: v => v }),
-       { columns: ["Gün", "Dakika"], rows: seriesRows(minLabels, [{ values: mins }]) });
+  // Ekran Süresi — redeemed minutes per day over the window (default 30 days).
+  const mb = st.minutes_by_date;
+  let stCard;
+  if (mb) {
+    const mDates = sortedKeys(mb);
+    stCard = windowedCard("Ekran Süresi", null, st.today, mDates, "30", (lo, hi) => {
+      const days = rangeDays(lo, hi, st.today, mDates[0]);
+      const labels = days.map(dLabel), vals = days.map(d => num(mb[d]));
+      return {
+        build: (w, h) => lineChart({ width: w, avail: h, labels, series: [{ name: "Dakika", color: C.yellow, values: vals }], area: true, valueFmt: v => v }),
+        table: { columns: ["Gün", "Dakika"], rows: seriesRows(labels, [{ values: vals }]) },
+      };
+    });
+  } else {
+    const mins = st.spark_minutes_30 || [], minLabels = backLabels(st.today, mins.length);
+    stCard = card("Ekran Süresi", "dk/gün · son 30 gün");
+    plot(stCard, (w, h) => lineChart({ width: w, avail: h, labels: minLabels, series: [{ name: "Dakika", color: C.yellow, values: mins }], area: true, valueFmt: v => v }),
+         { columns: ["Gün", "Dakika"], rows: seriesRows(minLabels, [{ values: mins }]) });
+  }
   root.appendChild(gcol(5, stCard));
 
   const rw = st.redeemed_weekly || [], rwLabels = rw.map(r => r[0]), rwVals = rw.map(r => r[1]);
@@ -1159,16 +1320,36 @@ function pageHafta(st) {
   const root = el("div", "grid");
   root.appendChild(gcol(12, answerLogCard(st)));
 
-  const da = st.daily_answers || [], daLabels = da.map(r => r[0]);
-  const daSeries = [
-    { name: "Doğru", color: C.green, values: da.map(r => (r[1][0] || [0])[0]), mark: "✓" },
-    { name: "Yanlış", color: C.red, values: da.map(r => (r[1][1] || [0])[0]), mark: "✗" },
-    { name: "Boş", color: C.yellow, values: da.map(r => (r[1][2] || [0])[0]), mark: "∅" },
-  ];
-  const daCard = card("Günlük Cevaplar", "son 14 gün");
-  daCard._body.appendChild(legendBar([[C.green, "Doğru", false, "✓"], [C.red, "Yanlış", false, "✗"], [C.yellow, "Boş", false, "∅"]]));
-  plot(daCard, (w, h) => columnChart({ width: w, avail: h, labels: daLabels, series: daSeries }),
-       { columns: ["Gün", "✓ Doğru", "✗ Yanlış", "∅ Boş"], rows: seriesRows(daLabels, daSeries) });
+  // Günlük Cevaplar — correct/wrong/blank per day over the window (14 days).
+  const ab = st.answers_by_date;
+  let daCard;
+  if (ab && typeof ab === "object") {
+    daCard = windowedCard("Günlük Cevaplar", null, st.today, sortedKeys(ab), "14", (lo, hi) => {
+      const days = rangeDays(lo, hi, st.today, sortedKeys(ab)[0]);
+      const labels = days.map(dLabel);
+      const series = [
+        { name: "Doğru", color: C.green, values: days.map(d => num((ab[d] || [])[0])), mark: "✓" },
+        { name: "Yanlış", color: C.red, values: days.map(d => num((ab[d] || [])[1])), mark: "✗" },
+        { name: "Boş", color: C.yellow, values: days.map(d => num((ab[d] || [])[2])), mark: "∅" },
+      ];
+      return {
+        legend: legendBar([[C.green, "Doğru", false, "✓"], [C.red, "Yanlış", false, "✗"], [C.yellow, "Boş", false, "∅"]]),
+        build: (w, h) => columnChart({ width: w, avail: h, labels, series }),
+        table: { columns: ["Gün", "✓ Doğru", "✗ Yanlış", "∅ Boş"], rows: seriesRows(labels, series) },
+      };
+    });
+  } else {
+    const da = st.daily_answers || [], daLabels = da.map(r => r[0]);
+    const daSeries = [
+      { name: "Doğru", color: C.green, values: da.map(r => (r[1][0] || [0])[0]), mark: "✓" },
+      { name: "Yanlış", color: C.red, values: da.map(r => (r[1][1] || [0])[0]), mark: "✗" },
+      { name: "Boş", color: C.yellow, values: da.map(r => (r[1][2] || [0])[0]), mark: "∅" },
+    ];
+    daCard = card("Günlük Cevaplar", "son 14 gün");
+    daCard._body.appendChild(legendBar([[C.green, "Doğru", false, "✓"], [C.red, "Yanlış", false, "✗"], [C.yellow, "Boş", false, "∅"]]));
+    plot(daCard, (w, h) => columnChart({ width: w, avail: h, labels: daLabels, series: daSeries }),
+         { columns: ["Gün", "✓ Doğru", "✗ Yanlış", "∅ Boş"], rows: seriesRows(daLabels, daSeries) });
+  }
   root.appendChild(gcol(12, daCard));
 
   const wn = st.weekly_new || [], wnLabels = wn.map(r => r[0]), wnVals = wn.map(r => r[1]);
@@ -1177,16 +1358,45 @@ function pageHafta(st) {
        { columns: ["Hafta", "Yeni kelime"], rows: seriesRows(wnLabels, [{ values: wnVals }]) });
   root.appendChild(gcol(6, wnCard));
 
-  const dn = st.daily_new || [], dnLabels = dn.map(r => r[0]), dnVals = dn.map(r => r[1]);
-  const dnCard = card("Günlük Yeni Kelimeler", "son 14 gün");
-  plot(dnCard, (w, h) => columnChart({ width: w, avail: h, labels: dnLabels, series: [{ name: "Yeni kelime", color: C.purple, values: dnVals }] }),
-       { columns: ["Gün", "Yeni kelime"], rows: seriesRows(dnLabels, [{ values: dnVals }]) });
+  // Günlük Yeni Kelimeler — words first introduced per day over the window (14g).
+  const nb = st.new_by_date;
+  let dnCard;
+  if (nb) {
+    const nDates = sortedKeys(nb);
+    dnCard = windowedCard("Günlük Yeni Kelimeler", null, st.today, nDates, "14", (lo, hi) => {
+      const days = rangeDays(lo, hi, st.today, nDates[0]);
+      const labels = days.map(dLabel), vals = days.map(d => num(nb[d]));
+      return {
+        build: (w, h) => columnChart({ width: w, avail: h, labels, series: [{ name: "Yeni kelime", color: C.purple, values: vals }] }),
+        table: { columns: ["Gün", "Yeni kelime"], rows: seriesRows(labels, [{ values: vals }]) },
+      };
+    });
+  } else {
+    const dn = st.daily_new || [], dnLabels = dn.map(r => r[0]), dnVals = dn.map(r => r[1]);
+    dnCard = card("Günlük Yeni Kelimeler", "son 14 gün");
+    plot(dnCard, (w, h) => columnChart({ width: w, avail: h, labels: dnLabels, series: [{ name: "Yeni kelime", color: C.purple, values: dnVals }] }),
+         { columns: ["Gün", "Yeni kelime"], rows: seriesRows(dnLabels, [{ values: dnVals }]) });
+  }
   root.appendChild(gcol(6, dnCard));
 
-  const sn = st.spark_new_30 || [], snLabels = backLabels(st.today, sn.length);
-  const nwCard = card("Yeni Kelime Trendi", "son 30 gün");
-  plot(nwCard, (w, h) => lineChart({ width: w, avail: h, labels: snLabels, series: [{ name: "Yeni kelime", color: C.purple, values: sn }], area: true }),
-       { columns: ["Gün", "Yeni kelime"], rows: seriesRows(snLabels, [{ values: sn }]) });
+  // Yeni Kelime Trendi — same data as a line, over the window (default 30 days).
+  let nwCard;
+  if (nb) {
+    const nDates = sortedKeys(nb);
+    nwCard = windowedCard("Yeni Kelime Trendi", null, st.today, nDates, "30", (lo, hi) => {
+      const days = rangeDays(lo, hi, st.today, nDates[0]);
+      const labels = days.map(dLabel), vals = days.map(d => num(nb[d]));
+      return {
+        build: (w, h) => lineChart({ width: w, avail: h, labels, series: [{ name: "Yeni kelime", color: C.purple, values: vals }], area: true }),
+        table: { columns: ["Gün", "Yeni kelime"], rows: seriesRows(labels, [{ values: vals }]) },
+      };
+    });
+  } else {
+    const sn = st.spark_new_30 || [], snLabels = backLabels(st.today, sn.length);
+    nwCard = card("Yeni Kelime Trendi", "son 30 gün");
+    plot(nwCard, (w, h) => lineChart({ width: w, avail: h, labels: snLabels, series: [{ name: "Yeni kelime", color: C.purple, values: sn }], area: true }),
+         { columns: ["Gün", "Yeni kelime"], rows: seriesRows(snLabels, [{ values: sn }]) });
+  }
   root.appendChild(gcol(12, nwCard));
 
   return root;

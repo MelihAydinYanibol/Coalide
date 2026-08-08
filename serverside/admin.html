@@ -148,6 +148,16 @@
         </div>
         <div id="words-body"><div class="empty">Yükleniyor…</div></div>
       </div>
+
+      <div class="panel" id="reset-panel">
+        <h3>♻️ İlerlemeyi Sıfırla</h3>
+        <div class="desc">Seçilen olgunluk grubundaki kelimeleri "Başlanmadı" durumuna döndürür — SM-2 ilerlemeleri silinir
+          ve günlük yeni kelime sınırına tabi olarak kademeli yeniden tanıtılırlar. Birikmiş tekrar yükünü hafifletmek için
+          kullanışlıdır. İşlem çocuğun cihazına bir sonraki menü açılışında (senkronizasyonda) uygulanır; progress.json orada
+          otomatik yedeklenir.</div>
+        <div class="toolbar" id="reset-buttons"><div class="empty">Yükleniyor…</div></div>
+        <div id="reset-recent" class="desc" style="margin-top:12px"></div>
+      </div>
     </section>
 
     <section class="page" data-page="server">
@@ -280,7 +290,7 @@ function logout(){
 }
 function showApp(){
   $('login').style.display='none'; $('app').style.display='block'; $('logout').style.display='inline-block';
-  loadConfig(); loadWords(); loadEnv();
+  loadConfig(); loadWords(); loadReset(); loadEnv();
 }
 
 // ---- config editor ----
@@ -474,6 +484,39 @@ async function sendReportNow(){
     const msg=e.message==='no_channel'?'Telegram/ntfy ayarlı değil.':('Gönderilemedi: '+e.message);
     box.textContent=msg; toast(msg,true);
   }finally{ btn.disabled=false; btn.textContent=label; }
+}
+
+// ---- progress reset ----
+async function loadReset(){
+  const box=$('reset-buttons');
+  try{
+    const d=await api('/api/admin/reset-progress');
+    box.innerHTML='';
+    (d.buckets||[]).forEach(b=>{
+      const btn=document.createElement('button'); btn.className='danger';
+      btn.textContent='♻️ '+b.label; btn.onclick=()=>queueReset(b.id,b.label);
+      box.appendChild(btn);
+    });
+    if(!(d.buckets||[]).length)box.innerHTML='<div class="empty">Grup yok.</div>';
+    renderResetRecent(d.recent||[]);
+  }catch(e){ box.innerHTML='<div class="empty">Yüklenemedi: '+esc(e.message)+'</div>'; }
+}
+function renderResetRecent(recent){
+  const el=$('reset-recent');
+  if(!recent.length){ el.textContent=''; return; }
+  el.innerHTML='Son sıfırlamalar: '+recent.map(j=>{
+    const when=j.created_at?new Date(j.created_at).toLocaleString('tr-TR'):'';
+    return esc(j.label)+(when?(' ('+esc(when)+')'):'');
+  }).join(' · ');
+}
+async function queueReset(id,label){
+  if(!confirm('"'+label+'" grubundaki kelimeler "Başlanmadı" durumuna döndürülecek.\n\n'+
+    'Bu kelimelerin SM-2 ilerlemesi silinir; çocuğun cihazına bir sonraki senkronizasyonda uygulanır. Devam edilsin mi?'))return;
+  try{
+    await api('/api/admin/reset-progress',{method:'POST',body:{bucket:id}});
+    toast('"'+label+'" sıfırlama kuyruğa alındı. Çocuğun cihazına bir sonraki menü açılışında uygulanacak.');
+    loadReset();
+  }catch(e){ toast('Sıfırlanamadı: '+e.message,true); }
 }
 
 // ---- wire up ----

@@ -97,18 +97,18 @@ def _rename_progress(old_target: str, new_target: str):
         _save_json(PROGRESS_FILE, prog)
 
 
-# SM-2 interval (days) upper bounds for the stats-screen maturity buckets, used
-# by the "reset to not started" actions — see stats_menu.build_stats.
-#   Yeni (≤1 gün):        interval ≤ 1
+# SM-2 interval (days) ranges for the stats-screen maturity buckets, used by the
+# "reset to not started" actions — see stats_menu.build_stats. Each button
+# targets one bucket independently, so they can be reset separately or together.
+#   Yeni (≤1 gün):        0 ≤ interval ≤ 1
 #   Öğreniliyor (2-6g):   2 ≤ interval ≤ 6
-# So "Yeni + Öğreniliyor" together is interval ≤ 6.
-NEW_WORD_MAX_INTERVAL = 1
-LEARNING_MAX_INTERVAL = 6
+NEW_WORD_RANGE = (0, 1)
+LEARNING_RANGE = (2, 6)
 
 
-def _targets_up_to_interval(max_interval: int) -> list[str]:
-    """Targets of started words whose SM-2 interval is ≤ max_interval.
-    Missing/odd intervals count as new (0), so they are always included."""
+def _targets_in_interval_range(lo: int, hi: int) -> list[str]:
+    """Targets of started words whose SM-2 interval falls in [lo, hi] (inclusive).
+    Missing/odd intervals count as 0, so they land in the lowest bucket."""
     prog = _load_json(PROGRESS_FILE, {})
     if not isinstance(prog, dict):
         return []
@@ -119,7 +119,7 @@ def _targets_up_to_interval(max_interval: int) -> list[str]:
         interval = entry.get("interval", 0)
         if not isinstance(interval, (int, float)):
             interval = 0
-        if interval <= max_interval:
+        if lo <= interval <= hi:
             out.append(target)
     return out
 
@@ -141,11 +141,11 @@ def _backup_progress() -> str | None:
         return None
 
 
-def _reset_progress_up_to(max_interval: int) -> tuple[int, str | None]:
-    """Remove the progress entry of every started word with interval ≤
-    max_interval, sending those words back to 'not started'. Backs progress.json
-    up first. Returns (count_removed, backup_path)."""
-    targets = _targets_up_to_interval(max_interval)
+def _reset_progress_in_range(lo: int, hi: int) -> tuple[int, str | None]:
+    """Remove the progress entry of every started word with interval in [lo, hi],
+    sending those words back to 'not started'. Backs progress.json up first.
+    Returns (count_removed, backup_path)."""
+    targets = _targets_in_interval_range(lo, hi)
     if not targets:
         return 0, None
     backup = _backup_progress()
@@ -603,7 +603,7 @@ class AdminApp(App):
             yield Button("✏️ Düzenle", variant="primary", id="btn-word-edit")
             yield Button("🗑 Sil", variant="error", id="btn-word-delete")
             yield Button("♻️ Yenileri Sıfırla", variant="warning", id="btn-word-reset-new")
-            yield Button("♻️ Yeni+Öğr. Sıfırla", variant="warning", id="btn-word-reset-learning")
+            yield Button("♻️ Öğrenilenleri Sıfırla", variant="warning", id="btn-word-reset-learning")
             yield Static("", id="word-count")
         yield DataTable(id="words-table")
 
@@ -713,19 +713,21 @@ class AdminApp(App):
 
     @on(Button.Pressed, "#btn-word-reset-new")
     def _on_word_reset_new(self) -> None:
-        self._reset_words_to_not_started(NEW_WORD_MAX_INTERVAL, "Yeni (≤1 gün)")
+        self._reset_words_to_not_started(NEW_WORD_RANGE, "Yeni (≤1 gün)")
 
     @on(Button.Pressed, "#btn-word-reset-learning")
     def _on_word_reset_learning(self) -> None:
-        self._reset_words_to_not_started(LEARNING_MAX_INTERVAL, "Yeni + Öğreniliyor (≤6g)")
+        self._reset_words_to_not_started(LEARNING_RANGE, "Öğreniliyor (2-6g)")
 
-    def _reset_words_to_not_started(self, max_interval: int, label: str) -> None:
-        """Send every started word with interval ≤ max_interval back to
+    def _reset_words_to_not_started(self, interval_range: tuple[int, int],
+                                    label: str) -> None:
+        """Send every started word whose interval is in interval_range back to
         'Başlanmadı'. Useful when a review backlog has piled up: these
         barely-retained words drop out of the due queue and are re-introduced
         gradually under the daily new-word cap. `label` names the affected
         bucket in the dialog/notice."""
-        targets = _targets_up_to_interval(max_interval)
+        lo, hi = interval_range
+        targets = _targets_in_interval_range(lo, hi)
         if not targets:
             self.notify(f"Sıfırlanacak '{label}' kelime yok.",
                         title="ℹ️ Bilgi", timeout=4)
@@ -734,7 +736,7 @@ class AdminApp(App):
         def handle(confirmed: bool | None) -> None:
             if not confirmed:
                 return
-            count, backup = _reset_progress_up_to(max_interval)
+            count, backup = _reset_progress_in_range(lo, hi)
             msg = f"{count} kelime 'Başlanmadı' durumuna döndürüldü."
             if backup:
                 msg += f"\nYedek: {os.path.basename(backup)}"

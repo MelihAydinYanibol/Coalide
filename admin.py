@@ -97,6 +97,62 @@ def _rename_progress(old_target: str, new_target: str):
         _save_json(PROGRESS_FILE, prog)
 
 
+# Interval (days) at or below which a started word still counts as "Yeni
+# (≤1 gün)" in the stats screen — see stats_menu.build_stats. These are the
+# barely-retained words the "reset new words" action sends back to "not started".
+NEW_WORD_MAX_INTERVAL = 1
+
+
+def _new_word_targets() -> list[str]:
+    """Targets of started words whose SM-2 interval is ≤ NEW_WORD_MAX_INTERVAL —
+    the 'Yeni (≤1 gün)' bucket. Missing/odd intervals count as new (0)."""
+    prog = _load_json(PROGRESS_FILE, {})
+    if not isinstance(prog, dict):
+        return []
+    out = []
+    for target, entry in prog.items():
+        if not isinstance(entry, dict):
+            continue
+        interval = entry.get("interval", 0)
+        if not isinstance(interval, (int, float)):
+            interval = 0
+        if interval <= NEW_WORD_MAX_INTERVAL:
+            out.append(target)
+    return out
+
+
+def _backup_progress() -> str | None:
+    """Copy progress.json to a timestamped .bak before a bulk change, so the
+    reset is always recoverable. Returns the backup path, or None if there was
+    nothing to back up (or the copy failed)."""
+    if not os.path.exists(PROGRESS_FILE):
+        return None
+    try:
+        import shutil
+        from datetime import datetime
+        stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        backup = f"{PROGRESS_FILE}.{stamp}.bak"
+        shutil.copy2(PROGRESS_FILE, backup)
+        return backup
+    except Exception:
+        return None
+
+
+def _reset_new_progress() -> tuple[int, str | None]:
+    """Remove every 'Yeni (≤1 gün)' word's progress entry, sending those words
+    back to 'not started'. Backs progress.json up first. Returns
+    (count_removed, backup_path)."""
+    targets = _new_word_targets()
+    if not targets:
+        return 0, None
+    backup = _backup_progress()
+    prog = _load_json(PROGRESS_FILE, {})
+    for target in targets:
+        prog.pop(target, None)
+    _save_json(PROGRESS_FILE, prog)
+    return len(targets), backup
+
+
 # --------------------------------------------------------------------------
 # Textual UI
 # --------------------------------------------------------------------------
@@ -543,6 +599,7 @@ class AdminApp(App):
             yield Button("➕ Kelime Ekle", variant="success", id="btn-word-add")
             yield Button("✏️ Düzenle", variant="primary", id="btn-word-edit")
             yield Button("🗑 Sil", variant="error", id="btn-word-delete")
+            yield Button("♻️ Yenileri Sıfırla", variant="warning", id="btn-word-reset-new")
             yield Static("", id="word-count")
         yield DataTable(id="words-table")
 
@@ -649,6 +706,32 @@ class AdminApp(App):
             f"[bold {RED}]'{escape(target)}'[/] kelimesi silinsin mi?\n\n"
             f"[{MUTED}]Kelimeyle birlikte ilerleme (SM-2) kaydı da silinir. "
             f"Bu işlem geri alınamaz.[/]"), handle)
+
+    @on(Button.Pressed, "#btn-word-reset-new")
+    def _on_word_reset_new(self) -> None:
+        """Send every 'Yeni (≤1 gün)' word back to 'Başlanmadı'. Useful when a
+        review backlog has piled up: these barely-retained words drop out of the
+        due queue and are re-introduced gradually under the daily new-word cap."""
+        targets = _new_word_targets()
+        if not targets:
+            self.notify("Sıfırlanacak 'Yeni (≤1 gün)' kelime yok.",
+                        title="ℹ️ Bilgi", timeout=4)
+            return
+
+        def handle(confirmed: bool | None) -> None:
+            if not confirmed:
+                return
+            count, backup = _reset_new_progress()
+            msg = f"{count} 'Yeni' kelime 'Başlanmadı' durumuna döndürüldü."
+            if backup:
+                msg += f"\nYedek: {os.path.basename(backup)}"
+            self.notify(msg, title="♻️ Sıfırlandı", timeout=6)
+        self.push_screen(ConfirmScreen(
+            f"[bold {YELLOW}]{len(targets)}[/] adet 'Yeni (≤1 gün)' kelime "
+            f"[bold]'Başlanmadı'[/] durumuna döndürülsün mü?\n\n"
+            f"[{MUTED}]Bu kelimelerin SM-2 ilerlemesi silinir; günlük yeni "
+            f"kelime sınırına tabi olarak kademeli yeniden tanıtılırlar. "
+            f"progress.json otomatik yedeklenir.[/]"), handle)
 
 
 # --------------------------------------------------------------------------

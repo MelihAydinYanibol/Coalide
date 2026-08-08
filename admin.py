@@ -98,15 +98,21 @@ def _rename_progress(old_target: str, new_target: str):
 
 
 # SM-2 interval (days) ranges for the stats-screen maturity buckets, used by the
-# "reset to not started" actions — see stats_menu.build_stats. Each button
-# targets one bucket independently, so they can be reset separately or together.
-#   Yeni (≤1 gün):        0 ≤ interval ≤ 1
-#   Öğreniliyor (2-6g):   2 ≤ interval ≤ 6
-NEW_WORD_RANGE = (0, 1)
-LEARNING_RANGE = (2, 6)
+# "reset to not started" actions — see stats_menu.build_stats (MATURE_INTERVAL=21).
+# Each bucket gets its own reset button, so any can be reset independently (or
+# several together). Each row is (button/dialog label, (lo, hi)) with lo/hi
+# inclusive; the last bucket runs to infinity.
+#   (id_suffix, label, (lo_interval, hi_interval))
+RESET_BUCKETS = [
+    ("new",      "Yeni (≤1 gün)",      (0, 1)),
+    ("learning", "Öğreniliyor (2-6g)", (2, 6)),
+    ("young",    "Genç (1-3 hafta)",   (7, 20)),
+    ("mature",   "Olgun (3h-2 ay)",    (21, 59)),
+    ("master",   "Usta (2 ay +)",      (60, float("inf"))),
+]
 
 
-def _targets_in_interval_range(lo: int, hi: int) -> list[str]:
+def _targets_in_interval_range(lo: float, hi: float) -> list[str]:
     """Targets of started words whose SM-2 interval falls in [lo, hi] (inclusive).
     Missing/odd intervals count as 0, so they land in the lowest bucket."""
     prog = _load_json(PROGRESS_FILE, {})
@@ -141,7 +147,7 @@ def _backup_progress() -> str | None:
         return None
 
 
-def _reset_progress_in_range(lo: int, hi: int) -> tuple[int, str | None]:
+def _reset_progress_in_range(lo: float, hi: float) -> tuple[int, str | None]:
     """Remove the progress entry of every started word with interval in [lo, hi],
     sending those words back to 'not started'. Backs progress.json up first.
     Returns (count_removed, backup_path)."""
@@ -376,6 +382,9 @@ class AdminApp(App):
     /* Words tab */
     .words-toolbar {{ height: auto; margin-bottom: 1; }}
     .words-toolbar Button {{ margin-right: 1; }}
+    .words-reset-toolbar {{ height: auto; margin-bottom: 1; }}
+    .words-reset-toolbar Button {{ margin-right: 1; }}
+    .reset-label {{ width: auto; padding: 1 1; color: {MUTED}; }}
     #word-count {{ width: 1fr; text-align: right; padding: 1 2; color: {MUTED}; }}
     #words-table {{ height: 1fr; background: {PANEL_BG}; }}
 
@@ -602,9 +611,12 @@ class AdminApp(App):
             yield Button("➕ Kelime Ekle", variant="success", id="btn-word-add")
             yield Button("✏️ Düzenle", variant="primary", id="btn-word-edit")
             yield Button("🗑 Sil", variant="error", id="btn-word-delete")
-            yield Button("♻️ Yenileri Sıfırla", variant="warning", id="btn-word-reset-new")
-            yield Button("♻️ Öğrenilenleri Sıfırla", variant="warning", id="btn-word-reset-learning")
             yield Static("", id="word-count")
+        with Horizontal(classes="words-reset-toolbar"):
+            yield Static("♻️ Başlanmadıya döndür:", classes="reset-label")
+            for suffix, label, _range in RESET_BUCKETS:
+                yield Button(label, variant="warning", classes="reset-btn",
+                             id=f"btn-word-reset-{suffix}")
         yield DataTable(id="words-table")
 
     def _refill_words_table(self) -> None:
@@ -711,15 +723,15 @@ class AdminApp(App):
             f"[{MUTED}]Kelimeyle birlikte ilerleme (SM-2) kaydı da silinir. "
             f"Bu işlem geri alınamaz.[/]"), handle)
 
-    @on(Button.Pressed, "#btn-word-reset-new")
-    def _on_word_reset_new(self) -> None:
-        self._reset_words_to_not_started(NEW_WORD_RANGE, "Yeni (≤1 gün)")
+    @on(Button.Pressed, ".reset-btn")
+    def _on_word_reset(self, event: Button.Pressed) -> None:
+        suffix = (event.button.id or "").removeprefix("btn-word-reset-")
+        for s, label, interval_range in RESET_BUCKETS:
+            if s == suffix:
+                self._reset_words_to_not_started(interval_range, label)
+                return
 
-    @on(Button.Pressed, "#btn-word-reset-learning")
-    def _on_word_reset_learning(self) -> None:
-        self._reset_words_to_not_started(LEARNING_RANGE, "Öğreniliyor (2-6g)")
-
-    def _reset_words_to_not_started(self, interval_range: tuple[int, int],
+    def _reset_words_to_not_started(self, interval_range: tuple[float, float],
                                     label: str) -> None:
         """Send every started word whose interval is in interval_range back to
         'Başlanmadı'. Useful when a review backlog has piled up: these

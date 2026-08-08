@@ -545,27 +545,66 @@ from rich.text import Text
 from textual import on
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Grid, Vertical, VerticalScroll
+from textual.containers import Grid, Horizontal, Vertical, VerticalScroll
 from textual.css.query import NoMatches
-from textual.widgets import (DataTable, Digits, Footer, Header, Sparkline,
-                             Static, TabbedContent, TabPane)
+from textual.widgets import (Button, DataTable, Digits, Footer, Header,
+                             Sparkline, Static, TabbedContent, TabPane)
+
+
+# Maturity filter for the word table: (key, label, lo, hi) with lo/hi inclusive
+# SM-2 interval bounds. "all" (lo=None) shows every started word; the other rows
+# mirror the stats maturity buckets (MATURE_INTERVAL=21). Not-started words have
+# no progress row, so they never appear in this (started-word) table.
+WORD_FILTERS = [
+    ("all", "Tümü", None, None),
+    ("new", "Yeni", 0, 1),
+    ("learning", "Öğreniliyor", 2, 6),
+    ("young", "Genç", 7, 20),
+    ("mature", "Olgun", 21, 59),
+    ("master", "Usta", 60, float("inf")),
+]
+
+
+def _word_filter_count(rows, lo, hi) -> int:
+    """How many started words fall in a filter's [lo, hi] range ("all" = every)."""
+    if lo is None:
+        return len(rows)
+    return sum(1 for e in rows if lo <= e["interval"] <= hi)
 
 
 class WordTable(DataTable):
     """All tracked words, hardest first. Populated on mount so a recompose
-    (refresh) rebuilds it with fresh data."""
+    (refresh) rebuilds it with fresh data. Supports an in-place maturity filter
+    (set_range) so the parent can narrow the list to one SM-2 bucket."""
 
-    def __init__(self, rows, today):
+    def __init__(self, rows, today, lo=None, hi=None):
         super().__init__(id="word-table")
-        self._rows = rows
+        self._all_rows = rows
         self._today = today
+        self._lo = lo
+        self._hi = hi
 
     def on_mount(self) -> None:
         self.cursor_type = "row"
         self.zebra_stripes = True
         self.add_columns("Kelime", "Başarı", "✓", "✗", "∅",
                          "Tekrar", "Aralık", "Sonraki Tekrar")
-        for e in self._rows:
+        self._repopulate()
+
+    def filtered_rows(self) -> list:
+        if self._lo is None:
+            return self._all_rows
+        return [e for e in self._all_rows if self._lo <= e["interval"] <= self._hi]
+
+    def set_range(self, lo, hi) -> int:
+        """Apply a maturity filter and rebuild the rows. Returns the row count."""
+        self._lo, self._hi = lo, hi
+        return self._repopulate()
+
+    def _repopulate(self) -> int:
+        self.clear()  # keeps the columns, drops the rows
+        rows = self.filtered_rows()
+        for e in rows:
             rc = rate_color(e["rate"])
             if e["next"]:
                 delta = (e["next"] - self._today).days
@@ -584,6 +623,7 @@ class WordTable(DataTable):
                 Text(f"{e['interval']}g"),
                 nxt,
             )
+        return len(rows)
 
 
 class StatsApp(App):
@@ -639,7 +679,19 @@ class StatsApp(App):
 
     #word-table-title {{ height: auto; margin-bottom: 1; }}
     #word-table {{ height: 1fr; background: {PANEL_BG}; }}
+
+    #word-filter {{ height: auto; margin-bottom: 1; }}
+    #word-filter Button {{ margin-right: 1; min-width: 6; }}
+    #word-filter Button.active {{
+        background: {PURPLE};
+        color: {BG};
+        text-style: bold;
+    }}
     """
+
+    # Which maturity bucket the word table is filtered to; persists across the
+    # 'r' refresh (recompose) since the App instance is reused. See WORD_FILTERS.
+    _word_filter_key = "all"
 
     # ---- composition ----------------------------------------------------
 
@@ -841,13 +893,21 @@ class StatsApp(App):
         panel = self._panel("🏷️ Kelime Türleri", body, "p-purple", PURPLE)
         panel.id = "word-types"
         yield panel
+        # Maturity filter: one button per SM-2 bucket, so the parent can narrow
+        # the word list. The selected bucket persists across refresh.
+        self._started_count = s["started_count"]
+        rows = s["table_rows"]
+        with Horizontal(id="word-filter"):
+            for key, label, lo, hi in WORD_FILTERS:
+                cnt = _word_filter_count(rows, lo, hi)
+                classes = "active" if key == self._word_filter_key else ""
+                yield Button(f"{label} ({cnt})", id=f"wf-{key}", classes=classes)
         # A plain title line rather than a bordered panel: on a short terminal
         # every row it would cost comes straight out of the table.
-        yield Static(f"[bold {GREEN}]🔤 Tüm Kelimeler — en zordan kolaya "
-                     f"({s['started_count']} başlanan)[/]"
-                     f"   [{MUTED}]↑↓ / PgUp / PgDn ile gezinin[/]",
-                     id="word-table-title")
-        yield WordTable(s["table_rows"], s["today"])
+        lo, hi = self._current_filter_range()
+        shown = _word_filter_count(rows, lo, hi)
+        yield Static(self._word_table_title(shown), id="word-table-title")
+        yield WordTable(rows, s["today"], lo, hi)
 
     def _gelecek(self, s) -> ComposeResult:
         yield self._panel("🔮 Tekrar Takvimi (gelecek 14 gün)",
@@ -868,6 +928,36 @@ class StatsApp(App):
         else:
             lines.append(f"[{MUTED}]Henüz çalışılmış kelime yok.[/]")
         yield self._panel("🧠 SM-2 Sağlığı", "\n".join(lines), "p-green", GREEN)
+
+    # ---- word-table maturity filter -------------------------------------
+
+    def _current_filter_range(self):
+        """(lo, hi) for the active filter key; (None, None) for 'all'."""
+        for key, _label, lo, hi in WORD_FILTERS:
+            if key == self._word_filter_key:
+                return lo, hi
+        return None, None
+
+    def _word_table_title(self, shown: int) -> str:
+        total = getattr(self, "_started_count", shown)
+        count = f"{shown}" if shown == total else f"{shown}/{total}"
+        return (f"[bold {GREEN}]🔤 Tüm Kelimeler — en zordan kolaya "
+                f"({count} başlanan)[/]"
+                f"   [{MUTED}]↑↓ / PgUp / PgDn ile gezinin[/]")
+
+    @on(Button.Pressed, "#word-filter Button")
+    def _on_word_filter(self, event: Button.Pressed) -> None:
+        key = (event.button.id or "").removeprefix("wf-")
+        match = next((f for f in WORD_FILTERS if f[0] == key), None)
+        if match is None:
+            return
+        self._word_filter_key = key
+        _key, _label, lo, hi = match
+        shown = self.query_one("#word-table", WordTable).set_range(lo, hi)
+        for btn in self.query("#word-filter Button"):
+            btn.set_class(btn.id == f"wf-{key}", "active")
+        self.query_one("#word-table-title", Static).update(
+            self._word_table_title(shown))
 
     # ---- actions ---------------------------------------------------------
 

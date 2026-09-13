@@ -9,6 +9,10 @@ A Textual TUI showing detailed learning statistics:
     statistics.csv — a per-answer log this module also writes via
     record_answer(), which new_master.py calls after every evaluated answer.
   - Per-word table (hardest first), upcoming review forecast, SM-2 health.
+  - Time & speed: daily study time against DAILY_COALIDE_TIME_LIMIT, answer-speed
+    histogram, time per result, slowest/fastest words, time-of-day activity and
+    a per-direction breakdown — all read from the statistics.csv time_spent /
+    direction columns.
 
 Run standalone:  python stats_menu.py
 From the menu:   the "İstatistikler" button launches it as a subprocess.
@@ -41,6 +45,14 @@ MUTED = "#9a9ac0"
 MATURE_INTERVAL = 21  # days; a word with an SM-2 interval this long counts as "learned"
 CREDITS_PER_CORRECT = 7  # mirrors user.add_credits(7) in new_master.py
 MINUTES_PER_DAY = 24 * 60
+
+# Answer-speed histogram: [lower, upper) bounds in seconds; the last bin is open.
+SPEED_BINS = [(0, 3, "0-3 sn"), (3, 6, "3-6 sn"), (6, 10, "6-10 sn"),
+              (10, 20, "10-20 sn"), (20, 30, "20-30 sn"), (30, None, "30+ sn")]
+HOUR_BLOCK = 3  # hours per bar in the time-of-day chart (24 bars is too tall here)
+# A word needs this many timed answers before its average is worth ranking; with
+# fewer timed answers than that anywhere, the ranking falls back to every word.
+MIN_TIMED_ANSWERS = 2
 
 
 # --------------------------------------------------------------------------
@@ -167,15 +179,49 @@ def load_user_data() -> dict:
     return data if isinstance(data, dict) else {}
 
 
-def _load_credit_config() -> tuple:
-    """(base_rate, escalation, weekly_reset) from config.json — read directly
-    to avoid importing balance_obj (which pulls in the parental-control API)."""
+def _load_config() -> dict:
+    """config.json as a dict — read directly to avoid importing utils/balance_obj
+    (which pull in the parental-control API)."""
     cfg = _load_json(os.path.join(BASE_DIR, "config.json"), {})
-    if not isinstance(cfg, dict):
-        cfg = {}
+    return cfg if isinstance(cfg, dict) else {}
+
+
+def _load_credit_config() -> tuple:
+    """(base_rate, escalation, weekly_reset) from config.json."""
+    cfg = _load_config()
     return (cfg.get("BASE_RATE_PER_MINUTE", 5),
             cfg.get("ESCALATION_PER_HOUR", 0.5),
             cfg.get("Credit_Reset_Weekly", True))
+
+
+def _load_daily_time_limit() -> int:
+    """DAILY_COALIDE_TIME_LIMIT in seconds (0 = off), sanitised."""
+    try:
+        return max(0, int(_load_config().get("DAILY_COALIDE_TIME_LIMIT", 0) or 0))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _load_languages() -> tuple:
+    """(source_language, target_language) — used to label question directions."""
+    cfg = _load_config()
+    return (str(cfg.get("Source_Language", "Türkçe")),
+            str(cfg.get("Target_Language", "İngilizce")))
+
+
+def _fmt_duration(seconds) -> str:
+    """Seconds -> a compact Turkish duration: "2 sa 5 dk", "3 dk 20 sn", "45 sn"."""
+    try:
+        total = int(round(max(0.0, float(seconds or 0))))
+    except (TypeError, ValueError):
+        return "0 sn"
+    hours, rest = divmod(total, 3600)
+    minutes, secs = divmod(rest, 60)
+    if hours:
+        return f"{hours} sa {minutes} dk" if minutes else f"{hours} sa"
+    if minutes:
+        return f"{minutes} dk {secs} sn" if secs else f"{minutes} dk"
+    return f"{secs} sn"
 
 
 def _cost_for_minutes(minutes: int, base: float, esc: float, already: int = 0) -> int:
@@ -437,6 +483,127 @@ def build_stats() -> dict:
     spent_by_date = {d.isoformat(): c for d, c in spent_by_day.items()}
     minutes_by_date = {d.isoformat(): int(m) for d, m in redeemed.items()}
 
+    # ---- time spent answering -------------------------------------------
+    # Every answer's duration has been logged since 2.3.3 (statistics.csv's
+    # time_spent column). Rows from older builds have no duration at all, so
+    # they are left out of every figure here rather than counted as zero
+    # seconds — which would understate a total and drag an average down.
+    timed_rows = [r for r in log_rows if isinstance(r["time_spent"], (int, float))]
+    seconds_by_day, timed_by_day = {}, Counter()
+    for r in timed_rows:
+        seconds_by_day[r["date"]] = seconds_by_day.get(r["date"], 0.0) + r["time_spent"]
+        timed_by_day[r["date"]] += 1
+
+    timed_count = len(timed_rows)
+    time_today = seconds_by_day.get(today, 0.0)
+    time_week = sum(v for d, v in seconds_by_day.items() if d >= ws0)
+    time_total = sum(seconds_by_day.values())
+    time_avg = time_total / timed_count if timed_count else 0.0
+    timed_today = timed_by_day.get(today, 0)
+    time_avg_today = time_today / timed_today if timed_today else 0.0
+    sec_7 = sum(seconds_by_day.get(today - timedelta(days=i), 0.0) for i in range(7))
+    cnt_7 = sum(timed_by_day.get(today - timedelta(days=i), 0) for i in range(7))
+    time_avg_7 = sec_7 / cnt_7 if cnt_7 else 0.0
+    time_best_day = max(seconds_by_day.items(), key=lambda kv: kv[1], default=None)
+
+    # daily budget (DAILY_COALIDE_TIME_LIMIT, 0 = off)
+    daily_time_limit = _load_daily_time_limit()
+    time_remaining = max(0.0, daily_time_limit - time_today) if daily_time_limit else 0.0
+    limit_used_pct = (min(100.0, time_today / daily_time_limit * 100)
+                      if daily_time_limit else 0.0)
+
+    time_14 = []
+    for i in range(13, -1, -1):
+        d = today - timedelta(days=i)
+        mins = round(seconds_by_day.get(d, 0.0) / 60, 1)
+        time_14.append((_day_label(d), mins, PURPLE if mins else MUTED))
+    spark_time_30 = [round(seconds_by_day.get(today - timedelta(days=i), 0.0) / 60)
+                     for i in range(29, -1, -1)]
+
+    # answer-speed histogram
+    speed_buckets = []
+    for lo, hi, label in SPEED_BINS:
+        cnt = sum(1 for r in timed_rows
+                  if r["time_spent"] >= lo and (hi is None or r["time_spent"] < hi))
+        speed_buckets.append((label, cnt, PURPLE if cnt else MUTED))
+    sorted_times = sorted(r["time_spent"] for r in timed_rows)
+    time_median = sorted_times[timed_count // 2] if timed_count else 0.0
+    time_fastest = sorted_times[0] if timed_count else 0.0
+    time_slowest = sorted_times[-1] if timed_count else 0.0
+
+    # how long a correct / wrong / blank answer takes on average
+    time_by_result = {}
+    for key in ("correct", "wrong", "blank"):
+        vals = [r["time_spent"] for r in timed_rows if r["result"] == key]
+        time_by_result[key] = {"avg": (sum(vals) / len(vals)) if vals else 0.0,
+                               "count": len(vals), "total": sum(vals)}
+
+    # slowest / fastest words. A single timed answer says very little, so rank
+    # on words with a couple of them — unless nothing qualifies yet, in which
+    # case rank everything so the panel isn't empty on day one.
+    per_word = {}
+    for r in timed_rows:
+        e = per_word.setdefault(r["word"], [0.0, 0])
+        e[0] += r["time_spent"]
+        e[1] += 1
+    word_speed = [{"word": w, "avg": t / n, "count": n}
+                  for w, (t, n) in per_word.items() if n >= MIN_TIMED_ANSWERS]
+    if not word_speed:
+        word_speed = [{"word": w, "avg": t / n, "count": n}
+                      for w, (t, n) in per_word.items()]
+    slowest_words = sorted(word_speed, key=lambda e: -e["avg"])[:5]
+    fastest_words = sorted(word_speed, key=lambda e: e["avg"])[:5]
+
+    # time-of-day activity, from the clock time each answer was logged at
+    hourly = [[h, 0, 0, 0] for h in range(24)]
+    res_idx = {"correct": 1, "wrong": 2, "blank": 3}
+    for r in log_rows:
+        idx = res_idx.get(r["result"])
+        if idx is None:
+            continue
+        try:
+            hour = int(r["time"][:2])
+        except (TypeError, ValueError):
+            continue
+        if 0 <= hour <= 23:
+            hourly[hour][idx] += 1
+    hour_blocks = []
+    for start in range(0, 24, HOUR_BLOCK):
+        cnt = sum(sum(hourly[h][1:]) for h in range(start, start + HOUR_BLOCK))
+        hour_blocks.append((f"{start:02d}-{start + HOUR_BLOCK:02d}", cnt,
+                            YELLOW if cnt else MUTED))
+    busiest_hour = max(range(24), key=lambda h: sum(hourly[h][1:]))
+    if not sum(hourly[busiest_hour][1:]):
+        busiest_hour = None
+
+    # question direction — which way round the question was asked (logged
+    # since 2.3.0): was the target-language word wanted, or the source one?
+    src_lang, tgt_lang = _load_languages()
+    direction_stats = []
+    for key, label in (("target", f"{src_lang} → {tgt_lang}"),
+                       ("source", f"{tgt_lang} → {src_lang}")):
+        rows_d = [r for r in log_rows if r["direction"] == key]
+        counts = Counter(r["result"] for r in rows_d)
+        tot = len(rows_d)
+        times = [r["time_spent"] for r in rows_d
+                 if isinstance(r["time_spent"], (int, float))]
+        direction_stats.append({
+            "key": key, "label": label, "total": tot,
+            "correct": counts.get("correct", 0), "wrong": counts.get("wrong", 0),
+            "blank": counts.get("blank", 0),
+            "rate": (counts.get("correct", 0) / tot * 100) if tot else 0.0,
+            "avg_time": (sum(times) / len(times)) if times else 0.0,
+        })
+
+    # efficiency — both figures use timed answers only, so they stay consistent
+    minutes_spent = time_total / 60
+    answers_per_minute = timed_count / minutes_spent if minutes_spent else 0.0
+    credits_per_minute = (time_by_result["correct"]["count"] * CREDITS_PER_CORRECT
+                          / minutes_spent) if minutes_spent else 0.0
+
+    seconds_by_date = {d.isoformat(): round(v, 2) for d, v in seconds_by_day.items()}
+    timed_by_date = {d.isoformat(): c for d, c in timed_by_day.items()}
+
     return {
         "today": today,
         "total_words": total_words,
@@ -495,6 +662,36 @@ def build_stats() -> dict:
         "days_to_reset": days_to_reset,
         "last_reset": _parse_date(user.get("last_reset_date")),
         "spark_minutes_30": spark_minutes_30,
+        # ---- time & speed (statistics.csv time_spent / direction) ----
+        "timed_count": timed_count,
+        "time_today": time_today,
+        "time_week": time_week,
+        "time_total": time_total,
+        "time_avg": time_avg,
+        "time_avg_today": time_avg_today,
+        "time_avg_7": time_avg_7,
+        "time_median": time_median,
+        "time_fastest": time_fastest,
+        "time_slowest": time_slowest,
+        "time_best_day": time_best_day,
+        "daily_time_limit": daily_time_limit,
+        "time_remaining": time_remaining,
+        "limit_used_pct": limit_used_pct,
+        "time_14": time_14,
+        "spark_time_30": spark_time_30,
+        "seconds_by_date": seconds_by_date,
+        "timed_by_date": timed_by_date,
+        "speed_buckets": speed_buckets,
+        "time_by_result": time_by_result,
+        "slowest_words": slowest_words,
+        "fastest_words": fastest_words,
+        "hourly": hourly,
+        "hour_blocks": hour_blocks,
+        "busiest_hour": busiest_hour,
+        "direction_stats": direction_stats,
+        "answers_per_minute": answers_per_minute,
+        "credits_per_minute": credits_per_minute,
+        "min_timed_answers": MIN_TIMED_ANSWERS,
     }
 
 
@@ -729,6 +926,9 @@ class StatsApp(App):
             with TabPane("📅 Haftalık & Günlük", id="tab-hafta"):
                 with VerticalScroll(classes="tab-body"):
                     yield from self._haftalik(s)
+            with TabPane("⏱ Süre & Hız", id="tab-sure"):
+                with VerticalScroll(classes="tab-body"):
+                    yield from self._sure(s)
             with TabPane("🔤 Kelimeler", id="tab-kelime"):
                 with Vertical(classes="tab-body"):
                     yield from self._kelimeler(s)
@@ -804,6 +1004,11 @@ class StatsApp(App):
                 lines.append(f"Aktif gün ortalaması: [bold]{avg:.1f}[/] cevap")
             if s["first_log"]:
                 lines.append(f"Kayıt başlangıcı: [bold]{s['first_log'].isoformat()}[/]")
+        if s["timed_count"]:
+            lines.append(f"Soru başında geçen toplam süre: "
+                         f"[bold]{_fmt_duration(s['time_total'])}[/] "
+                         f"[{MUTED}]({s['timed_count']} cevap)[/]")
+            lines.append(f"Ortalama cevap süresi: [bold]{s['time_avg']:.1f} sn[/]")
         else:
             lines.append(f"[{MUTED}]Cevap geçmişi bu sürümle kaydedilmeye başlandı — "
                          f"quiz çözdükçe burada birikecek.[/]")
@@ -896,6 +1101,121 @@ class StatsApp(App):
         with Vertical(classes="panel p-purple"):
             yield Static(f"[bold {PURPLE}]🌱 Yeni kelime — son 30 gün[/]")
             yield Sparkline(s["spark_new_30"], summary_function=max)
+
+    def _sure(self, s) -> ComposeResult:
+        limit = s["daily_time_limit"]
+        tiles = [
+            ("⏱ Bugün (dk)", round(s["time_today"] / 60), "t-purple"),
+            ("🎯 Günlük Limit (dk)", round(limit / 60) if limit else 0, "t-yellow"),
+            ("⏳ Kalan (dk)", round(s["time_remaining"] / 60) if limit else 0, "t-green"),
+            ("⚡ Ort. Cevap (sn)", f"{s['time_avg']:.1f}", "t-green"),
+            ("📅 Bu Hafta (dk)", round(s["time_week"] / 60), "t-purple"),
+            ("♾️ Toplam (sa)", f"{s['time_total'] / 3600:.1f}", "t-yellow"),
+            ("💬 Süresi Kayıtlı", s["timed_count"], "t-purple"),
+            ("🚀 Cevap / dk", f"{s['answers_per_minute']:.1f}", "t-green"),
+            ("🪙 Kredi / dk", f"{s['credits_per_minute']:.1f}", "t-yellow"),
+        ]
+        yield from self._tile_grid(tiles)
+
+        if not s["timed_count"]:
+            yield self._panel(
+                "⏱ Süre Kaydı",
+                f"[{MUTED}]Cevap süreleri bu sürümle kaydedilmeye başlandı — "
+                f"quiz çözdükçe bu sekme dolacak. Daha önce cevaplanan sorular "
+                f"süre içermediği için ortalamalara hiç katılmaz.[/]",
+                "p-yellow", YELLOW)
+
+        body = hbar_chart(s["time_14"], label_w=8)
+        if limit:
+            used = s["limit_used_pct"]
+            lc = GREEN if used < 70 else YELLOW if used < 90 else RED
+            body += (f"\n\n[{MUTED}]Günlük sınır:[/] [bold]{_fmt_duration(limit)}[/]"
+                     f"   [{MUTED}]Bugün:[/] [bold {lc}]{_fmt_duration(s['time_today'])} "
+                     f"(%{used:.0f})[/]"
+                     f"   [{MUTED}]Kalan:[/] [bold {lc}]{_fmt_duration(s['time_remaining'])}[/]")
+        else:
+            body += (f"\n\n[{MUTED}]Günlük süre sınırı kapalı "
+                     f"(DAILY_COALIDE_TIME_LIMIT = 0).[/]")
+        if s["time_best_day"]:
+            d, secs = s["time_best_day"]
+            body += (f"\n[{MUTED}]En uzun çalışılan gün:[/] [bold]{_day_label(d)}[/] "
+                     f"[{MUTED}]({_fmt_duration(secs)})[/]")
+        yield self._panel("⏱ Günlük Çalışma Süresi (son 14 gün, dakika)",
+                          body, "p-purple", PURPLE)
+
+        with Vertical(classes="panel p-purple"):
+            yield Static(f"[bold {PURPLE}]📉 Çalışma süresi — son 30 gün (dk/gün)[/]")
+            yield Sparkline(s["spark_time_30"], summary_function=max)
+
+        body = hbar_chart(s["speed_buckets"], label_w=10)
+        if s["timed_count"]:
+            body += (f"\n\n[{MUTED}]Ortalama:[/] [bold]{s['time_avg']:.1f} sn[/]"
+                     f"   [{MUTED}]Ortanca:[/] [bold]{s['time_median']:.1f} sn[/]"
+                     f"   [{MUTED}]En hızlı:[/] [bold {GREEN}]{s['time_fastest']:.1f} sn[/]"
+                     f"   [{MUTED}]En yavaş:[/] [bold {RED}]{s['time_slowest']:.1f} sn[/]")
+            body += (f"\n[{MUTED}]Son 7 gün ortalaması:[/] "
+                     f"[bold]{s['time_avg_7']:.1f} sn[/]"
+                     f"   [{MUTED}]Bugün:[/] [bold]{s['time_avg_today']:.1f} sn[/]")
+        yield self._panel("⚡ Cevap Hızı Dağılımı", body, "p-green", GREEN)
+
+        lines = []
+        for key, label, color, sym in (("correct", "Doğru", GREEN, "✓"),
+                                       ("wrong", "Yanlış", RED, "✗"),
+                                       ("blank", "Boş", YELLOW, "∅")):
+            r = s["time_by_result"][key]
+            if r["count"]:
+                lines.append(f"[{color}]{sym} {label:<7}[/] ortalama "
+                             f"[bold]{r['avg']:.1f} sn[/]  "
+                             f"[{MUTED}]({r['count']} cevap, toplam "
+                             f"{_fmt_duration(r['total'])})[/]")
+            else:
+                lines.append(f"[{color}]{sym} {label:<7}[/] [{MUTED}]süresi kayıtlı "
+                             f"cevap yok[/]")
+        yield self._panel("🎯 Sonuca Göre Ortalama Süre", "\n".join(lines),
+                          "p-yellow", YELLOW)
+
+        if s["slowest_words"]:
+            yield self._panel("🐢 En Yavaş 5 Kelime",
+                              self._word_speed_text(s["slowest_words"], RED),
+                              "p-red", RED)
+            yield self._panel("🐇 En Hızlı 5 Kelime",
+                              self._word_speed_text(s["fastest_words"], GREEN),
+                              "p-green", GREEN)
+
+        body = hbar_chart(s["hour_blocks"], label_w=8)
+        if s["busiest_hour"] is not None:
+            h = s["busiest_hour"]
+            cnt = sum(s["hourly"][h][1:])
+            body += (f"\n\n[{MUTED}]En yoğun saat:[/] "
+                     f"[bold {YELLOW}]{h:02d}:00-{h + 1:02d}:00[/] "
+                     f"[{MUTED}]({cnt} cevap)[/]")
+        yield self._panel("🕒 Günün Saatlerine Göre Aktivite (tüm zamanlar)",
+                          body, "p-yellow", YELLOW)
+
+        lines = []
+        for d in s["direction_stats"]:
+            if not d["total"]:
+                lines.append(f"[bold]{escape(d['label'])}[/] [{MUTED}]— henüz kayıt yok[/]")
+                continue
+            rc = rate_color(d["rate"])
+            line = (f"[bold]{escape(d['label'])}[/]  [bold {rc}]%{d['rate']:.0f}[/]  "
+                    f"([{GREEN}]{d['correct']}✓[/] [{RED}]{d['wrong']}✗[/] "
+                    f"[{YELLOW}]{d['blank']}∅[/])  [{MUTED}]{d['total']} soru[/]")
+            if d["avg_time"]:
+                line += f"  [{MUTED}]ort. {d['avg_time']:.1f} sn[/]"
+            lines.append(line)
+        lines.append("")
+        lines.append(f"[{MUTED}]Soru yönü her soruda rastgele seçilir; iki yön "
+                     f"arasındaki fark hangi yönün daha zor geldiğini gösterir.[/]")
+        yield self._panel("🔄 Soru Yönü", "\n".join(lines), "p-purple", PURPLE)
+
+    @staticmethod
+    def _word_speed_text(rows, color: str) -> str:
+        lines = []
+        for e in rows:
+            lines.append(f"[bold]{escape(e['word']):<16}[/] [{color}]{e['avg']:.1f} sn[/]  "
+                         f"[{MUTED}]({e['count']} cevap)[/]")
+        return "\n".join(lines)
 
     TOP_WORD_TYPES = 6  # rest are summarised, see _kelimeler
 

@@ -5,6 +5,61 @@ All notable changes to **Coalide** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.4] - 2026-09-13
+
+Statistics release: the per-answer durations added in 2.3.3 and the question
+direction logged since 2.3.0 were being recorded and never read. All three
+statistics screens — the terminal İstatistikler screen, the parent web
+dashboard and the web app's own dashboard — gain a **Süre & Hız** tab that
+reads them.
+
+### Added
+- **Süre & Hız tab**, with the same figures on all three surfaces:
+  - **Daily study time against `DAILY_COALIDE_TIME_LIMIT`** — time spent today,
+    what is left of the budget and the share used (a progress ring on the
+    parent dashboard, coloured green / yellow over 70% / red over 90%). With
+    the limit off, the day's total is still shown. The budget figures belong to
+    the surfaces that enforce the limit — the terminal app and the parent
+    dashboard; the web app shows the day's study time without a budget, because
+    its quiz does not enforce one.
+  - **Study time per day** — 14 days of bars plus a 30-day trend in the
+    terminal and the web app; on the parent dashboard a line chart with its own
+    7g / 14g / 30g / 90g / Tümü / Özel window picker, alongside a second
+    windowed chart for the **average answer time per day**.
+  - **Answer speed** — a 0-3 / 3-6 / 6-10 / 10-20 / 20-30 / 30+ sn histogram
+    with the mean, median, fastest and slowest answer, the last-7-day average
+    and today's.
+  - **Average time per result** — how long doğru, yanlış and boş answers take,
+    with the count and total behind each.
+  - **Slowest and fastest words** — ranked on words with at least two timed
+    answers, falling back to every word until that many exist.
+  - **Time-of-day activity** — answers per hour (3-hour blocks in the terminal,
+    24 bars on the dashboard) and the busiest hour with its success rate.
+  - **Soru Yönü** — Türkçe → İngilizce against İngilizce → Türkçe: question
+    count, ✓/✗/∅ split, success rate and average time, so it is visible which
+    direction is the harder one.
+  - **Efficiency** — answers per minute and credits earned per minute.
+- **Study time in the daily report** — the parent's Telegram/ntfy summary gains
+  a line with the day's study time, what is left of the daily limit and the
+  average seconds per question. A snapshot from a client that logs no durations
+  leaves the line out.
+- **Durations and direction in the web app's answer log** — the browser quiz
+  already measured how long each question took and then discarded it;
+  `webapp/data/<user>_stats.csv` now keeps it in a `time_spent` column
+  alongside a `direction` column.
+
+### Changed
+- The web app's answer log is written and read through the `csv` module on both
+  ends (as the terminal app's has been since 2.3.0), so a comma inside a word
+  can no longer shift the columns.
+
+### Notes
+- Answers logged before durations existed carry none, and are left out of every
+  time figure rather than counted as zero seconds — a pre-upgrade log cannot
+  understate a total or drag an average down. A parent dashboard fed by a
+  client older than 2.3.4 says the data isn't there yet instead of drawing
+  charts full of zeroes.
+
 ## [2.3.3] - 2026-09-13
 
 Daily time-budget release: a parent can now cap how long the child spends

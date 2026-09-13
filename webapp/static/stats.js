@@ -1,6 +1,7 @@
 /* Coalide — statistics dashboard renderer.
    Ports the terminal İstatistikler screen (stats_menu.py) to the browser:
-   five sub-tabs (Genel / Krediler / Haftalık & Günlük / Kelimeler / Gelecek). */
+   six sub-tabs (Genel / Krediler / Haftalık & Günlük / Süre & Hız /
+   Kelimeler / Gelecek). */
 (function () {
     "use strict";
 
@@ -111,11 +112,21 @@
         return rate >= 80 ? "green" : rate >= 50 ? "yellow" : "red";
     }
 
+    // seconds -> "2 sa 5 dk" / "3 dk 20 sn" / "45 sn"
+    function fmtDur(secs) {
+        const total = Math.max(0, Math.round(+secs || 0));
+        const hr = Math.floor(total / 3600), mn = Math.floor((total % 3600) / 60), sc = total % 60;
+        if (hr) return mn ? `${hr} sa ${mn} dk` : `${hr} sa`;
+        if (mn) return sc ? `${mn} dk ${sc} sn` : `${mn} dk`;
+        return `${sc} sn`;
+    }
+    const toMin = (secs) => Math.round((+secs || 0) / 60);
+
     // ---------------------------------------------------------------- tabs
     function section(s) {
         return {
             genel: genel, krediler: krediler, haftalik: haftalik,
-            kelimeler: kelimeler, gelecek: gelecek,
+            sure: sure, kelimeler: kelimeler, gelecek: gelecek,
         }[activeSub](s);
     }
 
@@ -240,6 +251,113 @@
         frag.appendChild(p);
         frag.appendChild(panel("⚡ Aktivite — son 30 gün (günlük cevap)", "green", sparkline(s.spark_30, "green")));
         frag.appendChild(panel("🌱 Yeni kelime — son 30 gün", "purple", sparkline(s.spark_new_30, "purple")));
+        return frag;
+    }
+
+    // Süre & Hız — built from the per-answer durations and the question
+    // direction the quiz logs. Answers from before those were logged carry
+    // neither, so they simply don't count towards any figure here.
+    function sure(s) {
+        const frag = document.createDocumentFragment();
+        const timed = s.timed_count || 0;
+
+        frag.appendChild(tiles([
+            ["⏱ Bugün (dk)", toMin(s.time_today), "purple"],
+            ["⚡ Ort. Cevap (sn)", s.time_avg, "green"],
+            ["🎯 Ortanca (sn)", s.time_median, "yellow"],
+            ["📅 Bu Hafta (dk)", toMin(s.time_week), "purple"],
+            ["♾️ Toplam (sa)", (s.time_total / 3600).toFixed(1), "yellow"],
+            ["💬 Süresi Kayıtlı", timed, "purple"],
+            ["🚀 Cevap / dk", s.answers_per_minute, "green"],
+            ["🪙 Kredi / dk", s.credits_per_minute, "yellow"],
+        ]));
+
+        if (!timed) {
+            frag.appendChild(panel("⏱ Süre Kaydı", "yellow", h("p", "muted",
+                "Cevap süreleri henüz kaydedilmemiş — quiz çözdükçe bu sekme dolacak. "
+                + "Daha önce cevaplanan sorular süre içermediği için ortalamalara hiç katılmaz.")));
+        }
+
+        let p = panel("⏱ Günlük Çalışma Süresi (son 14 gün, dakika)", "purple", hbar(s.time_14 || []));
+        const lines = [];
+        lines.push(`Bugün: <b>${fmtDur(s.time_today)}</b> · bu hafta: <b>${fmtDur(s.time_week)}</b>`
+            + ` · toplam: <b>${fmtDur(s.time_total)}</b>`);
+        if (s.best_time_day) lines.push(`En uzun çalışılan gün: <b>${esc(s.best_time_day.label)}</b>`
+            + ` <span class="muted">(${fmtDur(s.best_time_day.seconds)})</span>`);
+        p.appendChild(h("p", "muted small", lines.join("<br>")));
+        frag.appendChild(p);
+
+        frag.appendChild(panel("📉 Çalışma süresi — son 30 gün (dk/gün)", "purple",
+            sparkline(s.spark_time_30 || [], "purple")));
+
+        p = panel("⚡ Cevap Hızı Dağılımı", "green", hbar(s.speed_buckets || []));
+        if (timed) {
+            p.appendChild(h("p", "muted small",
+                `Ortalama <b>${s.time_avg} sn</b> · ortanca <b>${s.time_median} sn</b> · `
+                + `en hızlı <b style="color:${col("green")}">${s.time_fastest} sn</b> · `
+                + `en yavaş <b style="color:${col("red")}">${s.time_slowest} sn</b><br>`
+                + `Son 7 gün ortalaması: <b>${s.time_avg_7} sn</b> · bugün: <b>${s.time_avg_today} sn</b>`));
+        }
+        frag.appendChild(p);
+
+        const byRes = s.time_by_result || {};
+        const resBody = h("div", "text-lines");
+        [["correct", "Doğru", "green", "✓"], ["wrong", "Yanlış", "red", "✗"],
+         ["blank", "Boş", "yellow", "∅"]].forEach(([key, label, token, sym]) => {
+            const r = byRes[key] || {};
+            resBody.appendChild(h("div", null, r.count
+                ? `<span style="color:${col(token)}">${sym} ${esc(label)}</span> ortalama <b>${r.avg} sn</b> `
+                  + `<span class="muted">(${r.count} cevap, toplam ${fmtDur(r.total)})</span>`
+                : `<span style="color:${col(token)}">${sym} ${esc(label)}</span> `
+                  + `<span class="muted">süresi kayıtlı cevap yok</span>`));
+        });
+        resBody.appendChild(h("p", "muted small",
+            "Yanlış ve boş cevapların doğrulardan uzun sürmesi, sorunun gerçekten zorlandığını gösterir."));
+        frag.appendChild(panel("🎯 Sonuca Göre Ortalama Süre", "yellow", resBody));
+
+        const wordSpeed = (rows, token) => {
+            const body = h("div", "text-lines");
+            (rows || []).forEach((e) => {
+                body.appendChild(h("div", null,
+                    `<b>${esc(e.word)}</b> <span style="color:${col(token)}">${e.avg} sn</span> `
+                    + `<span class="muted">(${e.count} cevap)</span>`));
+            });
+            if (!rows || !rows.length) body.appendChild(h("p", "muted", "Henüz veri yok."));
+            return body;
+        };
+        if (s.slowest_words) {
+            const minN = s.min_timed_answers || 2;
+            frag.appendChild(panel(`🐢 En Yavaş Kelimeler (en az ${minN} cevap)`, "red",
+                wordSpeed(s.slowest_words, "red")));
+            frag.appendChild(panel(`🐇 En Hızlı Kelimeler (en az ${minN} cevap)`, "green",
+                wordSpeed(s.fastest_words, "green")));
+        }
+
+        p = panel("🕒 Günün Saatlerine Göre Aktivite", "yellow", hbar(s.hour_blocks || []));
+        if (s.busiest_hour != null) {
+            const row = (s.hourly || [])[s.busiest_hour] || [0, 0, 0, 0];
+            const tot = row[1] + row[2] + row[3];
+            p.appendChild(h("p", "muted small",
+                `En yoğun saat: <b style="color:${col("yellow")}">`
+                + `${String(s.busiest_hour).padStart(2, "0")}:00–${String(s.busiest_hour + 1).padStart(2, "0")}:00</b> `
+                + `(${tot} cevap, başarı %${tot ? Math.round(row[1] / tot * 100) : 0})`));
+        }
+        frag.appendChild(p);
+
+        const dirBody = h("div", "text-lines");
+        (s.direction_stats || []).forEach((d) => {
+            dirBody.appendChild(h("div", null, d.total
+                ? `<b>${esc(d.label)}</b> <span style="color:${col(rateColor(d.rate))}">%${Math.round(d.rate)}</span> `
+                  + `<span class="muted">(<span style="color:${col("green")}">${d.correct}✓</span> `
+                  + `<span style="color:${col("red")}">${d.wrong}✗</span> `
+                  + `<span style="color:${col("yellow")}">${d.blank}∅</span>) ${d.total} soru`
+                  + (d.avg_time ? ` · ort. ${d.avg_time} sn` : "") + `</span>`
+                : `<b>${esc(d.label)}</b> <span class="muted">— henüz kayıt yok</span>`));
+        });
+        dirBody.appendChild(h("p", "muted small",
+            "Soru yönü her soruda rastgele seçilir; iki yön arasındaki fark hangi yönün daha zor geldiğini gösterir."));
+        frag.appendChild(panel("🔄 Soru Yönü", "purple", dirBody));
+
         return frag;
     }
 

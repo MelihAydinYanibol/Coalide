@@ -28,11 +28,14 @@ browser, with **per-user progress** kept separately for each learner.
   the browser's built-in Web Speech API, so no TTS keys or server-side audio are
   required. (The terminal app's ElevenLabs/gTTS pipeline is not needed here.)
 - **Full statistics dashboard** — a browser port of the terminal
-  İstatistikler screen, with the same five tabs (Genel Bakış, Krediler,
-  Haftalık & Günlük, Kelimeler, Gelecek & SM-2): overview tiles, SM-2 maturity
-  buckets, hardest words, daily/weekly new-word and answer charts, activity
-  sparklines, credit earn/spend/redeem history, a per-word table and SM-2
-  health. Every answer is logged per-user to `webapp/data/<user>_stats.csv`.
+  İstatistikler screen, with six tabs (Genel Bakış, Krediler,
+  Haftalık & Günlük, Süre & Hız, Kelimeler, Gelecek & SM-2): overview tiles,
+  SM-2 maturity buckets, hardest words, daily/weekly new-word and answer charts,
+  activity sparklines, credit earn/spend/redeem history, daily study time with
+  an answer-speed breakdown, time-of-day activity, a per-question-direction
+  comparison, a per-word table and SM-2 health. Every answer is logged per-user
+  to `webapp/data/<user>_stats.csv` with how long it took and which way round
+  it was asked.
 - **Admin dashboard** — a password-protected parent panel at `/admin`,
   connected to the web app's own data: see every learner's progress and
   balance, adjust credits, and edit the shared `config.json` from the browser.

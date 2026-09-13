@@ -48,6 +48,7 @@ CONFIG_DESCRIPTIONS = {
     "ESCALATION_PER_HOUR": "Aynı gün alınan her ek saatte fiyat artış oranı (0.5 = %50).",
     "SPAM_PROTECTION": "Art arda rastgele cevap yazmayı engelle.",
     "INPUT_TIMEOUT": "Cevap için süre sınırı, saniye (0 = kapalı).",
+    "DAILY_COALIDE_TIME_LIMIT": "Günlük Coalide kullanım süresi sınırı, saniye (0 = kapalı).",
     "Credit_Reset_Weekly": "Krediler her Pazartesi sıfırlansın mı.",
     "PRONOUNCE_WORDS": "Kelimeler sesli olarak okunsun mu.",
     "PRONOUNCE_SENTENCES": "Örnek cümleler sesli olarak okunsun mu.",

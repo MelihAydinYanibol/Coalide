@@ -140,6 +140,13 @@ def check_and_update_words(github_repo, github_token=None, local_file="words.jso
         lg(f"⚠ Error checking GitHub for updates: {e}")
         return False
 
+def _format_mmss(seconds: float) -> str:
+    """Format a duration given in seconds as 'M dk S sn' (Turkish minutes/seconds)."""
+    total_seconds = max(0, int(round(seconds)))
+    minutes, secs = divmod(total_seconds, 60)
+    return f"{minutes} dk {secs} sn"
+
+
 # will make this a loop instead of a recursive function, but for now, this is fine. I will also add a way to exit the loop gracefully.
 def quest(user, current_question: Question = None):
     import time
@@ -159,6 +166,19 @@ def quest(user, current_question: Question = None):
             print("No more questions due for review. Come back later!")
             sys.exit(0)
         prompt = current_question.prompt_text
+
+        # Providing data for daily question answer time limit.
+
+        if get_config()["DAILY_COALIDE_TIME_LIMIT"] > 0:
+            total_time_spent = user.get_total_time_spent_today(date.today().isoformat())
+            total_time_limit = get_config()["DAILY_COALIDE_TIME_LIMIT"]
+            remaining_time = abs(total_time_limit - total_time_spent)
+            # Choosing color of the text according to the remaining time. If it's less than 10% of the total time, it will be red, if it's less than 30%, it will be yellow, otherwise it will be green.
+            if remaining_time <= total_time_limit * 0.1:time_color = Fore.RED
+            elif remaining_time <= total_time_limit * 0.3:time_color = Fore.YELLOW
+            else:time_color = Fore.GREEN
+            print(f"Bugün kalan süre: {time_color}{_format_mmss(remaining_time)}{Style.RESET_ALL} (toplam süre: {_format_mmss(total_time_limit)})\n")
+
 
         # Providing information
 
@@ -186,6 +206,15 @@ def quest(user, current_question: Question = None):
                 answer = ""
                 stat = None
                 time_taken = get_config()["INPUT_TIMEOUT"]
+        elif get_config()["DAILY_COALIDE_TIME_LIMIT"] > 0:
+            # Calculating total time spent answering questions today
+            today = date.today().isoformat()
+            total_time_spent_today = user.get_total_time_spent_today(today)
+            if get_config()["DAILY_COALIDE_TIME_LIMIT"] <= total_time_spent_today:
+                print(Fore.LIGHTRED_EX + f"⚠ Günlük süre sınırına ulaştınız! Lütfen yarın tekrar deneyin." + Style.RESET_ALL)
+                input("Ana menüye dönmek için Enter'a basın...")
+                break
+
         else:
             answer = input("> ")
         
@@ -268,7 +297,8 @@ def quest(user, current_question: Question = None):
                       given=answer,
                       expected=current_question.expected_answer,
                       prompt=current_question.prompt,
-                      direction="target" if current_question.is_target_wanted else "source")
+                      direction="target" if current_question.is_target_wanted else "source",
+                      time_spent=time_taken)
         current_question.word.add_result((True if stat == True else False), is_blank=(stat is None))
         update_sm2(current_question.word, quality)
         feed.append(current_question.word.id)

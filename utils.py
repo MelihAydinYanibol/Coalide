@@ -55,6 +55,7 @@ def get_config(default=False):
         "ESCALATION_PER_HOUR":0.5,
         "SPAM_PROTECTION":True,
         "INPUT_TIMEOUT":0,
+        "DAILY_COALIDE_TIME_LIMIT":0,
         "Credit_Reset_Weekly":True,
         "PRONOUNCE_WORDS":True,
         "PRONOUNCE_SENTENCES":True,

@@ -47,7 +47,7 @@ MINUTES_PER_DAY = 24 * 60
 # Answer log (statistics.csv) — stdlib only, safe to import from new_master
 # --------------------------------------------------------------------------
 
-LOG_HEADER = ["datetime", "word", "result", "given", "expected", "prompt", "direction"]
+LOG_HEADER = ["datetime", "word", "result", "given", "expected", "prompt", "direction", "time_spent"]
 ANSWER_LOG_DAYS = 30  # how far back the per-answer detail is kept in build_stats()
 
 
@@ -61,7 +61,7 @@ def _flat(v) -> str:
 
 
 def record_answer(word: str, result, given=None, expected=None,
-                  prompt=None, direction=None) -> None:
+                  prompt=None, direction=None, time_spent=None) -> None:
     """
     Append one answered question to statistics.csv.
 
@@ -71,9 +71,11 @@ def record_answer(word: str, result, given=None, expected=None,
     :param expected: the accepted answer(s) for the question.
     :param prompt: the text the child was shown.
     :param direction: "target" if the target word was wanted, else "source".
+    :param time_spent: seconds spent on the question, as a float.
 
-    The four detail columns were added after the first release, so rows written
-    by an older build only have the first three; readers must tolerate both.
+    The four detail columns were added after the first release, and time_spent
+    after that, so rows written by an older build only have the first three
+    (or first seven); readers must tolerate all three shapes.
     Written through csv so a comma inside a word or an answer cannot shift the
     columns. Never raises — a stats logging failure must not break the quiz.
     """
@@ -86,7 +88,8 @@ def record_answer(word: str, result, given=None, expected=None,
                 w.writerow(LOG_HEADER)
             w.writerow([datetime.now().isoformat(timespec="seconds"), word, res,
                         _flat(given), _flat(expected), _flat(prompt),
-                        _flat(direction)])
+                        _flat(direction),
+                        f"{time_spent:.2f}" if isinstance(time_spent, (int, float)) else ""])
     except Exception:
         pass
 
@@ -129,6 +132,10 @@ def read_log_rows() -> list:
                 if d is None:
                     continue
                 col = lambda i: parts[i].strip() if len(parts) > i else ""
+                try:
+                    time_spent = float(col(7)) if col(7) != "" else None
+                except ValueError:
+                    time_spent = None
                 rows.append({
                     "date": d,
                     "time": parts[0][11:16],
@@ -138,6 +145,7 @@ def read_log_rows() -> list:
                     "expected": col(4),
                     "prompt": col(5),
                     "direction": col(6),
+                    "time_spent": time_spent,
                 })
     except Exception:
         pass

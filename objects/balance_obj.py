@@ -87,7 +87,60 @@ class User:
  
     def get_balance(self) -> int:
         return self.balance.get_balance()
- 
+
+    def get_total_time_spent_today(self, target_date: str | None = None) -> float:
+        """
+        Total seconds spent answering questions on `target_date` (an ISO
+        date string, e.g. date.today().isoformat()), summed from the
+        per-answer time_spent logged in statistics.csv. Defaults to today.
+
+        Rows written before the time_spent column existed (or where it
+        failed to log) are skipped rather than counted as zero, so they
+        don't understate an otherwise-real total. Never raises -- a
+        missing/unreadable log just reads as 0.0.
+        """
+        if target_date is None:
+            target_date = date.today().isoformat()
+
+        try:
+            from stats_menu import read_log_rows
+            return sum(
+                row["time_spent"]
+                for row in read_log_rows()
+                if row["date"].isoformat() == target_date and row["time_spent"] is not None
+            )
+        except Exception:
+            return 0.0
+
+    def aprox_time_taken(self, window_start_date: str, window_end_date: str) -> float:
+        """
+        Approximate average seconds spent per answered question between
+        window_start_date and window_end_date (inclusive ISO date strings,
+        either order). This is a mean over logged time_spent values, not a
+        per-question figure -- rows with no time_spent (pre-upgrade or a
+        failed log write) are skipped rather than counted as zero, since
+        that would drag the average down for a reason unrelated to how long
+        the question actually took.
+
+        :return: average seconds per question, or 0.0 if nothing usable was
+                 logged in that window. Never raises.
+        """
+        try:
+            start = date.fromisoformat(window_start_date)
+            end = date.fromisoformat(window_end_date)
+            if start > end:
+                start, end = end, start
+
+            from stats_menu import read_log_rows
+            times = [
+                row["time_spent"]
+                for row in read_log_rows()
+                if row["time_spent"] is not None and start <= row["date"] <= end
+            ]
+            return sum(times) / len(times) if times else 0.0
+        except Exception:
+            return 0.0
+
     def cost_for_minutes(self, requested_minutes: int, target_date: str | None = None) -> int:
         """
         Calculate the cost of redeeming `requested_minutes` of screentime

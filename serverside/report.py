@@ -164,6 +164,15 @@ def _num(v):
         return 0
 
 
+def _minutes(seconds) -> str:
+    """Seconds -> "12 dk" / "1 sa 5 dk" for the report's one-line summaries."""
+    total = int(_num(seconds))
+    hours, minutes = divmod(total // 60, 60)
+    if hours:
+        return f"{hours} sa {minutes} dk" if minutes else f"{hours} sa"
+    return f"{minutes} dk"
+
+
 def _today_answers(stats: dict):
     """(correct, wrong, blank) from the last day of daily_answers."""
     da = stats.get("daily_answers") or []
@@ -204,6 +213,15 @@ def build_report_text(records: list, dashboard_url: str) -> str:
             f"🪙 Bu hafta: +{_num(st.get('earned_week'))} kazanıldı / "
             f"−{_num(st.get('spent_week'))} harcandı",
         ]
+        # Time spent answering — only a client that logs durations sends these,
+        # so an older snapshot simply leaves the line out.
+        if _num(st.get("timed_count")):
+            study = [f"⏱ Bugün çalışma: {_minutes(st.get('time_today'))}"]
+            if _num(st.get("daily_time_limit")):
+                study.append(f"kalan {_minutes(st.get('time_remaining'))} / "
+                             f"{_minutes(st.get('daily_time_limit'))} sınır")
+            study.append(f"ort. {_num(st.get('time_avg'))} sn/soru")
+            block.append("  ·  ".join(study))
         hardest = st.get("hardest") or []
         if hardest:
             hw = ", ".join(f"{_esc(h.get('word'))} (%{_num(h.get('rate'))})"

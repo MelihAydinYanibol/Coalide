@@ -194,7 +194,13 @@ def api_answer():
     is_target_wanted = pending["is_target_wanted"]
     result = engine.grade_answer(word, is_target_wanted, answer, time_taken)
     engine.save_word_progress(user, word)
-    stats.record_answer(user, word.target, result["is_correct"])  # per-user answer log
+    # per-user answer log — with how long the question took and which way
+    # round it was asked, so the İstatistikler screen can chart both
+    stats.record_answer(user, word.target, result["is_correct"],
+                        # a client that sends no duration logs none, rather
+                        # than an implausible "answered in 0.00 seconds"
+                        time_spent=time_taken if time_taken > 0 else None,
+                        direction="target" if is_target_wanted else "source")
 
     # Credits for a correct answer (respects the earning window).
     credit_info = {"awarded": 0, "balance": credits.load_user(user)["balance"], "in_window": True}

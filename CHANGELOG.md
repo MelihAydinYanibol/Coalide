@@ -5,6 +5,36 @@ All notable changes to **Coalide** are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+Statistics release: the durations logged in 2.3.3 and the question direction
+logged in 2.3.0 finally have somewhere to be read.
+
+### Added
+- **Süre & Hız tab** — new in all three statistics views (the terminal
+  İstatistikler screen, the parent web dashboard and the web app's own
+  dashboard): daily study time against `DAILY_COALIDE_TIME_LIMIT` (a budget
+  ring on the dashboard), study time per day over a chosen window, average
+  answer time, an answer-speed histogram (0-3 / 3-6 / 6-10 / 10-20 / 20-30 /
+  30+ sn) with mean, median and extremes, average time per result
+  (doğru/yanlış/boş), the slowest and fastest words, time-of-day activity with
+  the busiest hour, a question-direction comparison (which way round is harder,
+  with its own success rate and average time), and two efficiency figures —
+  answers per minute and credits earned per minute.
+- **Daily report line** — the parent's Telegram/ntfy report now carries the
+  day's study time, what is left of the daily limit and the average seconds
+  per question.
+- **Durations and direction in the web app's answer log** — `<user>_stats.csv`
+  gained `time_spent` and `direction` columns (the quiz already measured the
+  time, it just wasn't kept) and is now written and read through the `csv`
+  module, so a comma in a word cannot shift the columns.
+
+### Notes
+- Answers logged before durations existed carry none, and are left out of every
+  time figure rather than counted as zero seconds — a pre-upgrade log cannot
+  understate a total or drag an average down. A dashboard fed by an older
+  client says so instead of drawing empty charts.
+
 ## [2.3.3] - 2026-09-13
 
 Daily time-budget release: a parent can now cap how long the child spends

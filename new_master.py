@@ -197,26 +197,39 @@ def quest(user, current_question: Question = None):
         # Starting timer and asking for the answer
         start_time = time.time()
 
-        if get_config()["INPUT_TIMEOUT"] > 0:
+        if get_config()["DAILY_COALIDE_TIME_LIMIT"] > 0:
+                    # Calculating total time spent answering questions today
+                    today = date.today().isoformat()
+                    total_time_spent_today = user.get_total_time_spent_today(today)
+                    if get_config()["DAILY_COALIDE_TIME_LIMIT"] <= total_time_spent_today:
+                        print(Fore.LIGHTRED_EX + f"⚠ Günlük süre sınırına ulaştınız! Lütfen yarın tekrar deneyin." + Style.RESET_ALL)
+                        input("Ana menüye dönmek için Enter'a basın...")
+                        break
+
+        if get_config()["DAILY_COALIDE_TIME_LIMIT"] > 0:
+            time_limit = get_config()["DAILY_COALIDE_TIME_LIMIT"] - total_time_spent_today
+        else:time_limit = None
+
+        if get_config()["INPUT_TIMEOUT"] > 0 or time_limit is not None:
+            if time_limit is None: effective_timeout = get_config()["INPUT_TIMEOUT"]
+            elif get_config()["INPUT_TIMEOUT"] <= 0: effective_timeout = time_limit
+            else: effective_timeout = min(get_config()["INPUT_TIMEOUT"], time_limit)
             from inputimeout import inputimeout, TimeoutOccurred
             try:
-                answer = inputimeout(prompt="> ", timeout=get_config()["INPUT_TIMEOUT"])
+                answer = inputimeout(prompt="> ", timeout=effective_timeout)
             except TimeoutOccurred:
-                print(Fore.LIGHTRED_EX + f"⚠ Süre doldu! Lütfen daha hızlı cevap verin." + Style.RESET_ALL)
-                answer = ""
-                stat = None
-                time_taken = get_config()["INPUT_TIMEOUT"]
-        elif get_config()["DAILY_COALIDE_TIME_LIMIT"] > 0:
-            # Calculating total time spent answering questions today
-            today = date.today().isoformat()
-            total_time_spent_today = user.get_total_time_spent_today(today)
-            if get_config()["DAILY_COALIDE_TIME_LIMIT"] <= total_time_spent_today:
-                print(Fore.LIGHTRED_EX + f"⚠ Günlük süre sınırına ulaştınız! Lütfen yarın tekrar deneyin." + Style.RESET_ALL)
-                input("Ana menüye dönmek için Enter'a basın...")
-                break
-
+                if effective_timeout != time_limit:
+                    print(Fore.LIGHTRED_EX + f"⚠ Süre doldu! Lütfen daha hızlı cevap verin." + Style.RESET_ALL)
+                    answer = ""
+                    stat = None
+                else:
+                    print(Fore.LIGHTRED_EX + f"⚠ Günlük süre sınırına ulaştınız! Lütfen yarın tekrar deneyin." + Style.RESET_ALL)
+                    input("Ana menüye dönmek için Enter'a basın...")
+                    break
         else:
             answer = input("> ")
+
+        
         
         end_time = time.time()
 

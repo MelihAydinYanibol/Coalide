@@ -53,6 +53,19 @@ reads them.
   ends (as the terminal app's has been since 2.3.0), so a comma inside a word
   can no longer shift the columns.
 
+### Fixed
+- **Config keys with no description in the parent web admin.** The panel's
+  description table had drifted from the terminal admin's in both directions:
+  the web admin was missing `DAILY_COALIDE_TIME_LIMIT` (added in 2.3.3),
+  `Sound_Effects` and `Minimum_Volume` (2.3.0), and the terminal admin was
+  missing `SHUFFLE_NEW_WORDS`, `REQUIRE_INTERNET`, `STATS_REPORTING_ENABLED`,
+  `STATS_SERVER_URL` and `CONFIG_SYNC_ENABLED`. Every key in the default config
+  is now described on both.
+- The web admin's config editor can only list the keys the child has actually
+  pushed, so a key added by a newer Coalide is simply absent until the child
+  syncs. It now says so under the heading, and the revision line warns when the
+  child's device hasn't synced for three days or more.
+
 ### Notes
 - Answers logged before durations existed carry none, and are left out of every
   time figure rather than counted as zero seconds — a pre-upgrade log cannot

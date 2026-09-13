@@ -129,7 +129,9 @@
     <section class="page active" data-page="coalide">
       <div class="panel" id="cfg-panel">
         <h3>⚙️ Coalide Ayarları (config.json)</h3>
-        <div class="desc">Değişiklikler sunucuda saklanır ve çocuğun cihazı menüyü bir sonraki açtığında uygulanır.</div>
+        <div class="desc">Değişiklikler sunucuda saklanır ve çocuğun cihazı menüyü bir sonraki açtığında uygulanır.
+          Aşağıdaki liste çocuğun en son eşitlediği <code>config.json</code>'dır: yeni bir Coalide sürümüyle eklenen
+          ayarlar, çocuğun uygulaması bir kez menü açıp eşitlendikten sonra burada görünür.</div>
         <div id="cfg-body"><div class="empty">Yükleniyor…</div></div>
         <div class="toolbar" style="margin-top:16px;margin-bottom:0">
           <span class="count" id="cfg-rev"></span><div class="spacer"></div>
@@ -299,7 +301,7 @@ async function loadConfig(){
   try{
     const d=await api('/api/admin/coalide-config');
     if(!d.synced){ body.innerHTML='<div class="empty">Çocuğun cihazı henüz eşitlenmedi — ayarlar uygulamada menü açılınca görünür.</div>'; $('cfg-rev').textContent=''; return; }
-    CONFIG_ORIG=d.config||{}; $('cfg-rev').textContent='Sürüm '+d.rev+(d.updated_at?' · '+new Date(d.updated_at).toLocaleString('tr-TR'):'');
+    CONFIG_ORIG=d.config||{}; setCfgRev(d.rev,d.updated_at);
     body.innerHTML='';
     for(const [key,val] of Object.entries(CONFIG_ORIG)){
       const row=document.createElement('div'); row.className='cfg-row';
@@ -310,6 +312,23 @@ async function loadConfig(){
       row.appendChild(left); row.appendChild(right); body.appendChild(row);
     }
   }catch(e){ body.innerHTML='<div class="empty">Yüklenemedi: '+esc(e.message)+'</div>'; }
+}
+// The editor can only list keys the child has actually pushed, so a config that
+// hasn't synced in a while silently lacks any key a newer Coalide added. Say how
+// stale the snapshot is instead of leaving the parent to wonder.
+function setCfgRev(rev,updatedAt){
+  const el=$('cfg-rev'); el.replaceChildren();
+  const when=updatedAt?new Date(updatedAt):null;
+  const t=document.createElement('span');
+  t.textContent='Sürüm '+rev+(when?' · '+when.toLocaleString('tr-TR'):'');
+  el.appendChild(t);
+  if(!when)return;
+  const days=Math.floor((Date.now()-when.getTime())/86400000);
+  if(days<3)return;
+  const warn=document.createElement('span');
+  warn.style.color='var(--yellow)';
+  warn.textContent=' · çocuğun cihazı '+days+' gündür eşitlenmedi';
+  el.appendChild(warn);
 }
 function cfgInput(key,val){
   if(typeof val==='boolean'){

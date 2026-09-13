@@ -24,7 +24,7 @@ The project ships **three surfaces**, all sharing the same `words.json` and the 
 
 The vocabulary database covers the full **Oxford 3000** — 3,012 words with example sentences, word types and multiple accepted Turkish meanings.
 
-> **Status:** `v2.3.3` — see [CHANGELOG.md](CHANGELOG.md) for the full history.
+> **Status:** `v2.3.4` — see [CHANGELOG.md](CHANGELOG.md) for the full history.
 
 ---
 
@@ -75,7 +75,7 @@ Press `F2` anywhere in the menu for the command palette: the same actions plus d
 - **Stats push** — every time the menu opens, a snapshot of `build_stats()` is pushed to the parental server on a background thread (`stats_reporter.py`). Silent on failure, and off entirely until `STATS_SERVER_URL` points at a real address.
 - **Config & word sync** — the same menu-open hook pushes `config.json` / `words.json` plus a hash of `ADMIN_PASSWORD`, then pulls back any parent edits and applies them locally, pruning progress for deleted words (`config_sync.py`). Revision-tracked, so each change applies exactly once.
 - **Remote progress resets** — a reset queued from the web admin is applied on the child's device at the next sync, after backing up `progress.json`.
-- **Daily report** — the server can send a once-a-day summary over Telegram, ntfy.sh, or both.
+- **Daily report** — the server can send a once-a-day summary over Telegram, ntfy.sh, or both, including the day's study time and what is left of the daily time limit.
 
 ### Platform
 - **Multiple users** — a username is captured once and remembered; each user keeps separate progress and credits. Input is sanitized (whole ANSI sequences stripped) so terminal mouse escapes can't corrupt the saved name.
@@ -357,7 +357,7 @@ Words live in `words.json` as static definitions; all learning state lives separ
 
 ## 🌐 Web App (`webapp/`)
 
-A Flask port of the trainer that runs in a browser, reusing the same `words.json` and SM-2 core. It keeps per-user progress under `webapp/data/`, pronounces words through the browser's Web Speech API (no TTS keys needed), ships the full İstatistikler dashboard, and has its own parent admin panel with per-user config overlays.
+A Flask port of the trainer that runs in a browser, reusing the same `words.json` and SM-2 core. It keeps per-user progress under `webapp/data/`, pronounces words through the browser's Web Speech API (no TTS keys needed), ships the full İstatistikler dashboard (including the Süre & Hız tab, since it logs each answer's duration and direction too), and has its own parent admin panel with per-user config overlays.
 
 ```bash
 cd webapp
@@ -373,7 +373,7 @@ Full details — config layering, the admin panel, importing a terminal user, pr
 
 ## 🖥️ Parental Server (`serverside/`)
 
-An optional, **zero-dependency** server the parent runs on their own machine. The child's app pushes a stats snapshot and its config on every menu open; the server renders a live dashboard, sends a daily report over Telegram and/or ntfy.sh, and offers a password-gated web admin for editing config, words and queuing progress resets remotely.
+An optional, **zero-dependency** server the parent runs on their own machine. The child's app pushes a stats snapshot and its config on every menu open; the server renders a live dashboard (six tabs, each chart with its own time window and a table view: progress, credits, daily activity, study time and answer speed, words, review forecast), sends a daily report over Telegram and/or ntfy.sh, and offers a password-gated web admin for editing config, words and queuing progress resets remotely.
 
 ```bash
 cd serverside
@@ -466,4 +466,4 @@ Licensed under the **GNU General Public License v3.0** — see [LICENSE](LICENSE
 
 ---
 
-**Last Updated:** September 2026 · **Version:** v2.3.3
+**Last Updated:** September 2026 · **Version:** v2.3.4

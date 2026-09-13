@@ -17,7 +17,7 @@ the same information as the in-app **İstatistikler** screen.
 | File | Purpose |
 | --- | --- |
 | `server.py` | HTTP server: stats API, sync API, admin API + serves the pages |
-| `dashboard.html` | The web dashboard (single self-contained page) |
+| `dashboard.html` | The web dashboard (single self-contained page), six tabs: Genel Bakış, Krediler, Haftalık & Günlük, Süre & Hız, Kelimeler, Gelecek & SM-2 |
 | `admin.html` | The web admin panel (config + words + server settings) |
 | `report.py` | Daily report over Telegram / ntfy.sh (summary text + dashboard link) |
 | `admin_api.py` | Admin auth + config/words sync backend |
@@ -42,6 +42,11 @@ Then open the dashboard in a browser:
 ```
 http://<parent-server-ip>:5055/
 ```
+
+The **⏱ Süre & Hız** tab is built from the per-answer durations the child's app
+started logging in 2.3.3 and from the question direction it has logged since
+2.3.0. A client older than those simply doesn't send the figures, and the tab
+says so instead of drawing empty charts.
 
 ## Pointing the child's app at it
 

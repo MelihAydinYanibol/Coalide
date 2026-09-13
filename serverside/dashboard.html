@@ -333,6 +333,7 @@
     <section class="page" data-page="genel"></section>
     <section class="page" data-page="kredi"></section>
     <section class="page" data-page="hafta"></section>
+    <section class="page" data-page="sure"></section>
     <section class="page" data-page="kelime"></section>
     <section class="page" data-page="gelecek"></section>
   </div>
@@ -982,6 +983,9 @@ function pageGenel(st) {
     { label: "Tekrar bekleyen", value: st.due_now, color: C.red },
     { label: "Seri", value: st.streak, unit: "gün", color: C.purple },
     { label: "Kredi", value: st.balance, color: C.yellow },
+    // Older clients don't report durations at all — leave the tile out rather
+    // than showing a zero that looks like "didn't study today".
+    ...(st.time_today == null ? [] : [{ label: "Bugün çalışma", value: toMin(st.time_today), unit: "dk", color: C.blue }]),
   ]));
   root.appendChild(gcol(6, kpiCard));
 
@@ -1484,6 +1488,237 @@ function pageKelime(st) {
   return root;
 }
 
+// =====================================================================
+//  SÜRE & HIZ — from statistics.csv's time_spent (client 2.3.3+) and the
+//  direction column (2.3.0+). A client that predates them simply omits the
+//  keys, so every widget here checks before it draws.
+// =====================================================================
+const toMin = secs => Math.round(num(secs) / 60);
+function fmtDur(secs) {
+  const total = Math.max(0, Math.round(num(secs)));
+  const h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60), s2 = total % 60;
+  if (h) return m ? `${h} sa ${m} dk` : `${h} sa`;
+  if (m) return s2 ? `${m} dk ${s2} sn` : `${m} dk`;
+  return `${s2} sn`;
+}
+const secFmt = v => fmtNum(v) + " sn";
+// Share of the daily budget used: green while there is room, red at the end.
+function budgetColor(pct) { return pct < 70 ? C.green : pct < 90 ? C.yellow : C.red; }
+
+function timeBudgetCard(st) {
+  const limit = num(st.daily_time_limit);
+  const c = card("Günlük Süre Bütçesi", limit ? `sınır ${fmtDur(limit)}` : "sınır kapalı");
+  const used = num(st.limit_used_pct);
+  const wrap = el("div", "ringwrap");
+  if (limit > 0) {
+    const rw = el("div", "ring");
+    rw.appendChild(progressRing({ value: used, color: budgetColor(used), label: "kullanıldı" }));
+    wrap.appendChild(rw);
+  }
+  const meta = el("div", "meta");
+  meta.appendChild(kpiRow([
+    { label: "Bugün", value: toMin(st.time_today), unit: "dk", color: C.purple },
+    { label: limit ? "Kalan" : "Günlük sınır", value: limit ? toMin(st.time_remaining) : 0, unit: "dk", color: limit ? budgetColor(used) : C.muted },
+  ], "pair"));
+  meta.appendChild(txt("p", "note", limit
+    ? `Bugün ${fmtDur(st.time_today)} soru cevaplandı, günlük ${fmtDur(limit)} bütçenin %${Math.round(used)}'i. `
+      + `Bütçe dolduğunda quiz ana menüye döner.`
+    : "Günlük süre sınırı kapalı (DAILY_COALIDE_TIME_LIMIT = 0). "
+      + `Bugün soru başında geçen süre: ${fmtDur(st.time_today)}.`));
+  wrap.appendChild(meta);
+  c._body.appendChild(wrap);
+  return c;
+}
+
+function pageSure(st) {
+  const root = el("div", "grid");
+  const hasTime = num(st.timed_count) > 0;
+
+  if (st.timed_count == null) {
+    const iCard = card("Süre Kaydı", "");
+    iCard._body.appendChild(el("div", "empty",
+      "Bu kayıtta süre bilgisi yok. Çocuğun Coalide uygulaması güncellendikten sonra, "
+      + "sonraki sorulardan itibaren burada görünecek."));
+    root.appendChild(gcol(12, iCard));
+  } else {
+    root.appendChild(gcol(5, timeBudgetCard(st)));
+
+    const sCard = card("Hız Özeti", hasTime ? `${fmtNum(st.timed_count)} cevabın süresi kayıtlı` : "");
+    sCard._body.appendChild(kpiRow([
+      // kpiRow formats the raw value itself — pass numbers, not pre-formatted text.
+      { label: "Ortalama cevap", value: num(st.time_avg), unit: "sn", color: C.green },
+      { label: "Ortanca", value: num(st.time_median), unit: "sn", color: C.blue },
+      { label: "Son 7 gün ort.", value: num(st.time_avg_7), unit: "sn", color: C.purple },
+      { label: "Bu hafta", value: toMin(st.time_week), unit: "dk", color: C.purple },
+      { label: "Toplam", value: +(num(st.time_total) / 3600).toFixed(1), unit: "saat", color: C.yellow },
+      { label: "Cevap / dk", value: num(st.answers_per_minute), color: C.green },
+      { label: "Kredi / dk", value: num(st.credits_per_minute), color: C.yellow },
+      { label: "En hızlı", value: num(st.time_fastest), unit: "sn", color: C.green },
+      { label: "En yavaş", value: num(st.time_slowest), unit: "sn", color: C.red },
+    ]));
+    if (!hasTime) sCard._body.appendChild(txt("p", "note", "Henüz süresi kayıtlı cevap yok — quiz çözüldükçe dolacak."));
+    root.appendChild(gcol(7, sCard));
+  }
+
+  // Çalışma Süresi — minutes per day over the chosen window.
+  const sb = st.seconds_by_date;
+  if (sb && typeof sb === "object") {
+    const sDates = sortedKeys(sb);
+    const wCard = windowedCard("Çalışma Süresi", null, st.today, sDates, "30", (lo, hi) => {
+      const days = rangeDays(lo, hi, st.today, sDates[0]);
+      const labels = days.map(dLabel);
+      const vals = days.map(d => +(num(sb[d]) / 60).toFixed(1));
+      const total = days.reduce((a, d) => a + num(sb[d]), 0);
+      const active = days.filter(d => num(sb[d]) > 0).length;
+      return {
+        build: (w, h) => lineChart({ width: w, avail: h, labels, series: [{ name: "Dakika", color: C.blue, values: vals }], area: true }),
+        table: { columns: ["Gün", "Dakika"], rows: seriesRows(labels, [{ values: vals }]) },
+        note: `Bu aralıkta toplam ${fmtDur(total)}` + (active ? ` · çalışılan ${active} günde ortalama ${fmtDur(total / active)}` : ""),
+      };
+    });
+    root.appendChild(gcol(7, wCard));
+  }
+
+  // Ortalama Cevap Süresi — seconds per answer, per day.
+  const tb = st.timed_by_date;
+  if (sb && tb) {
+    const aDates = sortedKeys(sb);
+    const aCard = windowedCard("Ortalama Cevap Süresi", null, st.today, aDates, "30", (lo, hi) => {
+      const days = rangeDays(lo, hi, st.today, aDates[0]);
+      const labels = days.map(dLabel);
+      const vals = days.map(d => { const n = num(tb[d]); return n ? +(num(sb[d]) / n).toFixed(1) : 0; });
+      const secs = days.reduce((a, d) => a + num(sb[d]), 0), cnt = days.reduce((a, d) => a + num(tb[d]), 0);
+      return {
+        build: (w, h) => lineChart({ width: w, avail: h, labels, series: [{ name: "Saniye", color: C.green, values: vals }], area: true, valueFmt: secFmt }),
+        table: { columns: ["Gün", "Ortalama (sn)"], rows: seriesRows(labels, [{ values: vals }]) },
+        note: cnt ? `Bu aralıkta ${fmtNum(cnt)} cevap, ortalama ${(secs / cnt).toFixed(1)} sn.` : "Bu aralıkta süresi kayıtlı cevap yok.",
+      };
+    });
+    root.appendChild(gcol(5, aCard));
+  }
+
+  // Cevap Hızı Dağılımı — how long the answers took, bucketed.
+  const sp = st.speed_buckets;
+  if (Array.isArray(sp) && sp.length) {
+    const labels = sp.map(r => r[0]), vals = sp.map(r => num(r[1]));
+    const hCard = card("Cevap Hızı Dağılımı", "kaç cevap ne kadar sürdü");
+    plot(hCard, (w, h) => columnChart({ width: w, avail: h, labels, series: [{ name: "Cevap", color: C.purple, values: vals }] }),
+         { columns: ["Süre", "Cevap"], rows: seriesRows(labels, [{ values: vals }]) });
+    if (hasTime) {
+      hCard._body.appendChild(txt("p", "note",
+        `Ortalama ${fmtNum(st.time_avg)} sn · ortanca ${fmtNum(st.time_median)} sn · `
+        + `en hızlı ${fmtNum(st.time_fastest)} sn · en yavaş ${fmtNum(st.time_slowest)} sn.`));
+    }
+    root.appendChild(gcol(6, hCard));
+  }
+
+  // Sonuca Göre Süre — does a wrong answer take longer than a right one?
+  const br = st.time_by_result;
+  if (br && typeof br === "object") {
+    const order = [["correct", "Doğru", C.green, "✓"], ["wrong", "Yanlış", C.red, "✗"], ["blank", "Boş", C.yellow, "∅"]];
+    const labels = order.map(o => `${o[3]} ${o[1]}`);
+    const vals = order.map(o => +num((br[o[0]] || {}).avg).toFixed(1));
+    const rCard = card("Sonuca Göre Süre", "cevap başına ortalama");
+    plot(rCard, (w, h) => columnChart({
+      width: w, avail: h, labels,
+      series: [{ name: "Ortalama", color: C.purple, values: vals }],
+      colorsPerBar: order.map(o => o[2]), valueFmt: secFmt,
+    }), {
+      columns: ["Sonuç", "Ortalama (sn)", "Cevap", "Toplam süre"],
+      rows: order.map((o, i) => [labels[i], fmtNum(vals[i]), fmtNum(num((br[o[0]] || {}).count)), fmtDur(num((br[o[0]] || {}).total))]),
+    });
+    rCard._body.appendChild(txt("p", "note",
+      "Yanlış ve boş cevapların doğrulardan uzun sürmesi, sorunun gerçekten zorlandığını gösterir."));
+    root.appendChild(gcol(6, rCard));
+  }
+
+  // En yavaş / en hızlı kelimeler.
+  const wordSpeedCard = (title, sub, rows, color) => {
+    const c = card(title, sub);
+    if (rows && rows.length) {
+      const max = Math.max(...rows.map(e => num(e.avg)), 1);
+      for (const e of rows) {
+        const row = el("div", "hrow");
+        row.appendChild(txt("div", "w", e.word));
+        row.appendChild(txt("div", "pct", fmtNum(e.avg))).style.color = color;
+        row.appendChild(txt("div", "cnt", `${fmtNum(e.count)} cevap`));
+        const track = el("div", "track"), fill = el("div", "fill");
+        fill.style.width = Math.max(3, num(e.avg) / max * 100) + "%"; fill.style.background = color;
+        track.appendChild(fill); row.appendChild(track);
+        c._body.appendChild(row);
+      }
+    } else { c._body.appendChild(el("div", "empty", "Henüz veri yok.")); }
+    return c;
+  };
+  if (Array.isArray(st.slowest_words)) {
+    const minN = num(st.min_timed_answers) || 2;
+    const wsSub = `en az ${minN} cevaplı kelimeler · cevap başına saniye`;
+    root.appendChild(gcol(6, wordSpeedCard("En Yavaş Kelimeler", wsSub, st.slowest_words, C.red)));
+    root.appendChild(gcol(6, wordSpeedCard("En Hızlı Kelimeler", wsSub, st.fastest_words, C.green)));
+  }
+
+  // Günün Saatine Göre Aktivite — when in the day the studying happens.
+  const hr = st.hourly;
+  if (Array.isArray(hr) && hr.length) {
+    const labels = hr.map(r => String(num(r[0])).padStart(2, "0"));
+    const totals = hr.map(r => num(r[1]) + num(r[2]) + num(r[3]));
+    const hourCard = card("Günün Saatine Göre Aktivite", "tüm zamanlar · cevap sayısı");
+    const emph = [];
+    if (st.busiest_hour != null) emph.push({ index: num(st.busiest_hour), label: fmtNum(totals[num(st.busiest_hour)]) + " cevap" });
+    plot(hourCard, (w, h) => columnChart({
+      width: w, avail: h, labels,
+      series: [{ name: "Cevap", color: C.blue, values: totals }],
+      colorsPerBar: totals.map((_, i) => i === num(st.busiest_hour) ? C.yellow : C.blue),
+      emphasis: emph,
+    }), {
+      columns: ["Saat", "Cevap", "✓ Doğru", "✗ Yanlış", "∅ Boş"],
+      rows: hr.map((r, i) => [`${labels[i]}:00`, fmtNum(totals[i]), fmtNum(num(r[1])), fmtNum(num(r[2])), fmtNum(num(r[3]))]),
+    });
+    if (st.busiest_hour != null) {
+      const bh = num(st.busiest_hour), row = hr[bh] || [], tot = totals[bh] || 0;
+      const rate = tot ? num(row[1]) / tot * 100 : 0;
+      hourCard._body.appendChild(txt("p", "note",
+        `En yoğun saat ${String(bh).padStart(2, "0")}:00–${String(bh + 1).padStart(2, "0")}:00 — `
+        + `${fmtNum(tot)} cevap, başarı %${Math.round(rate)}.`));
+    }
+    root.appendChild(gcol(12, hourCard));
+  }
+
+  // Soru Yönü — which way round the question was asked.
+  const ds = st.direction_stats;
+  if (Array.isArray(ds) && ds.length) {
+    const dCard = card("Soru Yönü", "hangi yön daha zor geliyor");
+    const maxTotal = Math.max(1, ...ds.map(d => num(d.total)));
+    ds.forEach(d => {
+      const m = el("div", "meter");
+      const top = el("div", "top");
+      top.appendChild(txt("span", null, d.label));
+      const rate = num(d.rate);
+      const right = txt("span", "rate", num(d.total)
+        ? `%${Math.round(rate)} · ${fmtNum(d.total)} soru${num(d.avg_time) ? ` · ort. ${fmtNum(d.avg_time)} sn` : ""}`
+        : "kayıt yok");
+      right.style.color = num(d.total) ? rateColor(rate) : C.muted;
+      top.appendChild(right);
+      m.appendChild(top);
+      const track = el("div", "track"), fill = el("div", "fill");
+      fill.style.width = (num(d.total) / maxTotal * 100) + "%";
+      fill.style.background = num(d.total) ? rateColor(rate) : C.grid;
+      track.appendChild(fill); m.appendChild(track);
+      dCard._body.appendChild(m);
+    });
+    attachTable(dCard, ["Yön", "Soru", "✓ Doğru", "✗ Yanlış", "∅ Boş", "Başarı", "Ort. süre"],
+      ds.map(d => [d.label, fmtNum(d.total), fmtNum(d.correct), fmtNum(d.wrong), fmtNum(d.blank),
+                   "%" + Math.round(num(d.rate)), num(d.avg_time) ? fmtNum(d.avg_time) + " sn" : "—"]));
+    dCard._body.appendChild(txt("p", "note",
+      "Soru yönü her soruda rastgele seçilir, bu yüzden iki yönün soru sayısı benzer olur; "
+      + "başarı farkı hangi yönün daha zor geldiğini gösterir."));
+    root.appendChild(gcol(12, dCard));
+  }
+
+  if (!root.children.length) root.appendChild(gcol(12, card("Süre & Hız", "bu kayıtta süre verisi yok")));
+  return root;
+}
+
 function pageGelecek(st) {
   const root = el("div", "grid");
   const fc = st.forecast || [], fcLabels = fc.map(r => r[0]), fcVals = fc.map(r => r[1]);
@@ -1531,6 +1766,7 @@ const PAGES = {
   genel: ["📊 Genel Bakış", pageGenel],
   kredi: ["💰 Krediler", pageKredi],
   hafta: ["📅 Haftalık & Günlük", pageHafta],
+  sure: ["⏱ Süre & Hız", pageSure],
   kelime: ["🔤 Kelimeler", pageKelime],
   gelecek: ["🔮 Gelecek & SM-2", pageGelecek],
 };

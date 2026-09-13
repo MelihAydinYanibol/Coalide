@@ -1,0 +1,3460 @@
+{
+  "username": "eski",
+  "client_time": null,
+  "updated_at": "2026-09-13T19:51:56+00:00",
+  "stats": {
+    "today": "2026-09-13",
+    "total_words": 50,
+    "started_count": 20,
+    "mastered": 0,
+    "new_today": 2,
+    "due_now": 4,
+    "streak": 21,
+    "buckets": [
+      [
+        "Başlanmadı",
+        30,
+        "#9a9ac0"
+      ],
+      [
+        "Yeni  (≤1 gün)",
+        2,
+        "#ff6b81"
+      ],
+      [
+        "Öğreniliyor (2-6g)",
+        5,
+        "#f5c542"
+      ],
+      [
+        "Genç  (1-3 hafta)",
+        13,
+        "#7c5cff"
+      ],
+      [
+        "Olgun (3h - 2 ay)",
+        0,
+        "#42d6a4"
+      ],
+      [
+        "Usta  (2 ay +)",
+        0,
+        "#42d6a4"
+      ]
+    ],
+    "weekly_new": [
+      [
+        "20 Tem +",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "27 Tem +",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "3 Ağu +",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "10 Ağu +",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "17 Ağu +",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "24 Ağu +",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "31 Ağu +",
+        6,
+        "#42d6a4"
+      ],
+      [
+        "Bu hafta",
+        14,
+        "#42d6a4"
+      ]
+    ],
+    "daily_new": [
+      [
+        "31 Ağu",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "1 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "2 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "3 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "4 Eyl",
+        2,
+        "#7c5cff"
+      ],
+      [
+        "5 Eyl",
+        2,
+        "#7c5cff"
+      ],
+      [
+        "6 Eyl",
+        2,
+        "#7c5cff"
+      ],
+      [
+        "7 Eyl",
+        2,
+        "#7c5cff"
+      ],
+      [
+        "8 Eyl",
+        2,
+        "#7c5cff"
+      ],
+      [
+        "9 Eyl",
+        2,
+        "#7c5cff"
+      ],
+      [
+        "10 Eyl",
+        2,
+        "#7c5cff"
+      ],
+      [
+        "11 Eyl",
+        2,
+        "#7c5cff"
+      ],
+      [
+        "12 Eyl",
+        2,
+        "#7c5cff"
+      ],
+      [
+        "13 Eyl",
+        2,
+        "#7c5cff"
+      ]
+    ],
+    "daily_answers": [
+      [
+        "31 Ağu",
+        [
+          [
+            3,
+            "#42d6a4"
+          ],
+          [
+            2,
+            "#ff6b81"
+          ],
+          [
+            0,
+            "#f5c542"
+          ]
+        ]
+      ],
+      [
+        "1 Eyl",
+        [
+          [
+            2,
+            "#42d6a4"
+          ],
+          [
+            2,
+            "#ff6b81"
+          ],
+          [
+            1,
+            "#f5c542"
+          ]
+        ]
+      ],
+      [
+        "2 Eyl",
+        [
+          [
+            4,
+            "#42d6a4"
+          ],
+          [
+            2,
+            "#ff6b81"
+          ],
+          [
+            5,
+            "#f5c542"
+          ]
+        ]
+      ],
+      [
+        "3 Eyl",
+        [
+          [
+            4,
+            "#42d6a4"
+          ],
+          [
+            2,
+            "#ff6b81"
+          ],
+          [
+            2,
+            "#f5c542"
+          ]
+        ]
+      ],
+      [
+        "4 Eyl",
+        [
+          [
+            4,
+            "#42d6a4"
+          ],
+          [
+            3,
+            "#ff6b81"
+          ],
+          [
+            4,
+            "#f5c542"
+          ]
+        ]
+      ],
+      [
+        "5 Eyl",
+        [
+          [
+            11,
+            "#42d6a4"
+          ],
+          [
+            1,
+            "#ff6b81"
+          ],
+          [
+            1,
+            "#f5c542"
+          ]
+        ]
+      ],
+      [
+        "6 Eyl",
+        [
+          [
+            4,
+            "#42d6a4"
+          ],
+          [
+            1,
+            "#ff6b81"
+          ],
+          [
+            2,
+            "#f5c542"
+          ]
+        ]
+      ],
+      [
+        "7 Eyl",
+        [
+          [
+            1,
+            "#42d6a4"
+          ],
+          [
+            0,
+            "#ff6b81"
+          ],
+          [
+            3,
+            "#f5c542"
+          ]
+        ]
+      ],
+      [
+        "8 Eyl",
+        [
+          [
+            4,
+            "#42d6a4"
+          ],
+          [
+            4,
+            "#ff6b81"
+          ],
+          [
+            1,
+            "#f5c542"
+          ]
+        ]
+      ],
+      [
+        "9 Eyl",
+        [
+          [
+            6,
+            "#42d6a4"
+          ],
+          [
+            2,
+            "#ff6b81"
+          ],
+          [
+            1,
+            "#f5c542"
+          ]
+        ]
+      ],
+      [
+        "10 Eyl",
+        [
+          [
+            2,
+            "#42d6a4"
+          ],
+          [
+            4,
+            "#ff6b81"
+          ],
+          [
+            1,
+            "#f5c542"
+          ]
+        ]
+      ],
+      [
+        "11 Eyl",
+        [
+          [
+            5,
+            "#42d6a4"
+          ],
+          [
+            6,
+            "#ff6b81"
+          ],
+          [
+            1,
+            "#f5c542"
+          ]
+        ]
+      ],
+      [
+        "12 Eyl",
+        [
+          [
+            6,
+            "#42d6a4"
+          ],
+          [
+            0,
+            "#ff6b81"
+          ],
+          [
+            4,
+            "#f5c542"
+          ]
+        ]
+      ],
+      [
+        "13 Eyl",
+        [
+          [
+            7,
+            "#42d6a4"
+          ],
+          [
+            4,
+            "#ff6b81"
+          ],
+          [
+            2,
+            "#f5c542"
+          ]
+        ]
+      ]
+    ],
+    "spark_30": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      8,
+      12,
+      14,
+      13,
+      14,
+      8,
+      8,
+      5,
+      5,
+      11,
+      8,
+      11,
+      13,
+      7,
+      4,
+      9,
+      9,
+      7,
+      12,
+      10,
+      13
+    ],
+    "spark_new_30": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2,
+      2
+    ],
+    "log_totals": {
+      "correct": 103,
+      "blank": 48,
+      "wrong": 50
+    },
+    "log_total": 201,
+    "son10": {
+      "correct": 60,
+      "wrong": 20,
+      "blank": 0
+    },
+    "son10_total": 80,
+    "overall_rate": 51.243781094527364,
+    "best_day": [
+      "2026-08-28",
+      {
+        "correct": 9,
+        "wrong": 3,
+        "blank": 2
+      }
+    ],
+    "first_log": "2026-08-24",
+    "active_day_count": 21,
+    "forecast": [
+      [
+        "Gecikmiş",
+        0,
+        "#ff6b81"
+      ],
+      [
+        "Bugün",
+        4,
+        "#f5c542"
+      ],
+      [
+        "Yarın",
+        4,
+        "#7c5cff"
+      ],
+      [
+        "15 Eyl",
+        4,
+        "#7c5cff"
+      ],
+      [
+        "16 Eyl",
+        4,
+        "#7c5cff"
+      ],
+      [
+        "17 Eyl",
+        4,
+        "#7c5cff"
+      ],
+      [
+        "18 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "19 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "20 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "21 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "22 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "23 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "24 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "25 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "26 Eyl",
+        0,
+        "#9a9ac0"
+      ]
+    ],
+    "eases": [
+      2.4,
+      2.4,
+      2.4,
+      2.4,
+      2.4,
+      2.4,
+      2.4,
+      2.4,
+      2.4,
+      2.4,
+      2.4,
+      2.4,
+      2.4,
+      2.4,
+      2.4,
+      2.4,
+      2.4,
+      2.4,
+      2.4,
+      2.4
+    ],
+    "intervals": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ],
+    "longest": {
+      "word": "w19",
+      "rate": 150.0,
+      "total": 2,
+      "correct": 3,
+      "wrong": 1,
+      "blank": 0,
+      "repetitions": 2,
+      "ease": 2.4,
+      "interval": 19,
+      "first": "2026-09-04",
+      "last": "2026-09-13",
+      "next": "2026-09-17"
+    },
+    "hardest": [
+      {
+        "word": "w0",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 0,
+        "first": "2026-09-13",
+        "last": "2026-09-13",
+        "next": "2026-09-13"
+      },
+      {
+        "word": "w1",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 1,
+        "first": "2026-09-12",
+        "last": "2026-09-13",
+        "next": "2026-09-14"
+      },
+      {
+        "word": "w2",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 2,
+        "first": "2026-09-11",
+        "last": "2026-09-13",
+        "next": "2026-09-15"
+      },
+      {
+        "word": "w3",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 3,
+        "first": "2026-09-10",
+        "last": "2026-09-13",
+        "next": "2026-09-16"
+      },
+      {
+        "word": "w4",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 4,
+        "first": "2026-09-09",
+        "last": "2026-09-13",
+        "next": "2026-09-17"
+      }
+    ],
+    "table_rows": [
+      {
+        "word": "w0",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 0,
+        "first": "2026-09-13",
+        "last": "2026-09-13",
+        "next": "2026-09-13"
+      },
+      {
+        "word": "w1",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 1,
+        "first": "2026-09-12",
+        "last": "2026-09-13",
+        "next": "2026-09-14"
+      },
+      {
+        "word": "w2",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 2,
+        "first": "2026-09-11",
+        "last": "2026-09-13",
+        "next": "2026-09-15"
+      },
+      {
+        "word": "w3",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 3,
+        "first": "2026-09-10",
+        "last": "2026-09-13",
+        "next": "2026-09-16"
+      },
+      {
+        "word": "w4",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 4,
+        "first": "2026-09-09",
+        "last": "2026-09-13",
+        "next": "2026-09-17"
+      },
+      {
+        "word": "w5",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 5,
+        "first": "2026-09-08",
+        "last": "2026-09-13",
+        "next": "2026-09-13"
+      },
+      {
+        "word": "w6",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 6,
+        "first": "2026-09-07",
+        "last": "2026-09-13",
+        "next": "2026-09-14"
+      },
+      {
+        "word": "w7",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 7,
+        "first": "2026-09-06",
+        "last": "2026-09-13",
+        "next": "2026-09-15"
+      },
+      {
+        "word": "w8",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 8,
+        "first": "2026-09-05",
+        "last": "2026-09-13",
+        "next": "2026-09-16"
+      },
+      {
+        "word": "w9",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 9,
+        "first": "2026-09-04",
+        "last": "2026-09-13",
+        "next": "2026-09-17"
+      },
+      {
+        "word": "w10",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 10,
+        "first": "2026-09-13",
+        "last": "2026-09-13",
+        "next": "2026-09-13"
+      },
+      {
+        "word": "w11",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 11,
+        "first": "2026-09-12",
+        "last": "2026-09-13",
+        "next": "2026-09-14"
+      },
+      {
+        "word": "w12",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 12,
+        "first": "2026-09-11",
+        "last": "2026-09-13",
+        "next": "2026-09-15"
+      },
+      {
+        "word": "w13",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 13,
+        "first": "2026-09-10",
+        "last": "2026-09-13",
+        "next": "2026-09-16"
+      },
+      {
+        "word": "w14",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 14,
+        "first": "2026-09-09",
+        "last": "2026-09-13",
+        "next": "2026-09-17"
+      },
+      {
+        "word": "w15",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 15,
+        "first": "2026-09-08",
+        "last": "2026-09-13",
+        "next": "2026-09-13"
+      },
+      {
+        "word": "w16",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 16,
+        "first": "2026-09-07",
+        "last": "2026-09-13",
+        "next": "2026-09-14"
+      },
+      {
+        "word": "w17",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 17,
+        "first": "2026-09-06",
+        "last": "2026-09-13",
+        "next": "2026-09-15"
+      },
+      {
+        "word": "w18",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 18,
+        "first": "2026-09-05",
+        "last": "2026-09-13",
+        "next": "2026-09-16"
+      },
+      {
+        "word": "w19",
+        "rate": 150.0,
+        "total": 2,
+        "correct": 3,
+        "wrong": 1,
+        "blank": 0,
+        "repetitions": 2,
+        "ease": 2.4,
+        "interval": 19,
+        "first": "2026-09-04",
+        "last": "2026-09-13",
+        "next": "2026-09-17"
+      }
+    ],
+    "answers_by_date": {
+      "2026-08-24": [
+        3,
+        1,
+        4
+      ],
+      "2026-08-25": [
+        8,
+        0,
+        4
+      ],
+      "2026-08-26": [
+        9,
+        4,
+        1
+      ],
+      "2026-08-27": [
+        3,
+        4,
+        6
+      ],
+      "2026-08-28": [
+        9,
+        3,
+        2
+      ],
+      "2026-08-29": [
+        2,
+        3,
+        3
+      ],
+      "2026-08-30": [
+        6,
+        2,
+        0
+      ],
+      "2026-08-31": [
+        3,
+        2,
+        0
+      ],
+      "2026-09-01": [
+        2,
+        2,
+        1
+      ],
+      "2026-09-02": [
+        4,
+        2,
+        5
+      ],
+      "2026-09-03": [
+        4,
+        2,
+        2
+      ],
+      "2026-09-04": [
+        4,
+        3,
+        4
+      ],
+      "2026-09-05": [
+        11,
+        1,
+        1
+      ],
+      "2026-09-06": [
+        4,
+        1,
+        2
+      ],
+      "2026-09-07": [
+        1,
+        0,
+        3
+      ],
+      "2026-09-08": [
+        4,
+        4,
+        1
+      ],
+      "2026-09-09": [
+        6,
+        2,
+        1
+      ],
+      "2026-09-10": [
+        2,
+        4,
+        1
+      ],
+      "2026-09-11": [
+        5,
+        6,
+        1
+      ],
+      "2026-09-12": [
+        6,
+        0,
+        4
+      ],
+      "2026-09-13": [
+        7,
+        4,
+        2
+      ]
+    },
+    "new_by_date": {
+      "2026-09-13": 2,
+      "2026-09-12": 2,
+      "2026-09-11": 2,
+      "2026-09-10": 2,
+      "2026-09-09": 2,
+      "2026-09-08": 2,
+      "2026-09-07": 2,
+      "2026-09-06": 2,
+      "2026-09-05": 2,
+      "2026-09-04": 2
+    },
+    "earned_by_date": {
+      "2026-09-09": 42,
+      "2026-08-29": 14,
+      "2026-09-13": 49,
+      "2026-09-05": 77,
+      "2026-09-07": 7,
+      "2026-08-27": 21,
+      "2026-09-04": 28,
+      "2026-09-08": 28,
+      "2026-08-28": 63,
+      "2026-09-12": 42,
+      "2026-09-01": 14,
+      "2026-08-30": 42,
+      "2026-09-02": 28,
+      "2026-09-11": 35,
+      "2026-09-03": 28,
+      "2026-08-25": 56,
+      "2026-08-26": 63,
+      "2026-09-06": 28,
+      "2026-08-31": 21,
+      "2026-08-24": 21,
+      "2026-09-10": 14
+    },
+    "spent_by_date": {},
+    "minutes_by_date": {},
+    "answer_log": [
+      {
+        "date": "2026-09-09",
+        "time": "10:48",
+        "word": "w15",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-29",
+        "time": "09:48",
+        "word": "w3",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-13",
+        "time": "13:48",
+        "word": "w0",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-05",
+        "time": "08:48",
+        "word": "w3",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-13",
+        "time": "19:48",
+        "word": "w0",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-07",
+        "time": "13:48",
+        "word": "w14",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-27",
+        "time": "16:48",
+        "word": "w7",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-04",
+        "time": "19:48",
+        "word": "w17",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-08",
+        "time": "09:48",
+        "word": "w10",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-28",
+        "time": "09:48",
+        "word": "w18",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-28",
+        "time": "13:48",
+        "word": "w12",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-08",
+        "time": "14:48",
+        "word": "w16",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-08",
+        "time": "11:48",
+        "word": "w0",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-12",
+        "time": "15:48",
+        "word": "w5",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-13",
+        "time": "07:48",
+        "word": "w17",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-01",
+        "time": "11:48",
+        "word": "w18",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-30",
+        "time": "15:48",
+        "word": "w16",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-28",
+        "time": "07:48",
+        "word": "w1",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-02",
+        "time": "10:48",
+        "word": "w13",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-02",
+        "time": "13:48",
+        "word": "w17",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-30",
+        "time": "10:48",
+        "word": "w5",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-11",
+        "time": "07:48",
+        "word": "w2",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-13",
+        "time": "12:48",
+        "word": "w8",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-05",
+        "time": "18:48",
+        "word": "w2",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-08",
+        "time": "15:48",
+        "word": "w9",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-03",
+        "time": "12:48",
+        "word": "w9",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-03",
+        "time": "13:48",
+        "word": "w8",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-25",
+        "time": "13:48",
+        "word": "w12",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-12",
+        "time": "08:48",
+        "word": "w16",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-27",
+        "time": "16:48",
+        "word": "w0",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-26",
+        "time": "07:48",
+        "word": "w13",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-04",
+        "time": "17:48",
+        "word": "w9",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-11",
+        "time": "15:48",
+        "word": "w13",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-09",
+        "time": "19:48",
+        "word": "w6",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-08",
+        "time": "07:48",
+        "word": "w11",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-07",
+        "time": "10:48",
+        "word": "w15",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-01",
+        "time": "15:48",
+        "word": "w19",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-04",
+        "time": "19:48",
+        "word": "w10",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-03",
+        "time": "13:48",
+        "word": "w3",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-27",
+        "time": "14:48",
+        "word": "w17",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-11",
+        "time": "08:48",
+        "word": "w5",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-27",
+        "time": "16:48",
+        "word": "w19",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-02",
+        "time": "14:48",
+        "word": "w7",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-09",
+        "time": "10:48",
+        "word": "w13",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-01",
+        "time": "07:48",
+        "word": "w10",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-25",
+        "time": "10:48",
+        "word": "w17",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-26",
+        "time": "18:48",
+        "word": "w9",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-30",
+        "time": "15:48",
+        "word": "w9",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-25",
+        "time": "09:48",
+        "word": "w3",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-07",
+        "time": "16:48",
+        "word": "w14",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-06",
+        "time": "17:48",
+        "word": "w12",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-27",
+        "time": "15:48",
+        "word": "w6",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-12",
+        "time": "19:48",
+        "word": "w9",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-30",
+        "time": "13:48",
+        "word": "w2",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-25",
+        "time": "12:48",
+        "word": "w19",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-02",
+        "time": "15:48",
+        "word": "w9",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-06",
+        "time": "14:48",
+        "word": "w2",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-11",
+        "time": "09:48",
+        "word": "w12",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-12",
+        "time": "14:48",
+        "word": "w18",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-06",
+        "time": "14:48",
+        "word": "w18",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-06",
+        "time": "16:48",
+        "word": "w12",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-05",
+        "time": "11:48",
+        "word": "w0",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-04",
+        "time": "07:48",
+        "word": "w4",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-28",
+        "time": "07:48",
+        "word": "w5",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-09",
+        "time": "17:48",
+        "word": "w16",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-09",
+        "time": "16:48",
+        "word": "w1",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-25",
+        "time": "07:48",
+        "word": "w13",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-12",
+        "time": "08:48",
+        "word": "w2",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-31",
+        "time": "11:48",
+        "word": "w17",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-13",
+        "time": "13:48",
+        "word": "w15",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-24",
+        "time": "13:48",
+        "word": "w11",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-26",
+        "time": "17:48",
+        "word": "w8",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-26",
+        "time": "13:48",
+        "word": "w7",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-13",
+        "time": "17:48",
+        "word": "w14",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-06",
+        "time": "14:48",
+        "word": "w7",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-03",
+        "time": "11:48",
+        "word": "w7",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-11",
+        "time": "07:48",
+        "word": "w6",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-04",
+        "time": "08:48",
+        "word": "w11",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-30",
+        "time": "10:48",
+        "word": "w19",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-08",
+        "time": "17:48",
+        "word": "w18",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-29",
+        "time": "09:48",
+        "word": "w11",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-28",
+        "time": "17:48",
+        "word": "w2",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-24",
+        "time": "18:48",
+        "word": "w2",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-25",
+        "time": "09:48",
+        "word": "w7",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-31",
+        "time": "13:48",
+        "word": "w14",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-25",
+        "time": "12:48",
+        "word": "w19",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-10",
+        "time": "09:48",
+        "word": "w12",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-07",
+        "time": "11:48",
+        "word": "w0",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-05",
+        "time": "16:48",
+        "word": "w17",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-05",
+        "time": "15:48",
+        "word": "w14",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-27",
+        "time": "14:48",
+        "word": "w3",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-26",
+        "time": "13:48",
+        "word": "w3",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-10",
+        "time": "10:48",
+        "word": "w4",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-28",
+        "time": "14:48",
+        "word": "w11",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-13",
+        "time": "18:48",
+        "word": "w11",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-27",
+        "time": "13:48",
+        "word": "w18",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-10",
+        "time": "09:48",
+        "word": "w17",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-05",
+        "time": "09:48",
+        "word": "w14",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-04",
+        "time": "08:48",
+        "word": "w16",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-02",
+        "time": "11:48",
+        "word": "w18",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-01",
+        "time": "14:48",
+        "word": "w7",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-24",
+        "time": "19:48",
+        "word": "w4",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-05",
+        "time": "17:48",
+        "word": "w19",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-02",
+        "time": "15:48",
+        "word": "w17",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-09",
+        "time": "12:48",
+        "word": "w14",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-05",
+        "time": "11:48",
+        "word": "w13",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-02",
+        "time": "18:48",
+        "word": "w16",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-11",
+        "time": "13:48",
+        "word": "w6",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-06",
+        "time": "14:48",
+        "word": "w16",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-30",
+        "time": "11:48",
+        "word": "w17",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-02",
+        "time": "10:48",
+        "word": "w12",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-29",
+        "time": "07:48",
+        "word": "w10",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-05",
+        "time": "10:48",
+        "word": "w0",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-03",
+        "time": "13:48",
+        "word": "w6",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-24",
+        "time": "08:48",
+        "word": "w18",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-26",
+        "time": "08:48",
+        "word": "w8",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-28",
+        "time": "17:48",
+        "word": "w14",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-04",
+        "time": "07:48",
+        "word": "w6",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-11",
+        "time": "18:48",
+        "word": "w15",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-08",
+        "time": "19:48",
+        "word": "w0",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-12",
+        "time": "12:48",
+        "word": "w8",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-25",
+        "time": "08:48",
+        "word": "w12",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-29",
+        "time": "12:48",
+        "word": "w7",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-04",
+        "time": "12:48",
+        "word": "w8",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-29",
+        "time": "10:48",
+        "word": "w2",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-13",
+        "time": "07:48",
+        "word": "w10",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-26",
+        "time": "15:48",
+        "word": "w4",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-13",
+        "time": "13:48",
+        "word": "w17",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-26",
+        "time": "13:48",
+        "word": "w14",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-13",
+        "time": "19:48",
+        "word": "w4",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-05",
+        "time": "07:48",
+        "word": "w6",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-29",
+        "time": "09:48",
+        "word": "w6",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-01",
+        "time": "14:48",
+        "word": "w7",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-12",
+        "time": "10:48",
+        "word": "w19",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-02",
+        "time": "11:48",
+        "word": "w17",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-11",
+        "time": "08:48",
+        "word": "w2",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-08",
+        "time": "18:48",
+        "word": "w6",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-12",
+        "time": "19:48",
+        "word": "w16",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-28",
+        "time": "14:48",
+        "word": "w1",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-27",
+        "time": "19:48",
+        "word": "w12",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-13",
+        "time": "08:48",
+        "word": "w10",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-04",
+        "time": "19:48",
+        "word": "w8",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-09",
+        "time": "15:48",
+        "word": "w9",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-31",
+        "time": "16:48",
+        "word": "w10",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-26",
+        "time": "12:48",
+        "word": "w14",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-04",
+        "time": "08:48",
+        "word": "w12",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-10",
+        "time": "13:48",
+        "word": "w2",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-04",
+        "time": "07:48",
+        "word": "w10",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-05",
+        "time": "14:48",
+        "word": "w4",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-03",
+        "time": "07:48",
+        "word": "w14",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-29",
+        "time": "12:48",
+        "word": "w12",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-26",
+        "time": "07:48",
+        "word": "w16",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-26",
+        "time": "15:48",
+        "word": "w10",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-24",
+        "time": "14:48",
+        "word": "w19",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-27",
+        "time": "11:48",
+        "word": "w8",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-26",
+        "time": "17:48",
+        "word": "w13",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-10",
+        "time": "11:48",
+        "word": "w6",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-11",
+        "time": "09:48",
+        "word": "w6",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-28",
+        "time": "13:48",
+        "word": "w15",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-06",
+        "time": "16:48",
+        "word": "w7",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-30",
+        "time": "09:48",
+        "word": "w6",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-11",
+        "time": "15:48",
+        "word": "w17",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-28",
+        "time": "12:48",
+        "word": "w16",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-12",
+        "time": "14:48",
+        "word": "w9",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-27",
+        "time": "18:48",
+        "word": "w10",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-28",
+        "time": "13:48",
+        "word": "w18",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-30",
+        "time": "15:48",
+        "word": "w18",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-27",
+        "time": "07:48",
+        "word": "w0",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-26",
+        "time": "19:48",
+        "word": "w9",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-11",
+        "time": "18:48",
+        "word": "w14",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-02",
+        "time": "09:48",
+        "word": "w12",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-10",
+        "time": "12:48",
+        "word": "w4",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-08",
+        "time": "15:48",
+        "word": "w18",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-31",
+        "time": "15:48",
+        "word": "w8",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-03",
+        "time": "07:48",
+        "word": "w15",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-31",
+        "time": "18:48",
+        "word": "w4",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-13",
+        "time": "18:48",
+        "word": "w3",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-24",
+        "time": "08:48",
+        "word": "w2",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-25",
+        "time": "19:48",
+        "word": "w11",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-24",
+        "time": "18:48",
+        "word": "w3",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-05",
+        "time": "17:48",
+        "word": "w1",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-24",
+        "time": "18:48",
+        "word": "w14",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-28",
+        "time": "12:48",
+        "word": "w15",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-09",
+        "time": "13:48",
+        "word": "w8",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-27",
+        "time": "15:48",
+        "word": "w17",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-25",
+        "time": "14:48",
+        "word": "w11",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-12",
+        "time": "11:48",
+        "word": "w3",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-28",
+        "time": "15:48",
+        "word": "w13",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-09",
+        "time": "15:48",
+        "word": "w19",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-27",
+        "time": "10:48",
+        "word": "w8",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-29",
+        "time": "08:48",
+        "word": "w6",
+        "result": "wrong",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-02",
+        "time": "10:48",
+        "word": "w5",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-08-26",
+        "time": "08:48",
+        "word": "w1",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-28",
+        "time": "08:48",
+        "word": "w6",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-25",
+        "time": "12:48",
+        "word": "w4",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-05",
+        "time": "16:48",
+        "word": "w1",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-10",
+        "time": "16:48",
+        "word": "w9",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-03",
+        "time": "19:48",
+        "word": "w19",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "target"
+      },
+      {
+        "date": "2026-09-11",
+        "time": "08:48",
+        "word": "w10",
+        "result": "correct",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-08-25",
+        "time": "08:48",
+        "word": "w10",
+        "result": "blank",
+        "given": "a",
+        "expected": "b",
+        "prompt": "c",
+        "direction": "source"
+      },
+      {
+        "date": "2026-09-13",
+        "time": "19:48",
+        "word": "w1",
+        "result": "correct",
+        "given": "",
+        "expected": "",
+        "prompt": "",
+        "direction": ""
+      }
+    ],
+    "answer_log_days": 30,
+    "word_types": {
+      "noun": 50
+    },
+    "balance": 0,
+    "redeemed_14": [
+      [
+        "31 Ağu",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "1 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "2 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "3 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "4 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "5 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "6 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "7 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "8 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "9 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "10 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "11 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "12 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "13 Eyl",
+        0,
+        "#9a9ac0"
+      ]
+    ],
+    "redeemed_total": 0,
+    "redeemed_weekly": [
+      [
+        "20 Tem +",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "27 Tem +",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "3 Ağu +",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "10 Ağu +",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "17 Ağu +",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "24 Ağu +",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "31 Ağu +",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "Bu hafta",
+        0,
+        "#9a9ac0"
+      ]
+    ],
+    "spent_14": [
+      [
+        "31 Ağu",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "1 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "2 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "3 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "4 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "5 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "6 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "7 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "8 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "9 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "10 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "11 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "12 Eyl",
+        0,
+        "#9a9ac0"
+      ],
+      [
+        "13 Eyl",
+        0,
+        "#9a9ac0"
+      ]
+    ],
+    "spent_total": 0,
+    "earned_14": [
+      [
+        "31 Ağu",
+        21,
+        "#42d6a4"
+      ],
+      [
+        "1 Eyl",
+        14,
+        "#42d6a4"
+      ],
+      [
+        "2 Eyl",
+        28,
+        "#42d6a4"
+      ],
+      [
+        "3 Eyl",
+        28,
+        "#42d6a4"
+      ],
+      [
+        "4 Eyl",
+        28,
+        "#42d6a4"
+      ],
+      [
+        "5 Eyl",
+        77,
+        "#42d6a4"
+      ],
+      [
+        "6 Eyl",
+        28,
+        "#42d6a4"
+      ],
+      [
+        "7 Eyl",
+        7,
+        "#42d6a4"
+      ],
+      [
+        "8 Eyl",
+        28,
+        "#42d6a4"
+      ],
+      [
+        "9 Eyl",
+        42,
+        "#42d6a4"
+      ],
+      [
+        "10 Eyl",
+        14,
+        "#42d6a4"
+      ],
+      [
+        "11 Eyl",
+        35,
+        "#42d6a4"
+      ],
+      [
+        "12 Eyl",
+        42,
+        "#42d6a4"
+      ],
+      [
+        "13 Eyl",
+        49,
+        "#42d6a4"
+      ]
+    ],
+    "earned_total": 721,
+    "earned_week": 217,
+    "spent_week": 0,
+    "minutes_week": 0,
+    "redeemed_today": 0,
+    "redeemed_tomorrow": 0,
+    "max_today": 0,
+    "max_tomorrow": 0,
+    "current_rate": 5.0,
+    "price_brackets": [
+      [
+        0,
+        5.0
+      ],
+      [
+        1,
+        7.5
+      ],
+      [
+        2,
+        10.0
+      ],
+      [
+        3,
+        12.5
+      ]
+    ],
+    "base_rate": 5,
+    "escalation": 0.5,
+    "days_to_reset": 1,
+    "last_reset": null,
+    "spark_minutes_30": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

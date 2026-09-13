@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.3] - 2026-09-13
+
+Daily time-budget release: a parent can now cap how long the child spends
+answering questions in a day, and every answer's duration is logged so the cap
+has something real to measure against.
+
+### Added
+- **Daily Coalide time limit (`DAILY_COALIDE_TIME_LIMIT`)** — a per-day budget
+  in seconds for time spent answering questions (`0` = off, the default). The
+  quiz shows the remaining budget above each question, coloured green, yellow
+  under 30% and red under 10%, and stops with *"Günlük süre sınırına
+  ulaştınız"* back to the main menu once it is used up. The limit is enforced
+  both before a question is asked and while one is on screen: the answer
+  timeout becomes the smaller of `INPUT_TIMEOUT` and whatever is left of the
+  day's budget, so a single long answer cannot run past the cap — and a timeout
+  caused by the daily limit is reported as such instead of as "answer faster".
+  The key is described in the admin panel alongside the other config keys.
+- **Per-answer durations in `statistics.csv`** — a new `time_spent` column
+  records how many seconds each question took. `record_answer()` takes the
+  value and `read_log_rows()` exposes it; rows written by older builds (three
+  or seven columns) are still read, with `time_spent` left as `None` rather
+  than counted as zero.
+- **`User.get_total_time_spent_today()` and `User.aprox_time_taken()`** — the
+  day's total and a windowed average seconds-per-question, both summed from the
+  logged durations. Rows with no recorded duration are skipped rather than
+  treated as zero, so a pre-upgrade log cannot understate a total or drag an
+  average down. Neither raises: an unreadable log simply reads as `0.0`.
+
 ### Fixed
 - Several rounds of corrections to `words.json`: mismatched example sentences,
   weak or wrong Turkish glosses, two article errors and a number of Turkish
@@ -303,7 +331,8 @@ Tagged snapshot of the early legacy line.
 - Password-protected admin console (`set` / `dset` / `show`) and `-debug` mode.
 - Automatic data backups and optional `words.csv` auto-update.
 
-[Unreleased]: https://github.com/MelihAydinYanibol/Coalide/compare/v2.3.2...HEAD
+[Unreleased]: https://github.com/MelihAydinYanibol/Coalide/compare/v2.3.3...HEAD
+[2.3.3]: https://github.com/MelihAydinYanibol/Coalide/compare/v2.3.2...v2.3.3
 [2.3.2]: https://github.com/MelihAydinYanibol/Coalide/compare/v2.3.1...v2.3.2
 [2.3.1]: https://github.com/MelihAydinYanibol/Coalide/compare/v2.3.0...v2.3.1
 [2.3.0]: https://github.com/MelihAydinYanibol/Coalide/compare/v2.2.2_0...v2.3.0

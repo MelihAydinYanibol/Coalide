@@ -24,7 +24,7 @@ The project ships **three surfaces**, all sharing the same `words.json` and the 
 
 The vocabulary database covers the full **Oxford 3000** — 3,012 words with example sentences, word types and multiple accepted Turkish meanings.
 
-> **Status:** `v2.3.2` — see [CHANGELOG.md](CHANGELOG.md) for the full history.
+> **Status:** `v2.3.3` — see [CHANGELOG.md](CHANGELOG.md) for the full history.
 
 ---
 
@@ -282,7 +282,7 @@ Coalide/
 | `.env` | Secrets & server URLs |
 | `config.json` | Configuration (recreated with defaults if deleted) |
 | `progress.json` | Per-word SM-2 state and attempt history (keyed by word) |
-| `statistics.csv` | One row per answered question (time, word, result, given, expected, prompt, direction) |
+| `statistics.csv` | One row per answered question (time, word, result, given, expected, prompt, direction, time spent) |
 | `current_user.json` | The currently logged-in username |
 | `<username>_data.json` | That user's credit balance & redeemed-minutes history |
 | `.pending_question.json` | The question currently on screen, so restarting can't re-roll it |
@@ -337,6 +337,7 @@ Words live in `words.json` as static definitions; all learning state lives separ
 | `ESCALATION_PER_HOUR` | `0.5` | Per-hour price escalation for same-date redemptions |
 | `SPAM_PROTECTION` | `true` | Reject answers submitted in under 2 seconds |
 | `INPUT_TIMEOUT` | `0` | Per-question answer time limit in seconds (`0` = unlimited) |
+| `DAILY_COALIDE_TIME_LIMIT` | `0` | Daily limit in seconds on time spent answering questions (`0` = unlimited) |
 | `Credit_Reset_Weekly` | `true` | Reset balances every Monday |
 | `Credit_Window_Start` | `07:00` | Time of day credit earning starts |
 | `Credit_Window_End` | `22:00` | Time of day credit earning stops |
@@ -465,4 +466,4 @@ Licensed under the **GNU General Public License v3.0** — see [LICENSE](LICENSE
 
 ---
 
-**Last Updated:** September 2026 · **Version:** v2.3.2
+**Last Updated:** September 2026 · **Version:** v2.3.3

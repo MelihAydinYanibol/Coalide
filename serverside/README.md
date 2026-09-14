@@ -48,6 +48,12 @@ started logging in 2.3.3 and from the question direction it has logged since
 2.3.0. A client older than those simply doesn't send the figures, and the tab
 says so instead of drawing empty charts.
 
+When a daily time limit is set (`DAILY_COALIDE_TIME_LIMIT`), the *Hız Özeti*
+card and the *Özet* card on **Genel Bakış** also show the same "at this pace"
+estimate the child sees on the app's main menu: how many more questions the
+remaining time is good for, at today's average seconds per question (before the
+day's first timed answer it falls back to the all-time average and says so).
+
 ## Pointing the child's app at it
 
 In the child's `config.json` (created on first run), set:

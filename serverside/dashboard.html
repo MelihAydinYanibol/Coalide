@@ -186,6 +186,9 @@
   /* KPI tiles */
   .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
   .kpis.pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* One tile per row — reads better stacked beside a progress ring. Beats the
+     narrow-screen rule below on specificity, so it stacks at every width. */
+  .kpis.stack { grid-template-columns: 1fr; }
   .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 15px; position: relative; overflow: hidden; }
   .kpi::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent, var(--purple)); }
   .kpi .l { font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
@@ -971,6 +974,7 @@ function successBody(st, counts, rate, empty) {
 function pageGenel(st) {
   const root = el("div", "grid");
   const lt = st.log_totals || {};
+  const pace = paceProjection(st);
 
   root.appendChild(gcol(6, successCard(st)));
 
@@ -986,6 +990,9 @@ function pageGenel(st) {
     // Older clients don't report durations at all — leave the tile out rather
     // than showing a zero that looks like "didn't study today".
     ...(st.time_today == null ? [] : [{ label: "Bugün çalışma", value: toMin(st.time_today), unit: "dk", color: C.blue }]),
+    // With a daily budget on, the pace projection from the app's main menu:
+    // how many more questions the time that is left is good for.
+    ...(pace == null ? [] : [{ label: "Bu hızda kalan", value: pace.questions, unit: "soru", color: budgetColor(num(st.limit_used_pct)) }]),
   ]));
   root.appendChild(gcol(6, kpiCard));
 
@@ -1505,6 +1512,22 @@ const secFmt = v => fmtNum(v) + " sn";
 // Share of the daily budget used: green while there is room, red at the end.
 function budgetColor(pct) { return pct < 70 ? C.green : pct < 90 ? C.yellow : C.red; }
 
+// "At this pace" projection — the same figure the child sees on the app's main
+// menu: how many more questions fit into what is left of today's budget.
+// Today's own average is the honest pace to project from, but before the first
+// timed answer of the day there isn't one, so fall back to the all-time
+// average and say so. Returns null when there is no budget, or no pace yet
+// (a client older than 2.3.3 sends neither average).
+function paceProjection(st) {
+  const limit = num(st.daily_time_limit);
+  if (limit <= 0) return null;
+  const today = num(st.time_avg_today);
+  const avg = today > 0 ? today : num(st.time_avg);
+  if (avg <= 0) return null;
+  const remaining = num(st.time_remaining);
+  return { avg, remaining, fromToday: today > 0, questions: Math.floor(remaining / avg) };
+}
+
 function timeBudgetCard(st) {
   const limit = num(st.daily_time_limit);
   const c = card("Günlük Süre Bütçesi", limit ? `sınır ${fmtDur(limit)}` : "sınır kapalı");
@@ -1519,7 +1542,7 @@ function timeBudgetCard(st) {
   meta.appendChild(kpiRow([
     { label: "Bugün", value: toMin(st.time_today), unit: "dk", color: C.purple },
     { label: limit ? "Kalan" : "Günlük sınır", value: limit ? toMin(st.time_remaining) : 0, unit: "dk", color: limit ? budgetColor(used) : C.muted },
-  ], "pair"));
+  ], "stack"));
   meta.appendChild(txt("p", "note", limit
     ? `Bugün ${fmtDur(st.time_today)} soru cevaplandı, günlük ${fmtDur(limit)} bütçenin %${Math.round(used)}'i. `
       + `Bütçe dolduğunda quiz ana menüye döner.`
@@ -1533,6 +1556,7 @@ function timeBudgetCard(st) {
 function pageSure(st) {
   const root = el("div", "grid");
   const hasTime = num(st.timed_count) > 0;
+  const pace = paceProjection(st);
 
   if (st.timed_count == null) {
     const iCard = card("Süre Kaydı", "");
@@ -1547,6 +1571,9 @@ function pageSure(st) {
     sCard._body.appendChild(kpiRow([
       // kpiRow formats the raw value itself — pass numbers, not pre-formatted text.
       { label: "Ortalama cevap", value: num(st.time_avg), unit: "sn", color: C.green },
+      // Reported since the Süre & Hız release; an older snapshot omits the key
+      // entirely, and a 0 there would read as "answered nothing today".
+      ...(st.time_avg_today == null ? [] : [{ label: "Bugün ort.", value: num(st.time_avg_today), unit: "sn", color: C.green }]),
       { label: "Ortanca", value: num(st.time_median), unit: "sn", color: C.blue },
       { label: "Son 7 gün ort.", value: num(st.time_avg_7), unit: "sn", color: C.purple },
       { label: "Bu hafta", value: toMin(st.time_week), unit: "dk", color: C.purple },
@@ -1555,7 +1582,13 @@ function pageSure(st) {
       { label: "Kredi / dk", value: num(st.credits_per_minute), color: C.yellow },
       { label: "En hızlı", value: num(st.time_fastest), unit: "sn", color: C.green },
       { label: "En yavaş", value: num(st.time_slowest), unit: "sn", color: C.red },
+      // The app's main-menu estimate: what the rest of today's budget is worth
+      // at this pace. Only with a daily limit and a pace to project from.
+      ...(pace == null ? [] : [{ label: "Bu hızda kalan", value: pace.questions, unit: "soru", color: budgetColor(num(st.limit_used_pct)) }]),
     ]));
+    if (pace) sCard._body.appendChild(txt("p", "note",
+      `Kalan ${fmtDur(pace.remaining)} bu hızda ${fmtNum(pace.questions)} soru daha demek `
+      + `(ort. ${fmtDur(pace.avg)}/soru${pace.fromToday ? "" : " — bugünkü ortalama yok, tüm zamanlar ortalaması"}).`));
     if (!hasTime) sCard._body.appendChild(txt("p", "note", "Henüz süresi kayıtlı cevap yok — quiz çözüldükçe dolacak."));
     root.appendChild(gcol(7, sCard));
   }

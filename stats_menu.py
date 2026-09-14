@@ -511,6 +511,14 @@ def build_stats() -> dict:
     time_remaining = max(0.0, daily_time_limit - time_today) if daily_time_limit else 0.0
     limit_used_pct = (min(100.0, time_today / daily_time_limit * 100)
                       if daily_time_limit else 0.0)
+    # How many more questions the remaining budget is worth at the current
+    # pace -- the same projection the main menu shows under "Kalan Süre".
+    # Today's average is the honest pace, but at the start of a day nothing
+    # is logged yet, so fall back to the all-time average rather than
+    # showing nothing.
+    pace_seconds = time_avg_today or time_avg
+    questions_left = (int(time_remaining / pace_seconds)
+                      if daily_time_limit and pace_seconds else 0)
 
     time_14 = []
     for i in range(13, -1, -1):
@@ -677,6 +685,8 @@ def build_stats() -> dict:
         "daily_time_limit": daily_time_limit,
         "time_remaining": time_remaining,
         "limit_used_pct": limit_used_pct,
+        "pace_seconds": pace_seconds,
+        "questions_left": questions_left,
         "time_14": time_14,
         "spark_time_30": spark_time_30,
         "seconds_by_date": seconds_by_date,
@@ -1108,6 +1118,7 @@ class StatsApp(App):
             ("⏱ Bugün (dk)", round(s["time_today"] / 60), "t-purple"),
             ("🎯 Günlük Limit (dk)", round(limit / 60) if limit else 0, "t-yellow"),
             ("⏳ Kalan (dk)", round(s["time_remaining"] / 60) if limit else 0, "t-green"),
+            ("🔮 Kalan Soru", s["questions_left"] if limit else 0, "t-green"),
             ("⚡ Ort. Cevap (sn)", f"{s['time_avg']:.1f}", "t-green"),
             ("📅 Bu Hafta (dk)", round(s["time_week"] / 60), "t-purple"),
             ("♾️ Toplam (sa)", f"{s['time_total'] / 3600:.1f}", "t-yellow"),
@@ -1133,6 +1144,11 @@ class StatsApp(App):
                      f"   [{MUTED}]Bugün:[/] [bold {lc}]{_fmt_duration(s['time_today'])} "
                      f"(%{used:.0f})[/]"
                      f"   [{MUTED}]Kalan:[/] [bold {lc}]{_fmt_duration(s['time_remaining'])}[/]")
+            if s["pace_seconds"]:
+                body += (f"\n[{MUTED}]Bu hızda gidersen[/] "
+                         f"[bold {lc}]{s['questions_left']} soru[/] "
+                         f"[{MUTED}]daha çözebilirsin "
+                         f"(ort. {s['pace_seconds']:.1f} sn/soru).[/]")
         else:
             body += (f"\n\n[{MUTED}]Günlük süre sınırı kapalı "
                      f"(DAILY_COALIDE_TIME_LIMIT = 0).[/]")

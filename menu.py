@@ -348,8 +348,16 @@ class MainMenu(Screen):
         remaining = max(0.0, limit - spent)
         used_pct = min(100.0, spent / limit * 100)
         color = "green" if used_pct < 70 else "yellow" if used_pct < 90 else "red"
-        return (f"⏱  Kalan Süre:   [b][{color}]{_format_mmss(remaining)}[/{color}][/b] "
-                f"| Bu hızda gidersen {int(remaining/user.aprox_time_taken())} soru daha çözebilirsin. (Ort. {_format_mmss(user.aprox_time_taken())}/soru)")
+        text = f"⏱  Kalan Süre:   [b][{color}]{_format_mmss(remaining)}[/{color}][/b]"
+        # Today's average is the honest pace, but nothing is logged yet at the
+        # start of a day, so fall back to the all-time average. With neither
+        # (a fresh install) there is no pace to project from, so say nothing
+        # rather than dividing by zero.
+        pace = user.aprox_time_taken() or user.aprox_time_taken("1970-01-01")
+        if pace > 0:
+            text += (f" | Bu hızda gidersen {int(remaining / pace)} soru daha "
+                     f"çözebilirsin. (Ort. {_format_mmss(pace)}/soru)")
+        return text
 
     def refresh_stats(self) -> None:
         """Reload the current user and update the stats panel in place.
@@ -361,7 +369,10 @@ class MainMenu(Screen):
         self.query_one("#stat-balance", Static).update(self._balance_text(user))
         self.query_one("#stat-max", Static).update(self._max_text(user))
         self.query_one("#stat-used", Static).update(self._used_text(user))
-        self.query_one("#stat-time", Static).update(self._time_info(user))
+        # Only composed when a daily limit is set, so it may not be there.
+        time_row = self.query("#stat-time")
+        if time_row:
+            time_row.first(Static).update(self._time_info(user))
         # A quiz/redeem flow just changed the data — push the update too.
         report_stats_async()
 

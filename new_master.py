@@ -141,13 +141,16 @@ def check_and_update_words(github_repo, github_token=None, local_file="words.jso
         return False
 
 def _format_mmss(seconds: float) -> str:
-    """Format a duration given in seconds as 'M dk S sn' (Turkish minutes/seconds)."""
+    """Format a duration given in seconds as 'x dk y sn'"""
     total_seconds = max(0, int(round(seconds)))
     minutes, secs = divmod(total_seconds, 60)
-    return f"{minutes} dk {secs} sn"
+    parts = []
+    if minutes > 0:
+        parts.append(f"{minutes} dk")
+    if secs > 0 or not parts:
+        parts.append(f"{secs} sn")
+    return " ".join(parts)
 
-
-# will make this a loop instead of a recursive function, but for now, this is fine. I will also add a way to exit the loop gracefully.
 def quest(user, current_question: Question = None):
     import time
     feed = []

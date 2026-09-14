@@ -112,7 +112,18 @@ class User:
         except Exception:
             return 0.0
 
-    def aprox_time_taken(self, window_start_date: str, window_end_date: str) -> float:
+    def get_daily_time_limit(self) -> int:
+        """
+        The total number of seconds the user is allowed to spend answering
+        questions on a given day, this returns configs "DAILY_COALIDE_TIME_LIMIT" in seconds. If the config is missing or invalid, defaults to 0.
+        """
+        cfg = get_config()
+        try:
+            return int(cfg.get("DAILY_COALIDE_TIME_LIMIT", 0))
+        except (TypeError, ValueError):
+            return 0
+
+    def aprox_time_taken(self, window_start_date: str=None, window_end_date: str=None) -> float:
         """
         Approximate average seconds spent per answered question between
         window_start_date and window_end_date (inclusive ISO date strings,
@@ -120,11 +131,19 @@ class User:
         per-question figure -- rows with no time_spent (pre-upgrade or a
         failed log write) are skipped rather than counted as zero, since
         that would drag the average down for a reason unrelated to how long
-        the question actually took.
+        the question actually took. If window_start_date and window_end_date are not given, defaults to today.
 
         :return: average seconds per question, or 0.0 if nothing usable was
                  logged in that window. Never raises.
         """
+        if not window_start_date and not window_end_date:
+            window_start_date = date.today().isoformat()
+            window_end_date = date.today().isoformat()
+        if not window_start_date and window_end_date:
+            window_start_date = "1970-01-01"
+        if window_start_date and not window_end_date:
+            window_end_date = date.today().isoformat()
+
         try:
             start = date.fromisoformat(window_start_date)
             end = date.fromisoformat(window_end_date)

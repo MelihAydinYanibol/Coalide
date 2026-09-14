@@ -65,6 +65,17 @@ def _app_version() -> str:
     except Exception:
         return FALLBACK_VERSION
 
+def _format_mmss(seconds: float) -> str:
+    """Format a duration given in seconds as 'x dk y sn'"""
+    total_seconds = max(0, int(round(seconds)))
+    minutes, secs = divmod(total_seconds, 60)
+    parts = []
+    if minutes > 0:
+        parts.append(f"{minutes} dk")
+    if secs > 0 or not parts:
+        parts.append(f"{secs} sn")
+    return " ".join(parts)
+
 
 # Inspirational quotes shown at the bottom of the menu — one picked at random
 # each time the menu opens. A mix of Harry Potter, Star Wars, Star Trek and a
@@ -306,6 +317,8 @@ class MainMenu(Screen):
                 yield Static(self._balance_text(user), id="stat-balance", classes="stat-row")
                 yield Static(self._max_text(user), id="stat-max", classes="stat-row")
                 yield Static(self._used_text(user), id="stat-used", classes="stat-row")
+                if user.get_daily_time_limit() > 0:
+                    yield Static(self._time_info(user), id="stat-time", classes="stat-row")
                 # Easter egg: click this quote to re-roll it (see on_click).
                 yield Static(self._random_quote_text(), id="quote")
         yield Static(_app_version(), id="version")
@@ -326,6 +339,18 @@ class MainMenu(Screen):
         tomorrow = (date.today() + timedelta(days=1)).isoformat()
         return f"✅ Kullanılan:   [b]{user.redeemed_minutes_by_date.get(today, 0)} dk (Bugün) | {user.redeemed_minutes_by_date.get(tomorrow, 0)} dk (Yarın)[/b]"
 
+    @staticmethod
+    def _time_info(user) -> str:
+        limit = user.get_daily_time_limit()
+        if limit <= 0:
+            return "⏱  Kalan Süre:   [b]Sınırsız[/b]"
+        spent = user.get_total_time_spent_today()
+        remaining = max(0.0, limit - spent)
+        used_pct = min(100.0, spent / limit * 100)
+        color = "green" if used_pct < 70 else "yellow" if used_pct < 90 else "red"
+        return (f"⏱  Kalan Süre:   [b][{color}]{_format_mmss(remaining)}[/{color}][/b] "
+                f"| Bu hızda gidersen {int(remaining/user.aprox_time_taken())} soru daha çözebilirsin. (Ort. {_format_mmss(user.aprox_time_taken())}/soru)")
+
     def refresh_stats(self) -> None:
         """Reload the current user and update the stats panel in place.
 
@@ -336,6 +361,7 @@ class MainMenu(Screen):
         self.query_one("#stat-balance", Static).update(self._balance_text(user))
         self.query_one("#stat-max", Static).update(self._max_text(user))
         self.query_one("#stat-used", Static).update(self._used_text(user))
+        self.query_one("#stat-time", Static).update(self._time_info(user))
         # A quiz/redeem flow just changed the data — push the update too.
         report_stats_async()
 

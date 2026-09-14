@@ -971,6 +971,7 @@ function successBody(st, counts, rate, empty) {
 function pageGenel(st) {
   const root = el("div", "grid");
   const lt = st.log_totals || {};
+  const pace = paceProjection(st);
 
   root.appendChild(gcol(6, successCard(st)));
 
@@ -986,6 +987,9 @@ function pageGenel(st) {
     // Older clients don't report durations at all — leave the tile out rather
     // than showing a zero that looks like "didn't study today".
     ...(st.time_today == null ? [] : [{ label: "Bugün çalışma", value: toMin(st.time_today), unit: "dk", color: C.blue }]),
+    // With a daily budget on, the pace projection from the app's main menu:
+    // how many more questions the time that is left is good for.
+    ...(pace == null ? [] : [{ label: "Bu hızda kalan", value: pace.questions, unit: "soru", color: budgetColor(num(st.limit_used_pct)) }]),
   ]));
   root.appendChild(gcol(6, kpiCard));
 
@@ -1505,6 +1509,22 @@ const secFmt = v => fmtNum(v) + " sn";
 // Share of the daily budget used: green while there is room, red at the end.
 function budgetColor(pct) { return pct < 70 ? C.green : pct < 90 ? C.yellow : C.red; }
 
+// "At this pace" projection — the same figure the child sees on the app's main
+// menu: how many more questions fit into what is left of today's budget.
+// Today's own average is the honest pace to project from, but before the first
+// timed answer of the day there isn't one, so fall back to the all-time
+// average and say so. Returns null when there is no budget, or no pace yet
+// (a client older than 2.3.3 sends neither average).
+function paceProjection(st) {
+  const limit = num(st.daily_time_limit);
+  if (limit <= 0) return null;
+  const today = num(st.time_avg_today);
+  const avg = today > 0 ? today : num(st.time_avg);
+  if (avg <= 0) return null;
+  const remaining = num(st.time_remaining);
+  return { avg, remaining, fromToday: today > 0, questions: Math.floor(remaining / avg) };
+}
+
 function timeBudgetCard(st) {
   const limit = num(st.daily_time_limit);
   const c = card("Günlük Süre Bütçesi", limit ? `sınır ${fmtDur(limit)}` : "sınır kapalı");
@@ -1516,13 +1536,20 @@ function timeBudgetCard(st) {
     wrap.appendChild(rw);
   }
   const meta = el("div", "meta");
-  meta.appendChild(kpiRow([
+  const proj = paceProjection(st);
+  const tiles = [
     { label: "Bugün", value: toMin(st.time_today), unit: "dk", color: C.purple },
     { label: limit ? "Kalan" : "Günlük sınır", value: limit ? toMin(st.time_remaining) : 0, unit: "dk", color: limit ? budgetColor(used) : C.muted },
-  ], "pair"));
+  ];
+  if (proj) tiles.push({ label: "Bu hızda kalan", value: proj.questions, unit: "soru", color: budgetColor(used) });
+  meta.appendChild(kpiRow(tiles, tiles.length === 2 ? "pair" : null));
   meta.appendChild(txt("p", "note", limit
     ? `Bugün ${fmtDur(st.time_today)} soru cevaplandı, günlük ${fmtDur(limit)} bütçenin %${Math.round(used)}'i. `
       + `Bütçe dolduğunda quiz ana menüye döner.`
+      + (proj
+          ? ` Kalan ${fmtDur(proj.remaining)} ile bu hızda ${fmtNum(proj.questions)} soru daha çözebilir `
+            + `(ort. ${fmtDur(proj.avg)}/soru${proj.fromToday ? "" : " — bugünkü ortalama yok, tüm zamanlar ortalaması"}).`
+          : "")
     : "Günlük süre sınırı kapalı (DAILY_COALIDE_TIME_LIMIT = 0). "
       + `Bugün soru başında geçen süre: ${fmtDur(st.time_today)}.`));
   wrap.appendChild(meta);
@@ -1547,6 +1574,9 @@ function pageSure(st) {
     sCard._body.appendChild(kpiRow([
       // kpiRow formats the raw value itself — pass numbers, not pre-formatted text.
       { label: "Ortalama cevap", value: num(st.time_avg), unit: "sn", color: C.green },
+      // Reported since the Süre & Hız release; an older snapshot omits the key
+      // entirely, and a 0 there would read as "answered nothing today".
+      ...(st.time_avg_today == null ? [] : [{ label: "Bugün ort.", value: num(st.time_avg_today), unit: "sn", color: C.green }]),
       { label: "Ortanca", value: num(st.time_median), unit: "sn", color: C.blue },
       { label: "Son 7 gün ort.", value: num(st.time_avg_7), unit: "sn", color: C.purple },
       { label: "Bu hafta", value: toMin(st.time_week), unit: "dk", color: C.purple },

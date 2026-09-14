@@ -348,8 +348,14 @@ class MainMenu(Screen):
         remaining = max(0.0, limit - spent)
         used_pct = min(100.0, spent / limit * 100)
         color = "green" if used_pct < 70 else "yellow" if used_pct < 90 else "red"
-        return (f"⏱  Kalan Süre:   [b][{color}]{_format_mmss(remaining)}[/{color}][/b] "
-                f"| Bu hızda gidersen {int(remaining/user.aprox_time_taken())} soru daha çözebilirsin. (Ort. {_format_mmss(user.aprox_time_taken())}/soru)")
+        line = f"⏱  Kalan Süre:   [b][{color}]{_format_mmss(remaining)}[/{color}][/b]"
+        # aprox_time_taken() is 0.0 until the first timed answer of the day —
+        # there is no pace to project from yet, so just show the time left.
+        avg = user.aprox_time_taken()
+        if avg > 0:
+            line += (f" | Bu hızda gidersen {int(remaining / avg)} soru daha çözebilirsin. "
+                     f"(Ort. {_format_mmss(avg)}/soru)")
+        return line
 
     def refresh_stats(self) -> None:
         """Reload the current user and update the stats panel in place.
@@ -361,7 +367,10 @@ class MainMenu(Screen):
         self.query_one("#stat-balance", Static).update(self._balance_text(user))
         self.query_one("#stat-max", Static).update(self._max_text(user))
         self.query_one("#stat-used", Static).update(self._used_text(user))
-        self.query_one("#stat-time", Static).update(self._time_info(user))
+        # The row only exists when a daily limit is configured (see compose).
+        time_row = self.query("#stat-time")
+        if time_row:
+            time_row.first(Static).update(self._time_info(user))
         # A quiz/redeem flow just changed the data — push the update too.
         report_stats_async()
 

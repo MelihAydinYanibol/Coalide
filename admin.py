@@ -38,6 +38,7 @@ WORD_TYPES = ["noun", "verb", "adjective", "adverb", "pronoun", "preposition", "
 CONFIG_DESCRIPTIONS = {
     "Daily_New_Word_Cap": "Bir günde en fazla kaç yeni kelime tanıtılır.",
     "No_Repeat_Window": "Aynı kelime tekrar sorulmadan önce kaç soru geçmeli.",
+    "SHUFFLE_NEW_WORDS": "Yeni kelimeler liste sırasıyla değil rastgele tanıtılsın mı.",
     "Repo_Owner": "Güncellemelerin indirildiği GitHub kullanıcısı.",
     "Repo_Name": "Güncellemelerin indirildiği GitHub deposu.",
     "Update_Prereleases": "Ön sürüm (beta) güncellemeleri de yüklensin mi.",
@@ -59,6 +60,10 @@ CONFIG_DESCRIPTIONS = {
     "BYPASS_SHORTCUTS": "Alt+Tab / Windows tuşu gibi kaçış kısayollarını engelle.",
     "Credit_Window_Start": "Kredi kazanmanın başladığı saat (SS:DD, örn. 07:00).",
     "Credit_Window_End": "Kredi kazanmanın bittiği saat (SS:DD, örn. 22:00).",
+    "REQUIRE_INTERNET": "İnternet yoksa quiz başlatılmasın.",
+    "STATS_REPORTING_ENABLED": "İstatistikleri veli sunucusuna gönder.",
+    "STATS_SERVER_URL": "Veli sunucusunun adresi (istatistik ve senkronizasyon).",
+    "CONFIG_SYNC_ENABLED": "Ayar/kelime değişikliklerini sunucudan çek ve uygula.",
 }
 
 

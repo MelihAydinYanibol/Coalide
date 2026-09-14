@@ -186,6 +186,9 @@
   /* KPI tiles */
   .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
   .kpis.pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* One tile per row — reads better stacked beside a progress ring. Beats the
+     narrow-screen rule below on specificity, so it stacks at every width. */
+  .kpis.stack { grid-template-columns: 1fr; }
   .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 15px; position: relative; overflow: hidden; }
   .kpi::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent, var(--purple)); }
   .kpi .l { font-size: 11.5px; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
@@ -1539,7 +1542,7 @@ function timeBudgetCard(st) {
   meta.appendChild(kpiRow([
     { label: "Bugün", value: toMin(st.time_today), unit: "dk", color: C.purple },
     { label: limit ? "Kalan" : "Günlük sınır", value: limit ? toMin(st.time_remaining) : 0, unit: "dk", color: limit ? budgetColor(used) : C.muted },
-  ], "pair"));
+  ], "stack"));
   meta.appendChild(txt("p", "note", limit
     ? `Bugün ${fmtDur(st.time_today)} soru cevaplandı, günlük ${fmtDur(limit)} bütçenin %${Math.round(used)}'i. `
       + `Bütçe dolduğunda quiz ana menüye döner.`

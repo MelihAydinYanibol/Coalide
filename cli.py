@@ -15,7 +15,8 @@ STATIC_FILE_PATTERNS = [
     "statistics.csv",
     "daily_stats.csv",
     "analytics.csv",
-    "words.csv",
+    "words.json",
+    "words.csv",  # legacy file name
     "config.json",
     "sent_tg_messages.json",
     "*_data.json",  # per-user balance/credits files
@@ -135,7 +136,7 @@ def release_ready(target_dir="."):
 if sys.argv[1:]:
     if "-pack-data" in sys.argv[1:]:
         if "--help" in sys.argv[2:]:
-            print("Usage: -pack-data\nThis command packages important data files into a 'packaged_data' folder for backup. It collects files such as 'statistics.csv', 'daily_stats.csv', 'analytics.csv', 'words.csv', 'config.json', and 'sent_tg_messages.json' and copies them into a new folder named 'packaged_data'. If the folder already exists, it will be cleared before copying the files. This is useful for creating a backup of your data or transferring it to another location.")
+            print("Usage: -pack-data\nThis command packages important data files into a 'packaged_data' folder for backup. It collects files such as 'statistics.csv', 'daily_stats.csv', 'analytics.csv', 'words.json', 'config.json', and 'sent_tg_messages.json' and copies them into a new folder named 'packaged_data'. If the folder already exists, it will be cleared before copying the files. This is useful for creating a backup of your data or transferring it to another location.")
             sys.exit(0)
 
         pack_data()
@@ -143,7 +144,7 @@ if sys.argv[1:]:
         sys.exit(0)
     elif "-create-tts-cache" in sys.argv[1:]:
         if "--help" in sys.argv[2:]:
-            print("Usage: -create-tts-cache [options]\nThis command generates a TTS cache for words and sentences. It checks for existing audio files in the 'pronunciations' folder and generates missing ones based on the entries in 'words.csv'.\n\nOptions:\n-gtts : Use Google Text-to-Speech for audio generation (default is ElevenLabs)\n-all : Generate TTS for both words and sentences (default)\n-words : Generate TTS only for words\n-sentences : Generate TTS only for sentences\n-force : Force regeneration of all TTS files by clearing the existing cache")
+            print("Usage: -create-tts-cache [options]\nThis command generates a TTS cache for words and sentences. It checks for existing audio files in the 'pronunciations' folder and generates missing ones based on the entries in 'words.json'.\n\nOptions:\n-gtts : Use Google Text-to-Speech for audio generation (default is ElevenLabs)\n-all : Generate TTS for both words and sentences (default)\n-words : Generate TTS only for words\n-sentences : Generate TTS only for sentences\n-force : Force regeneration of all TTS files by clearing the existing cache")
             sys.exit(0)
 
         mode = "11"

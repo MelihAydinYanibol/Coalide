@@ -58,6 +58,16 @@ def current_user() -> str | None:
     return session.get("username")
 
 
+def _env_flag(name: str, default: bool = False) -> bool:
+    """
+    Parse common boolean environment values safely.
+    """
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def admin_password() -> str:
     """
     The admin password, matching the terminal app: the ADMIN_PASSWORD env var,
@@ -396,4 +406,4 @@ def _today_iso() -> str:
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", DEFAULT_PORT))
-    app.run(host="0.0.0.0", port=port, debug=bool(os.environ.get("COALIDE_DEBUG")))
+    app.run(host="0.0.0.0", port=port, debug=_env_flag("COALIDE_DEBUG"))

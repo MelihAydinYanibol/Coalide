@@ -27,6 +27,7 @@ sys.stderr.reconfigure(encoding='utf-8')
 REPO_OWNER = "MelihAydinYanibol"
 REPO_NAME = "Coalide"
 INCLUDE_PRERELEASES = get_config().get("Update_Prereleases", False)  # Read from config.json
+REQUEST_TIMEOUT = 10
 
 VERSION_FILE = "version.json"
 
@@ -83,12 +84,12 @@ def _get_latest_release():
     """
     if not INCLUDE_PRERELEASES:
         url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/releases/latest"
-        response = requests.get(url)
+        response = requests.get(url, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         return response.json()
 
     url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/releases"
-    response = requests.get(url)
+    response = requests.get(url, timeout=REQUEST_TIMEOUT)
     response.raise_for_status()
     releases = response.json()
     for release in releases:
@@ -138,7 +139,7 @@ def update_application(download_url, new_version=None):
     and replaces the current application files with the new ones.
     """
     try:
-        response = requests.get(download_url)
+        response = requests.get(download_url, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()  # Raise an error for bad responses
 
         # Extract the downloaded zip file
